@@ -40,7 +40,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
         title,
         style: theme.textTheme.titleLarge?.copyWith(
           fontSize: 20,
-          color: AppColors.black, // Force title black
+          color: AppColors.black,
         ),
       ),
 

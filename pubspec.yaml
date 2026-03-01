@@ -20,7 +20,7 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/icons/   # we’ll use later for svg
+    - assets/icons/
     - assets/fonts/
 
   fonts:

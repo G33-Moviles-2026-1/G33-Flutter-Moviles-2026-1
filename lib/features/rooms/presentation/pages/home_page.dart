@@ -10,7 +10,7 @@ class HomePage extends StatelessWidget {
     return AppScaffold(
       currentTab: AppTab.rooms,
       onTabSelected: (tab) {
-        // For now do nothing
+        // TODO
       },
       body: Center(
         child: Text(
