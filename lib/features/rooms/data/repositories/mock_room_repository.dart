@@ -21,10 +21,12 @@ class MockRoomRepository implements RoomRepository {
       "weeklyAvailability": {
         "monday": [
           {"start": "06:30", "end": "08:00"},
-          {"start": "12:00", "end": "14:00"}
+          {"start": "12:00", "end": "13:30"},
+          {"start": "13:30", "end": "14:00"}
         ],
         "tuesday": [
-          {"start": "10:00", "end": "12:00"}
+          {"start": "10:00", "end": "11:30"},
+          {"start": "11:30", "end": "12:00"}
         ],
         "wednesday": [],
         "thursday": [

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../shared/widgets/app_scaffold.dart';
 import '../../../../shared/widgets/app_footer.dart';
+import './../widgets/home_body.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -9,15 +10,10 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppScaffold(
       currentTab: AppTab.rooms,
-      onTabSelected: (tab) {
-        // TODO
+      onTabSelected: (_) {
+        // TODO: routing later
       },
-      body: Center(
-        child: Text(
-          'Home content goes here',
-          style: Theme.of(context).textTheme.bodyLarge,
-        ),
-      ),
+      body: const HomeBody(),
     );
   }
 }
