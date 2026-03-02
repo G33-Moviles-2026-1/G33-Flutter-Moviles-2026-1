@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../shared/theme/theme.dart';
 
+import '../../../bookings/presentation/pages/create_booking_page.dart';
+import '../../domain/entities/room_detail.dart';
+import '../../domain/entities/time_range.dart';
+
 class HomeBody extends StatefulWidget {
   const HomeBody({super.key});
 
@@ -97,6 +101,33 @@ class _HomeBodyState extends State<HomeBody> {
             ],
           ),
         );
+      },
+    );
+  }
+
+  RoomDetail _mockRoomDetail() {
+    return RoomDetail(
+      id: 'ML 517',
+      buildingName: 'Mario Laserna',
+      capacity: 35,
+      reliability: 82.5,
+      isCurrentlyAvailable: true,
+      utilities: const ['Power Outlets', 'Blackout', 'Projector'],
+      weeklyAvailability: {
+        Weekday.monday: const [
+          TimeRange(start: '06:30', end: '08:00'),
+          TimeRange(start: '12:00', end: '13:30'),
+          TimeRange(start: '13:30', end: '14:00'),
+        ],
+        Weekday.tuesday: const [
+          TimeRange(start: '10:00', end: '11:30'),
+          TimeRange(start: '11:30', end: '12:00'),
+        ],
+        Weekday.wednesday: const [],
+        Weekday.thursday: const [TimeRange(start: '08:00', end: '09:30')],
+        Weekday.friday: const [],
+        Weekday.saturday: const [],
+        Weekday.sunday: const [],
       },
     );
   }
@@ -226,9 +257,35 @@ class _HomeBodyState extends State<HomeBody> {
           const SizedBox(height: 10),
 
           // CTA Search button
+          // SizedBox(
+          //   width: double.infinity,
+          //   child: _CtaButton(label: 'Search', onPressed: _onSearch),
+          // ),
+          const SizedBox(height: 12),
+
+          // DEV ONLY: open Create Booking screen
           SizedBox(
             width: double.infinity,
-            child: _CtaButton(label: 'Search', onPressed: _onSearch),
+            child: OutlinedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        CreateBookingPage(roomDetail: _mockRoomDetail()),
+                  ),
+                );
+              },
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.black,
+                side: const BorderSide(color: AppColors.black, width: 1.2),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text('DEV: Open Create Booking'),
+            ),
           ),
         ],
       ),
