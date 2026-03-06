@@ -1,4 +1,3 @@
-import 'package:andespace/features/rooms/presentation/pages/room_detail_page.dart';
 import 'package:flutter/material.dart';
 import 'features/rooms/presentation/pages/home_page.dart';
 import 'shared/theme/theme.dart';
@@ -13,9 +12,7 @@ class AndespaceApp extends StatelessWidget {
       darkTheme: AppTheme.dark(),
       theme: AppTheme.light(),
       themeMode: ThemeMode.light,
-      home: const RoomDetailPage(
-        roomId: "ML 517",
-      ),
+      home: const HomePage(),
     );
   }
 }
