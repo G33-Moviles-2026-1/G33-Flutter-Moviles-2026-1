@@ -92,7 +92,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                     if (email.isEmpty) {
                       return 'Enter your email';
                     }
-                    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+$').hasMatch(email) || !email.endsWith('@uniandes.edu.co') || email.length < 35) {
+                    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+$').hasMatch(email) || !email.endsWith('@uniandes.edu.co') || email.length > 35) {
                       return 'Enter a valid Uniandes email';
                     }
                     return null;
@@ -131,7 +131,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                       return 'Enter your student code';
                     }
 
-                    if (digitsOnly.length == 9) {
+                    if (digitsOnly.length != 9) {
                       return 'The student code must have 9 digits';
                     }
 
@@ -198,7 +198,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                         foregroundColor: const Color.fromARGB(255, 252, 189, 0),
                       ),
                       onPressed: () {
-                        
+
                         Navigator.pushNamed(context, '/login');
                       },
                       child: const Text(
