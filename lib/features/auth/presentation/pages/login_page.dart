@@ -1,3 +1,4 @@
+import 'package:andespace/core/navigation/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/auth_providers.dart';
@@ -151,21 +152,47 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           ),
                   ),
                 ),
-                const SizedBox(height: 12),
-
+                const SizedBox(height: 30),
+                
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text("If you don't have an account,"),
+                    const Text("If you don't have an account, "),
                     TextButton(
                       style: TextButton.styleFrom(
                         foregroundColor: const Color.fromARGB(255, 252, 189, 0),
+                        padding: EdgeInsets.zero,
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
                       onPressed: () {
-                        Navigator.pushNamed(context, '/signup');
+                        Navigator.pushReplacementNamed(context, AppRoutes.signup);
                       },
                       child: const Text(
                         'sign up',
+                        style: TextStyle(fontWeight: FontWeight.w900),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 15),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text("Enter as a "),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        foregroundColor: const Color.fromARGB(255, 252, 189, 0),
+                        padding: EdgeInsets.zero,
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                    
+                      onPressed: () {
+                        Navigator.pushReplacementNamed(context, AppRoutes.home);
+                      },
+                      child: const Text(
+                        'guest',
                         style: TextStyle(fontWeight: FontWeight.w900),
                       ),
                     ),
