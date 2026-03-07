@@ -1,3 +1,5 @@
+import 'package:andespace/features/auth/domain/entities/auth_user.dart';
+
 abstract class AuthRepository {
   Future<void> login({
     required String email,
@@ -12,5 +14,5 @@ abstract class AuthRepository {
 
   Future<void> logout();
 
-  Future<String?> getActiveUser();
+  Future<AuthUser?> getCurrentUser();
 }

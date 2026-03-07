@@ -18,8 +18,8 @@ class AuthApi {
     await dio.post('/logout/');
   }
 
-  Future<String?> me() async {
+  Future<Map<String, dynamic>> me() async {
     final response = await dio.get('/me/');
-    return response.data['active_user'] as String?;
+    return Map<String, dynamic>.from(response.data);
   }
 }

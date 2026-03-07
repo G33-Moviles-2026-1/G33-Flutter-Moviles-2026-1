@@ -3,9 +3,11 @@ import '../../../../core/network/dio_provider.dart';
 import '../../data/datasources/auth_api.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../domain/repositories/auth_repository.dart';
+import '../../domain/usecases/get_current_user_usecase.dart';
 import '../../domain/usecases/login_usecase.dart';
 import '../../domain/usecases/signup_usecase.dart';
 import '../controllers/auth_controller.dart';
+import '../controllers/auth_state.dart';
 
 final authApiProvider = Provider<AuthApi>((ref) {
   return AuthApi(ref.read(dioProvider));
@@ -23,10 +25,15 @@ final signUpUseCaseProvider = Provider<SignUpUseCase>((ref) {
   return SignUpUseCase(ref.read(authRepositoryProvider));
 });
 
+final getCurrentUserUseCaseProvider = Provider<GetCurrentUserUseCase>((ref) {
+  return GetCurrentUserUseCase(ref.read(authRepositoryProvider));
+});
+
 final authControllerProvider =
     StateNotifierProvider<AuthController, AuthState>((ref) {
   return AuthController(
     loginUseCase: ref.read(loginUseCaseProvider),
     signUpUseCase: ref.read(signUpUseCaseProvider),
+    getCurrentUserUseCase: ref.read(getCurrentUserUseCaseProvider),
   );
 });

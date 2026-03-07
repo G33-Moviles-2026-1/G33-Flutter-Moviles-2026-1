@@ -1,40 +1,64 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../domain/usecases/get_current_user_usecase.dart';
 import '../../domain/usecases/login_usecase.dart';
 import '../../domain/usecases/signup_usecase.dart';
-
-class AuthState {
-  final bool isLoading;
-  final String? error;
-  final bool isSuccess;
-
-  const AuthState({this.isLoading = false, this.error, this.isSuccess = false});
-
-  AuthState copyWith({bool? isLoading, String? error, bool? isSuccess}) {
-    return AuthState(
-      isLoading: isLoading ?? this.isLoading,
-      error: error,
-      isSuccess: isSuccess ?? this.isSuccess,
-    );
-  }
-}
+import 'auth_state.dart';
 
 class AuthController extends StateNotifier<AuthState> {
   final LoginUseCase loginUseCase;
   final SignUpUseCase signUpUseCase;
+  final GetCurrentUserUseCase getCurrentUserUseCase;
 
-  AuthController({required this.loginUseCase, required this.signUpUseCase})
-    : super(const AuthState());
+  AuthController({
+    required this.loginUseCase,
+    required this.signUpUseCase,
+    required this.getCurrentUserUseCase,
+  }) : super(const AuthState());
 
-  Future<void> login({required String email, required String password}) async {
-    state = const AuthState(isLoading: true);
+  Future<void> loadCurrentUser() async {
+    state = state.copyWith(isLoading: true, error: null, isSuccess: false);
+
+    try {
+      final user = await getCurrentUserUseCase();
+
+      state = AuthState(
+        isLoading: false,
+        isAuthenticated: user != null,
+        user: user,
+      );
+    } catch (_) {
+      state = const AuthState(
+        isLoading: false,
+        isAuthenticated: false,
+      );
+    }
+  }
+
+  Future<void> login({
+    required String email,
+    required String password,
+  }) async {
+    state = state.copyWith(isLoading: true, error: null, isSuccess: false);
 
     try {
       await loginUseCase(email: email, password: password);
-      state = const AuthState(isSuccess: true);
+      final user = await getCurrentUserUseCase();
+
+      state = AuthState(
+        isLoading: false,
+        isAuthenticated: user != null,
+        user: user,
+        isSuccess: true,
+      );
     } catch (e) {
-      state = AuthState(isLoading: false, error: 'No se pudo iniciar sesión');
+      state = const AuthState(
+        isLoading: false,
+        isAuthenticated: false,
+        error: 'No se pudo iniciar sesión',
+      );
     }
   }
 
@@ -43,7 +67,7 @@ class AuthController extends StateNotifier<AuthState> {
     required String password,
     required String firstSemester,
   }) async {
-    state = const AuthState(isLoading: true);
+    state = state.copyWith(isLoading: true, error: null, isSuccess: false);
 
     try {
       await signUpUseCase(
@@ -51,7 +75,15 @@ class AuthController extends StateNotifier<AuthState> {
         password: password,
         firstSemester: firstSemester,
       );
-      state = const AuthState(isSuccess: true);
+
+      final user = await getCurrentUserUseCase();
+
+      state = AuthState(
+        isLoading: false,
+        isAuthenticated: user != null,
+        user: user,
+        isSuccess: true,
+      );
     } catch (e) {
       debugPrint('SIGNUP ERROR: $e');
       if (e is DioException) {
@@ -61,12 +93,34 @@ class AuthController extends StateNotifier<AuthState> {
 
       state = const AuthState(
         isLoading: false,
+        isAuthenticated: false,
         error: 'No se pudo crear la cuenta',
       );
     }
   }
 
+  Future<void> logout() async {
+    state = state.copyWith(isLoading: true, error: null, isSuccess: false);
+
+    try {
+      // agrega LogoutUseCase después si quieres, por ahora podrías llamar repo vía usecase
+      state = const AuthState(
+        isLoading: false,
+        isAuthenticated: false,
+        user: null,
+      );
+    } catch (_) {
+      state = state.copyWith(
+        isLoading: false,
+        error: 'No se pudo cerrar sesión',
+      );
+    }
+  }
+
   void clearState() {
-    state = const AuthState();
+    state = AuthState(
+      isAuthenticated: state.isAuthenticated,
+      user: state.user,
+    );
   }
 }
