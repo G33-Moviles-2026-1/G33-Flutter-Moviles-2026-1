@@ -1,0 +1,249 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/auth_providers.dart';
+
+class SignUpPage extends ConsumerStatefulWidget {
+  const SignUpPage({super.key});
+
+  @override
+  ConsumerState<SignUpPage> createState() => _SignUpPageState();
+}
+
+class _SignUpPageState extends ConsumerState<SignUpPage> {
+  final _formKey = GlobalKey<FormState>();
+
+  final _emailCtrl = TextEditingController();
+  final _passwordCtrl = TextEditingController();
+  final _carnetCtrl = TextEditingController();
+
+  @override
+  void dispose() {
+    _emailCtrl.dispose();
+    _passwordCtrl.dispose();
+    _carnetCtrl.dispose();
+    super.dispose();
+  }
+
+  String _extractFirst5Digits(String input) {
+    final onlyDigits = input.replaceAll(RegExp(r'[^0-9]'), '');
+    return onlyDigits.substring(0, 5);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    ref.listen(authControllerProvider, (previous, next) {
+      if (next.isSuccess) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Cuenta creada con éxito')),
+        );
+
+        // TODO: navegar al home o login
+        // context.go('/home');
+      }
+
+      if (next.error != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(next.error!)),
+        );
+      }
+    });
+
+    final state = ref.watch(authControllerProvider);
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF3F3F3),
+      appBar: AppBar(
+        elevation: 0,
+        centerTitle: true,
+        backgroundColor: const Color(0xFFF3EE9B),
+        foregroundColor: Colors.black,
+        title: const Text(
+          'AndeSpace',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 22,
+          ),
+        ),
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                const SizedBox(height: 28),
+                const Text(
+                  'Sign Up',
+                  style: TextStyle(
+                    fontSize: 34,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 36),
+
+                TextFormField(
+                  controller: _emailCtrl,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: _inputDecoration('User'),
+                  validator: (value) {
+                    final email = value?.trim() ?? '';
+                    if (email.isEmpty) {
+                      return 'Ingresa tu correo';
+                    }
+                    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+$').hasMatch(email)) {
+                      return 'Ingresa un correo válido';
+                    }
+                    return null;
+                  },
+                ),
+
+                const SizedBox(height: 18),
+
+                TextFormField(
+                  controller: _passwordCtrl,
+                  obscureText: true,
+                  decoration: _inputDecoration('Password'),
+                  validator: (value) {
+                    final password = value?.trim() ?? '';
+                    if (password.isEmpty) {
+                      return 'Ingresa tu contraseña';
+                    }
+                    if (password.length < 6) {
+                      return 'La contraseña debe tener al menos 6 caracteres';
+                    }
+                    return null;
+                  },
+                ),
+
+                const SizedBox(height: 18),
+
+                TextFormField(
+                  controller: _carnetCtrl,
+                  keyboardType: TextInputType.number,
+                  decoration: _inputDecoration('Code'),
+                  validator: (value) {
+                    final raw = value?.trim() ?? '';
+                    final digitsOnly = raw.replaceAll(RegExp(r'[^0-9]'), '');
+
+                    if (digitsOnly.isEmpty) {
+                      return 'Ingresa tu carnet';
+                    }
+
+                    if (digitsOnly.length < 5) {
+                      return 'El carnet debe tener al menos 5 dígitos';
+                    }
+
+                    return null;
+                  },
+                ),
+
+                const SizedBox(height: 28),
+
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: state.isLoading
+                        ? null
+                        : () async {
+                            FocusScope.of(context).unfocus();
+
+                            if (!_formKey.currentState!.validate()) return;
+
+                            final first5Digits =
+                                _extractFirst5Digits(_carnetCtrl.text.trim());
+
+                            await ref
+                                .read(authControllerProvider.notifier)
+                                .signup(
+                                  email: _emailCtrl.text.trim(),
+                                  password: _passwordCtrl.text.trim(),
+                                  firstSemester: first5Digits,
+                                );
+                          },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFFFF200),
+                      foregroundColor: Colors.black,
+                      elevation: 3,
+                      shadowColor: Colors.black38,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: state.isLoading
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(strokeWidth: 2.5),
+                          )
+                        : const Text(
+                            'Save',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      bottomNavigationBar: _MockBottomBar(),
+    );
+  }
+
+  InputDecoration _inputDecoration(String hint) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: const TextStyle(
+        fontSize: 16,
+        color: Colors.black54,
+      ),
+      filled: true,
+      fillColor: Colors.white,
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: 20,
+        vertical: 18,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide.none,
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: Colors.black12),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: Colors.redAccent),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: Colors.redAccent),
+      ),
+    );
+  }
+}
+
+class _MockBottomBar extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 72,
+      color: const Color(0xFFF3EE9B),
+      child: const Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Icon(Icons.cast_for_education_outlined, size: 30, color: Colors.black),
+          Icon(Icons.favorite_border, size: 30, color: Colors.black),
+          Icon(Icons.calendar_month_outlined, size: 30, color: Colors.black),
+          Icon(Icons.event_available_outlined, size: 30, color: Colors.black),
+        ],
+      ),
+    );
+  }
+}
