@@ -1,6 +1,5 @@
 import 'package:andespace/features/auth/presentation/pages/login_page.dart';
 import 'package:flutter/material.dart';
-import 'features/auth/presentation/pages/login_page.dart';
 import 'shared/theme/theme.dart';
 
 class AndespaceApp extends StatelessWidget {
