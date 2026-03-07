@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../shared/widgets/app_scaffold.dart';
-import '../../../../shared/widgets/app_footer.dart';
+import 'package:andespace/core/navigation/app_tab.dart';
+import 'package:andespace/shared/widgets/app_scaffold.dart';
 import './../widgets/home_body.dart';
 
 class HomePage extends StatelessWidget {
