@@ -34,7 +34,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
     ref.listen(authControllerProvider, (previous, next) {
       if (next.isSuccess) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Cuenta creada con éxito')),
+          const SnackBar(content: Text('Account created successfully')),
         );
 
         // TODO: navegar al home o login
@@ -86,14 +86,14 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                 TextFormField(
                   controller: _emailCtrl,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: _inputDecoration('User'),
+                  decoration: _inputDecoration('Uniandes Mail'),
                   validator: (value) {
                     final email = value?.trim() ?? '';
                     if (email.isEmpty) {
-                      return 'Ingresa tu correo';
+                      return 'Enter your email';
                     }
-                    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+$').hasMatch(email)) {
-                      return 'Ingresa un correo válido';
+                    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+$').hasMatch(email) || !email.endsWith('@uniandes.edu.co') || email.length < 35) {
+                      return 'Enter a valid Uniandes email';
                     }
                     return null;
                   },
@@ -108,10 +108,10 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                   validator: (value) {
                     final password = value?.trim() ?? '';
                     if (password.isEmpty) {
-                      return 'Ingresa tu contraseña';
+                      return 'Enter your password';
                     }
-                    if (password.length < 6) {
-                      return 'La contraseña debe tener al menos 6 caracteres';
+                    if (password.length < 6 || password.length > 20) {
+                      return 'The password must have between 6 and 20 characters';
                     }
                     return null;
                   },
@@ -122,17 +122,17 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                 TextFormField(
                   controller: _carnetCtrl,
                   keyboardType: TextInputType.number,
-                  decoration: _inputDecoration('Code'),
+                  decoration: _inputDecoration('Student Code'),
                   validator: (value) {
                     final raw = value?.trim() ?? '';
                     final digitsOnly = raw.replaceAll(RegExp(r'[^0-9]'), '');
 
                     if (digitsOnly.isEmpty) {
-                      return 'Ingresa tu carnet';
+                      return 'Enter your student code';
                     }
 
-                    if (digitsOnly.length < 5) {
-                      return 'El carnet debe tener al menos 5 dígitos';
+                    if (digitsOnly.length == 9) {
+                      return 'The student code must have 9 digits';
                     }
 
                     return null;
@@ -186,6 +186,27 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                             ),
                           ),
                   ),
+                ),
+                const SizedBox(height: 12),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text("If you have an account,"),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        foregroundColor: const Color.fromARGB(255, 252, 189, 0),
+                      ),
+                      onPressed: () {
+                        
+                        Navigator.pushNamed(context, '/login');
+                      },
+                      child: const Text(
+                        'log in',
+                        style: TextStyle(fontWeight: FontWeight.w900),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

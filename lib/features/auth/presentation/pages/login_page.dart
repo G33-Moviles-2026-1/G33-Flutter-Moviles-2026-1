@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/auth_providers.dart';
+import '../../../../shared/widgets/app_scaffold.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -27,7 +28,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     ref.listen(authControllerProvider, (previous, next) {
       if (next.isSuccess) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Login exitoso')),
+          const SnackBar(content: Text('Login successful')),
         );
 
         // TODO: navegar al home
@@ -79,14 +80,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 TextFormField(
                   controller: _emailCtrl,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: _inputDecoration('User'),
+                  decoration: _inputDecoration('Student Mail'),
                   validator: (value) {
                     final email = value?.trim() ?? '';
                     if (email.isEmpty) {
-                      return 'Ingresa tu correo';
+                      return 'Enter your email';
                     }
                     if (!RegExp(r'^[^@]+@[^@]+\.[^@]+$').hasMatch(email)) {
-                      return 'Ingresa un correo válido';
+                      return 'Enter a valid email';
                     }
                     return null;
                   },
@@ -101,7 +102,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   validator: (value) {
                     final password = value?.trim() ?? '';
                     if (password.isEmpty) {
-                      return 'Ingresa tu contraseña';
+                      return 'Enter your password';
                     }
                     return null;
                   },
@@ -150,6 +151,26 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             ),
                           ),
                   ),
+                ),
+                const SizedBox(height: 12),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text("If you don't have an account,"),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        foregroundColor: const Color.fromARGB(255, 252, 189, 0),
+                      ),
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/signup');
+                      },
+                      child: const Text(
+                        'sign up',
+                        style: TextStyle(fontWeight: FontWeight.w900),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
