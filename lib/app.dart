@@ -1,5 +1,3 @@
-import 'package:andespace/features/auth/presentation/pages/login_page.dart';
-import 'package:andespace/features/auth/presentation/pages/signup_page.dart';
 import 'package:andespace/features/rooms/presentation/pages/home_page.dart';
 import 'package:flutter/material.dart';
 import 'shared/theme/theme.dart';

@@ -84,7 +84,6 @@ abstract final class AppTheme {
     const background = Color(0xFF0F1115);
     const surface = Color(0xFF121417);
     const onSurface = Color(0xFFF5F5F5);
-    const muted = Color(0xFF9AA0A6);
 
     const colorScheme = ColorScheme(
       brightness: Brightness.dark,
