@@ -1,5 +1,6 @@
+import 'package:andespace/features/auth/presentation/pages/login_page.dart';
 import 'package:flutter/material.dart';
-import 'features/auth/presentation/pages/signup_page.dart';
+import 'features/auth/presentation/pages/login_page.dart';
 import 'shared/theme/theme.dart';
 
 class AndespaceApp extends StatelessWidget {
@@ -12,7 +13,7 @@ class AndespaceApp extends StatelessWidget {
       darkTheme: AppTheme.dark(),
       theme: AppTheme.light(),
       themeMode: ThemeMode.light,
-      home: const SignUpPage(),
+      home: const LoginPage(),
     );
   }
 }
