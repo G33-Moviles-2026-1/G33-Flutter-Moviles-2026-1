@@ -14,10 +14,8 @@ class AndespaceApp extends StatelessWidget {
       darkTheme: AppTheme.dark(),
       theme: AppTheme.light(),
       themeMode: ThemeMode.light,
-<<<<<<< Updated upstream
       home: const HomePage(),
-=======
->>>>>>> Stashed changes
+
     );
   }
 }
