@@ -40,8 +40,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
           const SnackBar(content: Text('Account created successfully')),
         );
 
-        // TODO: navegar al home o login
-        // context.go('/home');
+        Navigator.pushReplacementNamed(context, AppRoutes.home);
       }
 
       if (next.error != null) {

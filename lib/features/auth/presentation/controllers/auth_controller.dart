@@ -57,7 +57,7 @@ class AuthController extends StateNotifier<AuthState> {
       state = const AuthState(
         isLoading: false,
         isAuthenticated: false,
-        error: 'No se pudo iniciar sesión',
+        error: 'Could not log in',
       );
     }
   }
@@ -86,15 +86,27 @@ class AuthController extends StateNotifier<AuthState> {
       );
     } catch (e) {
       debugPrint('SIGNUP ERROR: $e');
+
       if (e is DioException) {
         debugPrint('STATUS CODE: ${e.response?.statusCode}');
         debugPrint('RESPONSE DATA: ${e.response?.data}');
+
+        final data = e.response?.data;
+        final detail = data is Map<String, dynamic> ? data['detail'] : null;
+
+        if (e.response?.statusCode == 400 &&
+            detail == 'User already registered') {
+          state = const AuthState(
+            isLoading: false,
+            error: 'This user already exists.',
+          );
+          return;
+        }
       }
 
       state = const AuthState(
         isLoading: false,
-        isAuthenticated: false,
-        error: 'No se pudo crear la cuenta',
+        error: 'The account could not be created.',
       );
     }
   }
@@ -112,7 +124,7 @@ class AuthController extends StateNotifier<AuthState> {
     } catch (_) {
       state = state.copyWith(
         isLoading: false,
-        error: 'No se pudo cerrar sesión',
+        error: 'Could not log out',
       );
     }
   }
