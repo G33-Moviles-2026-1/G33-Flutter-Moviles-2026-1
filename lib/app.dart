@@ -1,5 +1,6 @@
-import 'package:andespace/features/rooms/presentation/pages/home_page.dart';
+import 'package:andespace/core/navigation/app_routes.dart';
 import 'package:flutter/material.dart';
+
 import 'shared/theme/theme.dart';
 
 class AndespaceApp extends StatelessWidget {
@@ -12,8 +13,8 @@ class AndespaceApp extends StatelessWidget {
       darkTheme: AppTheme.dark(),
       theme: AppTheme.light(),
       themeMode: ThemeMode.light,
-      home: const HomePage(),
-
+      initialRoute: AppRoutes.home,
+      routes: AppRoutes.routes,
     );
   }
 }

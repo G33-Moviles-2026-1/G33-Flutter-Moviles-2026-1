@@ -76,10 +76,7 @@ abstract final class AppTheme {
   }
 
   static ThemeData dark() {
-    final base = ThemeData(
-      useMaterial3: true,
-      brightness: Brightness.dark,
-    );
+    final base = ThemeData(useMaterial3: true, brightness: Brightness.dark);
 
     const background = Color(0xFF0F1115);
     const surface = Color(0xFF121417);
