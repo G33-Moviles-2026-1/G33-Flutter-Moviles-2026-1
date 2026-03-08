@@ -1,6 +1,6 @@
+import 'package:andespace/shared/theme/app_theme_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../../../../shared/theme/theme.dart';
 
 import '../../../bookings/presentation/pages/create_booking_page.dart';
 import '../../domain/entities/room_detail.dart';
@@ -67,13 +67,19 @@ class _HomeBodyState extends State<HomeBody> {
   String _formatTime(TimeOfDay? t) {
     if (t == null) return '--:--';
     final localizations = MaterialLocalizations.of(context);
-    return localizations.formatTimeOfDay(t, alwaysUse24HourFormat: false);
+    return localizations.formatTimeOfDay(
+      t,
+      alwaysUse24HourFormat: false,
+    );
   }
 
   void _openFiltersSheet() {
+    final t = Theme.of(context);
+
     showModalBottomSheet(
       context: context,
       showDragHandle: true,
+      backgroundColor: t.colorScheme.surface,
       builder: (_) {
         return Padding(
           padding: const EdgeInsets.all(16),
@@ -83,7 +89,7 @@ class _HomeBodyState extends State<HomeBody> {
             children: [
               Text(
                 'Utilities Filters',
-                style: Theme.of(context).textTheme.headlineSmall,
+                style: t.textTheme.headlineSmall,
               ),
               const SizedBox(height: 12),
               const Text(
@@ -133,7 +139,6 @@ class _HomeBodyState extends State<HomeBody> {
   }
 
   void _onSearch() {
-    // TODO:
     final since = _formatTime(_since);
     final until = _formatTime(_until);
 
@@ -149,6 +154,7 @@ class _HomeBodyState extends State<HomeBody> {
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context);
+    final brand = t.extension<BrandColors>()!;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(18, 18, 18, 24),
@@ -157,7 +163,6 @@ class _HomeBodyState extends State<HomeBody> {
         children: [
           const SizedBox(height: 50),
 
-          // Main title
           Text(
             'Where do you\nwant to go?',
             textAlign: TextAlign.center,
@@ -169,7 +174,6 @@ class _HomeBodyState extends State<HomeBody> {
 
           const SizedBox(height: 50),
 
-          // Classroom search row: input + filter icon button
           Row(
             children: [
               Expanded(
@@ -200,7 +204,6 @@ class _HomeBodyState extends State<HomeBody> {
 
           const SizedBox(height: 12),
 
-          // Since / Until row
           Row(
             children: [
               Expanded(
@@ -223,7 +226,6 @@ class _HomeBodyState extends State<HomeBody> {
 
           const SizedBox(height: 14),
 
-          // Close to me row
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -231,8 +233,8 @@ class _HomeBodyState extends State<HomeBody> {
                 'assets/icons/location.svg',
                 width: 18,
                 height: 18,
-                colorFilter: const ColorFilter.mode(
-                  AppColors.black,
+                colorFilter: ColorFilter.mode(
+                  t.colorScheme.onSurface,
                   BlendMode.srcIn,
                 ),
               ),
@@ -247,19 +249,24 @@ class _HomeBodyState extends State<HomeBody> {
               Checkbox(
                 value: _closeToMe,
                 onChanged: (v) => setState(() => _closeToMe = v ?? false),
-                activeColor: AppColors.accentYellow,
-                checkColor: AppColors.black,
-                side: const BorderSide(color: AppColors.black, width: 1.2),
+                activeColor: brand.accentYellow,
+                checkColor: t.colorScheme.onSecondary,
+                side: BorderSide(
+                  color: t.colorScheme.onSurface,
+                  width: 1.2,
+                ),
               ),
             ],
           ),
 
           const SizedBox(height: 10),
 
-          // CTA Search button
           SizedBox(
             width: double.infinity,
-            child: _CtaButton(label: 'Search', onPressed: _onSearch),
+            child: _CtaButton(
+              label: 'Search',
+              onPressed: _onSearch,
+            ),
           ),
           const SizedBox(height: 120),
 
@@ -302,16 +309,20 @@ class _CardField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = Theme.of(context);
+
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: t.colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
             blurRadius: 10,
             spreadRadius: 0,
-            offset: Offset(0, 3),
-            color: Color(0x22000000),
+            offset: const Offset(0, 3),
+            color: t.brightness == Brightness.dark
+                ? const Color(0x14000000)
+                : const Color(0x22000000),
           ),
         ],
       ),
@@ -333,8 +344,10 @@ class _SquareIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = Theme.of(context);
+
     return Material(
-      color: AppColors.white,
+      color: t.colorScheme.surface,
       borderRadius: BorderRadius.circular(12),
       elevation: 2,
       child: InkWell(
@@ -348,8 +361,8 @@ class _SquareIconButton extends StatelessWidget {
               svgAsset,
               width: 22,
               height: 22,
-              colorFilter: const ColorFilter.mode(
-                AppColors.black,
+              colorFilter: ColorFilter.mode(
+                t.colorScheme.onSurface,
                 BlendMode.srcIn,
               ),
               semanticsLabel: tooltip,
@@ -377,7 +390,7 @@ class _TimeBox extends StatelessWidget {
     final t = Theme.of(context);
 
     return Material(
-      color: AppColors.white,
+      color: t.colorScheme.surface,
       borderRadius: BorderRadius.circular(12),
       elevation: 2,
       child: InkWell(
@@ -398,8 +411,8 @@ class _TimeBox extends StatelessWidget {
                 'assets/icons/clock.svg',
                 width: 20,
                 height: 20,
-                colorFilter: const ColorFilter.mode(
-                  AppColors.black,
+                colorFilter: ColorFilter.mode(
+                  t.colorScheme.onSurface,
                   BlendMode.srcIn,
                 ),
               ),
@@ -417,7 +430,10 @@ class _TimeBox extends StatelessWidget {
 }
 
 class _CtaButton extends StatelessWidget {
-  const _CtaButton({required this.label, required this.onPressed});
+  const _CtaButton({
+    required this.label,
+    required this.onPressed,
+  });
 
   final String label;
   final VoidCallback onPressed;
@@ -425,17 +441,21 @@ class _CtaButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context);
+    final brand = t.extension<BrandColors>()!;
 
     return ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.accentYellow,
-        foregroundColor: AppColors.black,
+        backgroundColor: brand.accentYellow,
+        foregroundColor: t.colorScheme.onSecondary,
         elevation: 0,
         padding: const EdgeInsets.symmetric(vertical: 16),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: const BorderSide(color: AppColors.black, width: 1.4),
+          side: BorderSide(
+            color: t.colorScheme.onSurface,
+            width: 1.4,
+          ),
         ),
         textStyle: t.textTheme.titleMedium?.copyWith(
           fontWeight: FontWeight.w700,
