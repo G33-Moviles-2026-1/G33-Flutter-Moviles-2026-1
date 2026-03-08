@@ -10,7 +10,7 @@ abstract final class AppTheme {
       useMaterial3: true,
       brightness: Brightness.light,
     );
-
+    
     const colorScheme = ColorScheme(
       brightness: Brightness.light,
       primary: Color(0xFFFFFBA9),
@@ -19,7 +19,7 @@ abstract final class AppTheme {
       onSecondary: Color(0xFF000000),
       error: Colors.red,
       onError: Colors.white,
-      surface: Color(0xFFFFFFFF),
+      surface: Color.fromARGB(255, 255, 255, 255),
       onSurface: Color(0xFF000000),
     );
 
@@ -41,7 +41,7 @@ abstract final class AppTheme {
 
     return base.copyWith(
       colorScheme: colorScheme,
-      scaffoldBackgroundColor: Colors.white,
+      scaffoldBackgroundColor: const Color.fromARGB(255, 245, 245, 245),
       textTheme: textTheme,
       appBarTheme: const AppBarTheme(
         backgroundColor: Color(0xFFFFFBA9),

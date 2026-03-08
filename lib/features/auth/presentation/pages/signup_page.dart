@@ -1,4 +1,6 @@
 import 'package:andespace/core/navigation/app_routes.dart';
+import 'package:andespace/core/navigation/app_tab.dart';
+import 'package:andespace/shared/widgets/app_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/auth_providers.dart';
@@ -51,22 +53,10 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
 
     final state = ref.watch(authControllerProvider);
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF3F3F3),
-      appBar: AppBar(
-        elevation: 0,
-        centerTitle: true,
-        backgroundColor: const Color(0xFFF3EE9B),
-        foregroundColor: Colors.black,
-        title: const Text(
-          'AndeSpace',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 22,
-          ),
-        ),
-      ),
+    return AppScaffold(
+      
       body: SafeArea(
+
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
           child: Form(
@@ -216,8 +206,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
             ),
           ),
         ),
-      ),
-      bottomNavigationBar: _MockBottomBar(),
+      ), currentTab: AppTab.rooms, onTabSelected: (AppTab value) {  },
     );
   }
 
@@ -249,25 +238,6 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
       focusedErrorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
         borderSide: const BorderSide(color: Colors.redAccent),
-      ),
-    );
-  }
-}
-
-class _MockBottomBar extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 72,
-      color: const Color(0xFFF3EE9B),
-      child: const Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          Icon(Icons.cast_for_education_outlined, size: 30, color: Colors.black),
-          Icon(Icons.favorite_border, size: 30, color: Colors.black),
-          Icon(Icons.calendar_month_outlined, size: 30, color: Colors.black),
-          Icon(Icons.event_available_outlined, size: 30, color: Colors.black),
-        ],
       ),
     );
   }
