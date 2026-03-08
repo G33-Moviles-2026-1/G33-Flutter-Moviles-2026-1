@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../../rooms/domain/entities/time_range.dart';
-import '../../../../shared/theme/theme.dart';
 
 class BookingTimePickerRow extends StatelessWidget {
   const BookingTimePickerRow({
@@ -19,13 +18,10 @@ class BookingTimePickerRow extends StatelessWidget {
   final ValueChanged<TimeRange?> onSelectTimeRange;
 
   String _formatDate(DateTime d) {
-    // Simple format, can upgrade later
     return '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
   }
 
   String _formatRange(TimeRange r) {
-    // Assumes TimeRange has string fields start/end like "06:30" — consistent with your mock.
-    // If your TimeRange uses TimeOfDay, adjust here.
     return '${r.start} - ${r.end}';
   }
 
@@ -33,7 +29,6 @@ class BookingTimePickerRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        // Date box
         Expanded(
           child: _BoxButton(
             label: _formatDate(selectedDate),
@@ -41,7 +36,6 @@ class BookingTimePickerRow extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 10),
-        // Time dropdown
         Expanded(
           child: _DropdownBox<TimeRange>(
             value: selectedTimeRange,
@@ -64,8 +58,10 @@ class _BoxButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Material(
-      color: AppColors.white,
+      color: theme.colorScheme.surface,
       borderRadius: BorderRadius.circular(12),
       elevation: 2,
       child: InkWell(
@@ -75,9 +71,12 @@ class _BoxButton extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
           child: Row(
             children: [
-              Text(label, style: Theme.of(context).textTheme.bodyLarge),
+              Text(label, style: theme.textTheme.bodyLarge),
               const Spacer(),
-              const Icon(Icons.calendar_month, color: AppColors.black),
+              Icon(
+                Icons.calendar_month,
+                color: theme.colorScheme.onSurface,
+              ),
             ],
           ),
         ),
@@ -103,8 +102,10 @@ class _DropdownBox<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Material(
-      color: AppColors.white,
+      color: theme.colorScheme.surface,
       borderRadius: BorderRadius.circular(12),
       elevation: 2,
       child: Padding(
@@ -113,13 +114,19 @@ class _DropdownBox<T> extends StatelessWidget {
           child: DropdownButton<T>(
             isExpanded: true,
             value: value,
-            hint: Text(hint, style: Theme.of(context).textTheme.bodyLarge),
-            icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.black),
+            hint: Text(hint, style: theme.textTheme.bodyLarge),
+            icon: Icon(
+              Icons.keyboard_arrow_down,
+              color: theme.colorScheme.onSurface,
+            ),
             items: items
                 .map(
                   (e) => DropdownMenuItem<T>(
                     value: e,
-                    child: Text(itemLabel(e), style: Theme.of(context).textTheme.bodyLarge),
+                    child: Text(
+                      itemLabel(e),
+                      style: theme.textTheme.bodyLarge,
+                    ),
                   ),
                 )
                 .toList(),

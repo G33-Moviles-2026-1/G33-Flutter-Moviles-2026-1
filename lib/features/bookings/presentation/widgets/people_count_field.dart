@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../../shared/theme/theme.dart';
 
 class PeopleCountField extends StatelessWidget {
   const PeopleCountField({
@@ -16,16 +15,19 @@ class PeopleCountField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = TextEditingController(text: value.toString());
+    final theme = Theme.of(context);
 
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
             blurRadius: 10,
-            offset: Offset(0, 3),
-            color: Color(0x22000000),
+            offset: const Offset(0, 3),
+            color: theme.brightness == Brightness.dark
+                ? const Color(0x14000000)
+                : const Color(0x22000000),
           ),
         ],
       ),
@@ -34,6 +36,7 @@ class PeopleCountField extends StatelessWidget {
         controller: controller,
         keyboardType: TextInputType.number,
         textInputAction: TextInputAction.done,
+        style: theme.textTheme.bodyLarge,
         decoration: InputDecoration(
           border: InputBorder.none,
           hintText: '1 - $max',
@@ -41,7 +44,7 @@ class PeopleCountField extends StatelessWidget {
         ),
         onChanged: (raw) {
           final parsed = int.tryParse(raw);
-          if (parsed == null) return; // ignore non-numeric
+          if (parsed == null) return;
           final clamped = parsed.clamp(1, max);
           if (clamped != value) onChanged(clamped);
         },

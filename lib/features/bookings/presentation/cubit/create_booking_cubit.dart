@@ -1,9 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter/material.dart';
 
 import '../../../rooms/domain/entities/room_detail.dart';
 import '../../../rooms/domain/entities/time_range.dart';
-import '../../../rooms/domain/entities/room_detail.dart' show Weekday;
 import '../../domain/entities/booking_purpose.dart';
 import '../../domain/usecases/create_booking.dart';
 import 'create_booking_state.dart';

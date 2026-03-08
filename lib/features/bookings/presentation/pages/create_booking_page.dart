@@ -1,10 +1,10 @@
+import 'package:andespace/core/navigation/app_tab.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../rooms/domain/entities/room_detail.dart';
 import '../../../../shared/widgets/app_scaffold.dart';
-import '../../../../shared/widgets/app_footer.dart';
-import '../../../../shared/theme/theme.dart';
+import '../../../../shared/theme/app_theme_extension.dart';
 
 import '../../data/repositories/bookings_repository_impl.dart';
 import '../../domain/usecases/create_booking.dart';
@@ -40,6 +40,8 @@ class _CreateBookingView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<CreateBookingCubit>();
+    final theme = Theme.of(context);
+    final brand = theme.extension<BrandColors>();
 
     return BlocListener<CreateBookingCubit, CreateBookingState>(
       listenWhen: (prev, next) => prev.created == null && next.created != null,
@@ -59,7 +61,6 @@ class _CreateBookingView extends StatelessWidget {
             body: SafeArea(
               child: Column(
                 children: [
-                  // Scrollable content
                   Expanded(
                     child: SingleChildScrollView(
                       padding: const EdgeInsets.fromLTRB(18, 18, 18, 12),
@@ -68,21 +69,17 @@ class _CreateBookingView extends StatelessWidget {
                         children: [
                           Text(
                             'Book ${cubit.roomDetail.id}',
-                            style: Theme.of(context).textTheme.headlineLarge
-                                ?.copyWith(
-                                  fontSize: 32,
-                                  color: AppColors.black,
-                                ),
+                            style: theme.textTheme.headlineLarge?.copyWith(
+                              fontSize: 32,
+                              color: theme.colorScheme.onSurface,
+                            ),
                           ),
-
                           const SizedBox(height: 30),
-
                           Text(
                             'Pick a time',
-                            style: Theme.of(context).textTheme.headlineSmall,
+                            style: theme.textTheme.headlineSmall,
                           ),
                           const SizedBox(height: 10),
-
                           BookingTimePickerRow(
                             selectedDate: state.selectedDate,
                             availabilities: avail,
@@ -112,24 +109,20 @@ class _CreateBookingView extends StatelessWidget {
                             },
                             onSelectTimeRange: cubit.setTimeRange,
                           ),
-
                           const SizedBox(height: 25),
-
                           Text(
                             'Select the purpose',
-                            style: Theme.of(context).textTheme.headlineSmall,
+                            style: theme.textTheme.headlineSmall,
                           ),
                           const SizedBox(height: 8),
                           PurposeSelector(
                             selected: state.selectedPurpose,
                             onChanged: cubit.setPurpose,
                           ),
-
                           const SizedBox(height: 25),
-
                           Text(
                             'Note how many people',
-                            style: Theme.of(context).textTheme.headlineSmall,
+                            style: theme.textTheme.headlineSmall,
                           ),
                           const SizedBox(height: 8),
                           PeopleCountField(
@@ -137,14 +130,13 @@ class _CreateBookingView extends StatelessWidget {
                             max: cubit.roomDetail.capacity,
                             onChanged: cubit.setPeopleCount,
                           ),
-
                           const SizedBox(height: 22),
-
                           if (state.errorMessage != null) ...[
                             Text(
                               state.errorMessage!,
-                              style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(color: Colors.red),
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: theme.colorScheme.error,
+                              ),
                             ),
                             const SizedBox(height: 12),
                           ],
@@ -152,8 +144,6 @@ class _CreateBookingView extends StatelessWidget {
                       ),
                     ),
                   ),
-
-                  // Pinned CTA
                   Padding(
                     padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
                     child: SizedBox(
@@ -161,25 +151,28 @@ class _CreateBookingView extends StatelessWidget {
                       child: ElevatedButton(
                         onPressed: state.isSubmitting ? null : cubit.submit,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.accentYellow,
-                          foregroundColor: AppColors.black,
+                          backgroundColor:
+                              brand?.accentYellow ?? theme.colorScheme.secondary,
+                          foregroundColor: theme.colorScheme.onSecondary,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
-                            side: const BorderSide(
-                              color: AppColors.black,
+                            side: BorderSide(
+                              color: theme.colorScheme.onSurface,
                               width: 1.4,
                             ),
                           ),
-                          textStyle: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(fontWeight: FontWeight.w800),
+                          textStyle: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
                         child: state.isSubmitting
-                            ? const SizedBox(
+                            ? SizedBox(
                                 height: 20,
                                 width: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
+                                  color: theme.colorScheme.onSecondary,
                                 ),
                               )
                             : const Text('Book'),
