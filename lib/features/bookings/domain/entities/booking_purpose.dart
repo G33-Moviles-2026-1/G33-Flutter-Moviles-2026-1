@@ -1,7 +1,7 @@
 enum BookingPurpose {
   studyAlone,
-  studySmallGroup,
   chillAlone,
+  studySmallGroup,
   hangOutWithFriends,
   tutoringBigGroup,
 }
@@ -11,10 +11,10 @@ extension BookingPurposeX on BookingPurpose {
     switch (this) {
       case BookingPurpose.studyAlone:
         return 'Study alone';
-      case BookingPurpose.studySmallGroup:
-        return 'Study in small group';
       case BookingPurpose.chillAlone:
         return 'Chill alone';
+      case BookingPurpose.studySmallGroup:
+        return 'Study in small group';
       case BookingPurpose.hangOutWithFriends:
         return 'Hang out with friends';
       case BookingPurpose.tutoringBigGroup:
@@ -27,10 +27,10 @@ extension BookingPurposeX on BookingPurpose {
     switch (this) {
       case BookingPurpose.studyAlone:
         return 'study_alone';
-      case BookingPurpose.studySmallGroup:
-        return 'study_small_group';
       case BookingPurpose.chillAlone:
         return 'chill_alone';
+      case BookingPurpose.studySmallGroup:
+        return 'study_small_group';
       case BookingPurpose.hangOutWithFriends:
         return 'hang_out_friends';
       case BookingPurpose.tutoringBigGroup:

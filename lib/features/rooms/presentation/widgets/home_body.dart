@@ -155,7 +155,7 @@ class _HomeBodyState extends State<HomeBody> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const SizedBox(height: 6),
+          const SizedBox(height: 50),
 
           // Main title
           Text(
@@ -167,7 +167,7 @@ class _HomeBodyState extends State<HomeBody> {
             ),
           ),
 
-          const SizedBox(height: 18),
+          const SizedBox(height: 50),
 
           // Classroom search row: input + filter icon button
           Row(
@@ -257,11 +257,11 @@ class _HomeBodyState extends State<HomeBody> {
           const SizedBox(height: 10),
 
           // CTA Search button
-          // SizedBox(
-          //   width: double.infinity,
-          //   child: _CtaButton(label: 'Search', onPressed: _onSearch),
-          // ),
-          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: _CtaButton(label: 'Search', onPressed: _onSearch),
+          ),
+          const SizedBox(height: 120),
 
           // DEV ONLY: open Create Booking screen
           SizedBox(

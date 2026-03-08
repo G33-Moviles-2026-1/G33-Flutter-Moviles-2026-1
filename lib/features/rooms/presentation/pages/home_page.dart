@@ -14,6 +14,7 @@ class HomePage extends StatelessWidget {
         // TODO: routing later
       },
       body: const HomeBody(),
+
     );
   }
 }

@@ -20,24 +20,37 @@ abstract final class AppTheme {
   static const String fontTitle = 'ADLaMDisplay';
 
   static ThemeData light() {
-    final base = ThemeData(
-      useMaterial3: true,
-      brightness: Brightness.light,
-    );
+    final base = ThemeData(useMaterial3: true, brightness: Brightness.light);
 
-    final textTheme = base.textTheme.apply(
-      fontFamily: fontBody,
-      bodyColor: AppColors.foregroundLight,
-      displayColor: AppColors.foregroundLight,
-    ).copyWith(
-      displayLarge: base.textTheme.displayLarge?.copyWith(fontFamily: fontTitle),
-      displayMedium: base.textTheme.displayMedium?.copyWith(fontFamily: fontTitle),
-      displaySmall: base.textTheme.displaySmall?.copyWith(fontFamily: fontTitle),
-      headlineLarge: base.textTheme.headlineLarge?.copyWith(fontFamily: fontTitle),
-      headlineMedium: base.textTheme.headlineMedium?.copyWith(fontFamily: fontTitle),
-      headlineSmall: base.textTheme.headlineSmall?.copyWith(fontFamily: fontTitle),
-      titleLarge: base.textTheme.titleLarge?.copyWith(fontFamily: fontTitle),
-    );
+    final textTheme = base.textTheme
+        .apply(
+          fontFamily: fontBody,
+          bodyColor: AppColors.foregroundLight,
+          displayColor: AppColors.foregroundLight,
+        )
+        .copyWith(
+          displayLarge: base.textTheme.displayLarge?.copyWith(
+            fontFamily: fontTitle,
+          ),
+          displayMedium: base.textTheme.displayMedium?.copyWith(
+            fontFamily: fontTitle,
+          ),
+          displaySmall: base.textTheme.displaySmall?.copyWith(
+            fontFamily: fontTitle,
+          ),
+          headlineLarge: base.textTheme.headlineLarge?.copyWith(
+            fontFamily: fontTitle,
+          ),
+          headlineMedium: base.textTheme.headlineMedium?.copyWith(
+            fontFamily: fontTitle,
+          ),
+          headlineSmall: base.textTheme.headlineSmall?.copyWith(
+            fontFamily: fontTitle,
+          ),
+          titleLarge: base.textTheme.titleLarge?.copyWith(
+            fontFamily: fontTitle,
+          ),
+        );
 
     return base.copyWith(
       scaffoldBackgroundColor: AppColors.backgroundLight,
@@ -70,28 +83,44 @@ abstract final class AppTheme {
         type: BottomNavigationBarType.fixed,
         elevation: 0,
       ),
+      radioTheme: const RadioThemeData(
+        fillColor: MaterialStatePropertyAll(AppColors.black),
+      ),
     );
   }
 
   static ThemeData dark() {
-    final base = ThemeData(
-      useMaterial3: true,
-      brightness: Brightness.dark,
-    );
+    final base = ThemeData(useMaterial3: true, brightness: Brightness.dark);
 
-    final textTheme = base.textTheme.apply(
-      fontFamily: fontBody,
-      bodyColor: AppColors.foregroundDark,
-      displayColor: AppColors.foregroundDark,
-    ).copyWith(
-      displayLarge: base.textTheme.displayLarge?.copyWith(fontFamily: fontTitle),
-      displayMedium: base.textTheme.displayMedium?.copyWith(fontFamily: fontTitle),
-      displaySmall: base.textTheme.displaySmall?.copyWith(fontFamily: fontTitle),
-      headlineLarge: base.textTheme.headlineLarge?.copyWith(fontFamily: fontTitle),
-      headlineMedium: base.textTheme.headlineMedium?.copyWith(fontFamily: fontTitle),
-      headlineSmall: base.textTheme.headlineSmall?.copyWith(fontFamily: fontTitle),
-      titleLarge: base.textTheme.titleLarge?.copyWith(fontFamily: fontTitle),
-    );
+    final textTheme = base.textTheme
+        .apply(
+          fontFamily: fontBody,
+          bodyColor: AppColors.foregroundDark,
+          displayColor: AppColors.foregroundDark,
+        )
+        .copyWith(
+          displayLarge: base.textTheme.displayLarge?.copyWith(
+            fontFamily: fontTitle,
+          ),
+          displayMedium: base.textTheme.displayMedium?.copyWith(
+            fontFamily: fontTitle,
+          ),
+          displaySmall: base.textTheme.displaySmall?.copyWith(
+            fontFamily: fontTitle,
+          ),
+          headlineLarge: base.textTheme.headlineLarge?.copyWith(
+            fontFamily: fontTitle,
+          ),
+          headlineMedium: base.textTheme.headlineMedium?.copyWith(
+            fontFamily: fontTitle,
+          ),
+          headlineSmall: base.textTheme.headlineSmall?.copyWith(
+            fontFamily: fontTitle,
+          ),
+          titleLarge: base.textTheme.titleLarge?.copyWith(
+            fontFamily: fontTitle,
+          ),
+        );
 
     return base.copyWith(
       scaffoldBackgroundColor: AppColors.backgroundDark,
@@ -123,6 +152,9 @@ abstract final class AppTheme {
         showUnselectedLabels: false,
         type: BottomNavigationBarType.fixed,
         elevation: 0,
+      ),
+      radioTheme: const RadioThemeData(
+        fillColor: MaterialStatePropertyAll(AppColors.black),
       ),
     );
   }

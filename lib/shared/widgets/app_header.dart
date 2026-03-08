@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import './../theme/theme.dart'; 
+import './../theme/theme.dart';
 
 class AppHeader extends StatelessWidget implements PreferredSizeWidget {
   const AppHeader({
     super.key,
     this.onTapLeft,
     this.onTapRight,
+    this.onTapTitle,
     this.title = 'AndeSpace',
   });
 
   final VoidCallback? onTapLeft;
   final VoidCallback? onTapRight;
+  final VoidCallback? onTapTitle;
   final String title;
 
   @override
@@ -27,8 +29,8 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
         tooltip: 'History',
         icon: SvgPicture.asset(
           'assets/icons/history.svg',
-          width: 22,
-          height: 22,
+          width: 30,
+          height: 30,
           colorFilter: const ColorFilter.mode(
             AppColors.black,
             BlendMode.srcIn,
@@ -36,11 +38,19 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
         ),
       ),
 
-      title: Text(
-        title,
-        style: theme.textTheme.titleLarge?.copyWith(
-          fontSize: 20,
-          color: AppColors.black,
+      title: InkWell(
+        onTap: onTapTitle,
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          // makes it easier to tap the title
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          child: Text(
+            title,
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontSize: 30,
+              color: AppColors.black,
+            ),
+          ),
         ),
       ),
 
@@ -50,8 +60,8 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
           tooltip: 'User',
           icon: SvgPicture.asset(
             'assets/icons/user.svg',
-            width: 22,
-            height: 22,
+            width: 30,
+            height: 30,
             colorFilter: const ColorFilter.mode(
               AppColors.black,
               BlendMode.srcIn,

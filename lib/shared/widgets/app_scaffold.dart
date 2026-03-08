@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'app_footer.dart';
 import 'app_header.dart';
+import '../../features/rooms/presentation/pages/home_page.dart';
 
 class AppScaffold extends StatelessWidget {
   const AppScaffold({
@@ -27,6 +28,12 @@ class AppScaffold extends StatelessWidget {
         title: title,
         onTapLeft: onTapHeaderLeft,
         onTapRight: onTapHeaderRight,
+        onTapTitle: () {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (_) => const HomePage()),
+            (route) => false,
+          );
+        },
       ),
       body: SafeArea(child: body),
       bottomNavigationBar: AppFooter(
