@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:andespace/core/navigation/app_routes.dart';
 import 'package:andespace/features/rooms/domain/entities/room_search.dart';
 import 'package:andespace/features/rooms/presentation/controllers/home_search_state.dart';
 import 'package:andespace/features/rooms/presentation/providers/homepage_providers.dart';
@@ -105,10 +106,7 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
   String _formatTime(TimeOfDay? time) {
     if (time == null) return '--:--';
     final localizations = MaterialLocalizations.of(context);
-    return localizations.formatTimeOfDay(
-      time,
-      alwaysUse24HourFormat: true,
-    );
+    return localizations.formatTimeOfDay(time, alwaysUse24HourFormat: true);
   }
 
   String _formatDate(DateTime? date) {
@@ -144,10 +142,7 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Filters',
-                      style: theme.textTheme.headlineSmall,
-                    ),
+                    Text('Filters', style: theme.textTheme.headlineSmall),
                     const SizedBox(height: 12),
                     TextField(
                       controller: _buildingCodesCtrl,
@@ -157,10 +152,7 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    Text(
-                      'Utilities',
-                      style: theme.textTheme.titleMedium,
-                    ),
+                    Text('Utilities', style: theme.textTheme.titleMedium),
                     const SizedBox(height: 8),
                     ..._utilityLabels.entries.map(
                       (entry) => CheckboxListTile(
@@ -198,7 +190,9 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
   }
 
   void _onSearch() {
-    ref.read(homeSearchControllerProvider.notifier).submitSearch(
+    ref
+        .read(homeSearchControllerProvider.notifier)
+        .submitSearch(
           rawRoomInput: _roomInputCtrl.text,
           rawBuildingCodesInput: _buildingCodesCtrl.text,
           selectedDate: _selectedDate,
@@ -211,21 +205,20 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
 
   @override
   Widget build(BuildContext context) {
-    ref.listen<HomeSearchState>(
-      homeSearchControllerProvider,
-      (previous, next) {
-        final previousError = previous?.errorMessage;
-        final nextError = next.errorMessage;
+    ref.listen<HomeSearchState>(homeSearchControllerProvider, (previous, next) {
+      if (next.status == HomeSearchStatus.success && next.response != null) {
+        Navigator.pushNamed(context, AppRoutes.results);
+      }
 
-        if (nextError != null && nextError != previousError) {
-          ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(
-              SnackBar(content: Text(nextError)),
-            );
-        }
-      },
-    );
+      final previousError = previous?.errorMessage;
+      final nextError = next.errorMessage;
+
+      if (nextError != null && nextError != previousError) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(SnackBar(content: Text(nextError)));
+      }
+    });
 
     final state = ref.watch(homeSearchControllerProvider);
     final theme = Theme.of(context);
@@ -275,10 +268,7 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
             ],
           ),
           const SizedBox(height: 12),
-          _DateBox(
-            value: _formatDate(_selectedDate),
-            onTap: _pickDate,
-          ),
+          _DateBox(value: _formatDate(_selectedDate), onTap: _pickDate),
           const SizedBox(height: 12),
           Row(
             children: [
@@ -359,9 +349,7 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
 }
 
 class _DebugResponseCard extends StatelessWidget {
-  const _DebugResponseCard({
-    required this.response,
-  });
+  const _DebugResponseCard({required this.response});
 
   final RoomSearchResponse response;
 
@@ -477,10 +465,7 @@ class _SquareIconButton extends StatelessWidget {
 }
 
 class _DateBox extends StatelessWidget {
-  const _DateBox({
-    required this.value,
-    required this.onTap,
-  });
+  const _DateBox({required this.value, required this.onTap});
 
   final String value;
   final VoidCallback onTap;
@@ -579,10 +564,7 @@ class _TimeBox extends StatelessWidget {
 }
 
 class _CtaButton extends StatelessWidget {
-  const _CtaButton({
-    required this.label,
-    required this.onPressed,
-  });
+  const _CtaButton({required this.label, required this.onPressed});
 
   final String label;
   final VoidCallback? onPressed;
@@ -601,10 +583,7 @@ class _CtaButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 16),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: BorderSide(
-            color: theme.colorScheme.onSurface,
-            width: 1.4,
-          ),
+          side: BorderSide(color: theme.colorScheme.onSurface, width: 1.4),
         ),
         textStyle: theme.textTheme.titleMedium?.copyWith(
           fontWeight: FontWeight.w700,

@@ -1,32 +1,25 @@
-import 'package:andespace/shared/widgets/app_footer.dart';
-import 'package:andespace/shared/widgets/app_scaffold.dart';
+import 'package:andespace/features/rooms/presentation/widgets/room_detail_body.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../../data/repositories/mock_room_repository.dart';
-import '../../domain/repositories/rooms_repository.dart';
-import '../cubit/room_detail_cubit.dart';
-import '../widgets/room_detail_body.dart';
+import '../../domain/entities/room_search.dart';
 
 class RoomDetailPage extends StatelessWidget {
-  final String roomId;
+  // Recibimos el objeto room por el constructor
+  final RoomSearchItem room;
 
-  const RoomDetailPage({
-    super.key,
-    required this.roomId,
-  });
+  const RoomDetailPage({super.key, required this.room});
 
   @override
   Widget build(BuildContext context) {
-    final RoomRepository repository = MockRoomRepository();
-
-    return BlocProvider(
-      create: (_) => RoomDetailCubit(repository)..fetchRoomDetail(roomId),
-      child: AppScaffold(
-      currentTab: AppTab.rooms,
-      onTabSelected: (_) {},
-        body: RoomDetailBody(),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Room Details'),
+        centerTitle: true,
+        titleTextStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
+          fontWeight: FontWeight.bold,
+          color: Colors.black,
+        ),
       ),
+      body: RoomDetailBody(room: room),
     );
   }
 }
