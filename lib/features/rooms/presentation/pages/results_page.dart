@@ -1,4 +1,6 @@
 import 'package:andespace/core/navigation/app_routes.dart';
+import 'package:andespace/core/navigation/app_tab.dart';
+import 'package:andespace/shared/widgets/app_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/homepage_providers.dart';
@@ -15,11 +17,10 @@ class ResultsPage extends ConsumerWidget {
     final brand = theme.extension<BrandColors>()!;
     final items = state.response?.items ?? [];
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('${state.response?.total ?? 0} Rooms Found'),
-        centerTitle: true,
-      ),
+    return AppScaffold(
+      currentTab: AppTab.rooms,
+      onTabSelected: (_) {
+      },
       body: ListView.separated(
         padding: const EdgeInsets.all(18),
         itemCount: items.length,
