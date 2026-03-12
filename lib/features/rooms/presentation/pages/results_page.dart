@@ -1,6 +1,7 @@
 import 'package:andespace/core/navigation/app_routes.dart';
 import 'package:andespace/core/navigation/app_tab.dart';
 import 'package:andespace/shared/widgets/app_scaffold.dart';
+import 'package:andespace/shared/widgets/utilities_string.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/homepage_providers.dart';
@@ -76,7 +77,7 @@ class _RoomCard extends StatelessWidget {
               spacing: 8,
               children: [
                 _Badge(label: 'Cap: ${room.capacity}', color: brand.softYellow),
-                ...room.utilities.take(2).map((u) => _Badge(label: u, color: Colors.grey[200]!)),
+                ...room.utilities.take(2).map((u) => _Badge(label: u.toTitleCase(), color: Colors.grey[200]!)),
               ],
             ),
           ],

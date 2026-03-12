@@ -1,3 +1,4 @@
+import 'package:andespace/shared/widgets/utilities_string.dart';
 import 'package:flutter/material.dart';
 import '../../../../shared/theme/app_theme_extension.dart';
 import '../../domain/entities/room_search.dart';
@@ -66,7 +67,6 @@ class _RoomDetailBodyState extends State<RoomDetailBody> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                /// HEADER: ID, Building & Icons
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -95,8 +95,6 @@ class _RoomDetailBodyState extends State<RoomDetailBody> {
                 ),
 
                 const SizedBox(height: 24),
-
-                /// DATE SELECTOR
                 Center(
                   child: InkWell(
                     onTap: _pickDate,
@@ -132,9 +130,7 @@ class _RoomDetailBodyState extends State<RoomDetailBody> {
                         style: t.textTheme.titleLarge
                             ?.copyWith(fontWeight: FontWeight.bold))),
                 const SizedBox(height: 12),
-
-                /// SLOTS DE DISPONIBILIDAD
-                _buildAvailabilityList(room),
+                _buildAvailabilityScroller(room),
 
                 const SizedBox(height: 30),
                 Center(
@@ -142,15 +138,12 @@ class _RoomDetailBodyState extends State<RoomDetailBody> {
                         style: t.textTheme.titleLarge
                             ?.copyWith(fontWeight: FontWeight.bold))),
                 const SizedBox(height: 16),
-
-                /// GRILLA DE UTILITIES
                 _buildUtilitiesGrid(room, brand),
               ],
             ),
           ),
         ),
 
-        /// BOTÓN FIJO DE RESERVA
         Padding(
           padding: const EdgeInsets.all(18),
           child: SizedBox(
@@ -179,16 +172,14 @@ class _RoomDetailBodyState extends State<RoomDetailBody> {
     );
   }
 
-  Widget _buildAvailabilityList(RoomSearchItem room) {
+  Widget _buildAvailabilityScroller(RoomSearchItem room) {
     final t = Theme.of(context);
     
-    // Mapeo de DateTime.weekday a los strings del DTO
     final weekdays = [
       'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
     ];
     final selectedDayName = weekdays[selectedDate.weekday - 1];
 
-    // Filtramos la disponibilidad semanal por el día seleccionado
     final dayWindows = room.weeklyAvailability
         .where((w) => w.day.toLowerCase() == selectedDayName.toLowerCase())
         .toList();
@@ -204,14 +195,27 @@ class _RoomDetailBodyState extends State<RoomDetailBody> {
     }
 
     return Column(
-      children: dayWindows
-          .map((window) => Container(
-                margin: const EdgeInsets.only(bottom: 10),
-                width: double.infinity,
+      children: [
+        Text(selectedDayName, style: t.textTheme.labelLarge?.copyWith(color: Colors.grey[600])),
+        const SizedBox(height: 8),
+        Container(
+          height: 180,
+          decoration: BoxDecoration(
+            color: Colors.grey[50],
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.black.withOpacity(0.1), width: 1),
+          ),
+          child: ListView.builder(
+            padding: const EdgeInsets.all(12),
+            itemCount: dayWindows.length,
+            itemBuilder: (context, index) {
+              final window = dayWindows[index];
+              return Container(
+                margin: const EdgeInsets.only(bottom: 8),
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                   border: Border.all(color: Colors.black, width: 1.2),
                 ),
                 child: Center(
@@ -219,8 +223,11 @@ class _RoomDetailBodyState extends State<RoomDetailBody> {
                       style: t.textTheme.bodyLarge
                           ?.copyWith(fontWeight: FontWeight.bold)),
                 ),
-              ))
-          .toList(),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 
@@ -250,7 +257,7 @@ class _RoomDetailBodyState extends State<RoomDetailBody> {
             border: Border.all(color: Colors.black, width: 1),
           ),
           child: Text(
-            room.utilities[index],
+            room.utilities[index].toTitleCase(),
             style: t.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
         );
