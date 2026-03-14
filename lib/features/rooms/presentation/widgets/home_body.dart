@@ -200,6 +200,7 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
           until: _until,
           selectedUtilities: _selectedUtilities,
           nearMe: _closeToMe,
+          offset: 0,
         );
   }
 
@@ -590,6 +591,83 @@ class _CtaButton extends StatelessWidget {
         ),
       ),
       child: Text(label),
+    );
+  }
+}
+
+
+class CompactSearchForm extends StatelessWidget {
+  final TextEditingController roomCtrl;
+  final VoidCallback onSearch;
+  final VoidCallback onOpenFilters;
+  final bool isLoading;
+
+  const CompactSearchForm({
+    super.key, 
+    required this.roomCtrl, 
+    required this.onSearch, 
+    required this.onOpenFilters,
+    this.isLoading = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.black, width: 1.4),
+              boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(2, 2))],
+            ),
+            child: TextField(
+              controller: roomCtrl,
+              decoration: const InputDecoration(
+                hintText: 'Search room...',
+                border: InputBorder.none,
+                contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              ),
+              onSubmitted: (_) => onSearch(),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        _SquareButton(icon: Icons.tune, onTap: onOpenFilters),
+        const SizedBox(width: 8),
+        _SquareButton(
+          icon: isLoading ? Icons.hourglass_empty : Icons.search, 
+          onTap: isLoading ? null : onSearch,
+          isPrimary: true,
+        ),
+      ],
+    );
+  }
+}
+
+class _SquareButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback? onTap;
+  final bool isPrimary;
+
+  const _SquareButton({required this.icon, this.onTap, this.isPrimary = false});
+
+  @override
+  Widget build(BuildContext context) {
+    final brand = Theme.of(context).extension<BrandColors>()!;
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        width: 48, height: 48,
+        decoration: BoxDecoration(
+          color: isPrimary ? brand.accentYellow : Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.black, width: 1.4),
+          boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(2, 2))],
+        ),
+        child: Icon(icon, color: Colors.black),
+      ),
     );
   }
 }

@@ -6,7 +6,6 @@ import 'package:andespace/features/rooms/domain/usecases/search_rooms.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'home_search_state.dart';
 
 class HomeSearchController extends StateNotifier<HomeSearchState> {
@@ -14,10 +13,10 @@ class HomeSearchController extends StateNotifier<HomeSearchState> {
     required SearchRooms searchRooms,
     required AnalyticsService analyticsService,
     required SessionController sessionController,
-  })  : _searchRooms = searchRooms,
-        _analyticsService = analyticsService,
-        _sessionController = sessionController,
-        super(const HomeSearchState.initial());
+  }) : _searchRooms = searchRooms,
+       _analyticsService = analyticsService,
+       _sessionController = sessionController,
+       super(const HomeSearchState.initial());
 
   final SearchRooms _searchRooms;
   final AnalyticsService _analyticsService;
@@ -41,10 +40,12 @@ class HomeSearchController extends StateNotifier<HomeSearchState> {
     required TimeOfDay? until,
     required Set<String> selectedUtilities,
     required bool nearMe,
+    required int offset,
   }) async {
     final normalizedPrefixes = _normalizeCommaSeparated(rawRoomInput);
-    final normalizedBuildingCodes =
-        _normalizeCommaSeparated(rawBuildingCodesInput);
+    final normalizedBuildingCodes = _normalizeCommaSeparated(
+      rawBuildingCodesInput,
+    );
 
     if (selectedDate == null) {
       state = HomeSearchState.error(
@@ -94,12 +95,10 @@ class HomeSearchController extends StateNotifier<HomeSearchState> {
               longitude: sessionLocation.longitude,
             ),
       limit: 20,
-      offset: 0,
+      offset: offset,
     );
 
-    state = HomeSearchState.loading(
-      previousResponse: state.response,
-    );
+    state = HomeSearchState.loading(previousResponse: state.response);
 
     try {
       await _analyticsService.track(
@@ -176,4 +175,26 @@ class HomeSearchController extends StateNotifier<HomeSearchState> {
 
     return error.toString();
   }
+
+
+Future<void> goToPage(int page) async {
+  final lastQuery = state.response?.query;
+  if (lastQuery == null) return;
+  final newOffset = (page - 1) * lastQuery.limit;
+  final updatedRequest = lastQuery.copyWith(offset: newOffset);
+  await _performSearch(updatedRequest);
+}
+
+Future<void> _performSearch(RoomSearchRequest request) async {
+  state = HomeSearchState.loading(previousResponse: state.response);
+  try {
+    final response = await _searchRooms(request);
+    state = HomeSearchState.success(response);
+  } catch (e) {
+    state = HomeSearchState.error(
+      _mapError(e), 
+      previousResponse: state.response,
+    );
+  }
+}
 }

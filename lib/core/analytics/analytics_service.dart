@@ -3,9 +3,7 @@ import 'package:flutter/foundation.dart';
 
 class AnalyticsService {
   AnalyticsService(this._dio);
-
   final Dio _dio;
-
   static const String _eventsPath = '/analytics/events';
 
   Future<void> track({
@@ -33,7 +31,6 @@ class AnalyticsService {
     } catch (e, st) {
       debugPrint('Analytics error: $e');
       debugPrintStack(stackTrace: st);
-      // Analytics must never block Homepage UX.
     }
   }
 }
