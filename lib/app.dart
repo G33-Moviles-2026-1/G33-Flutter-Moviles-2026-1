@@ -13,7 +13,7 @@ class AndespaceApp extends StatelessWidget {
       darkTheme: AppTheme.dark(),
       theme: AppTheme.light(),
       themeMode: ThemeMode.light,
-      initialRoute: AppRoutes.home,
+      initialRoute: AppRoutes.login,
       routes: AppRoutes.routes,
     );
   }

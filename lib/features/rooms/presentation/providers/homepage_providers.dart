@@ -1,5 +1,4 @@
-import 'package:andespace/core/di/providers.dart';
-import 'package:andespace/core/network/dio_provider.dart';
+import 'package:andespace/core/di/core_provider.dart';
 import 'package:andespace/features/rooms/data/remote/rooms_api.dart';
 import 'package:andespace/features/rooms/data/repositories/rooms_repository_impl.dart';
 import 'package:andespace/features/rooms/domain/repositories/rooms_repository.dart';
