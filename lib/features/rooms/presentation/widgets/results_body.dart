@@ -6,16 +6,40 @@ import 'package:andespace/shared/theme/app_theme_extension.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 
-class ResultsBody extends ConsumerWidget {
+class ResultsBody extends ConsumerStatefulWidget {
   final HomeSearchState state;
   const ResultsBody({super.key, required this.state});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final searchTime = state.response?.query.since;
+  ConsumerState<ResultsBody> createState() => _ResultsBodyState();
+}
+
+class _ResultsBodyState extends ConsumerState<ResultsBody> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    ref.listen<HomeSearchState>(homeSearchControllerProvider, (previous, next) {
+      if (previous?.response?.query.offset != next.response?.query.offset) {
+        if (_scrollController.hasClients) {
+          _scrollController.animateTo(
+            0,
+            duration: const Duration(milliseconds: 400),
+            curve: Curves.easeInOut,
+          );
+        }
+      }
+    });
+
     final theme = Theme.of(context);
     final brand = theme.extension<BrandColors>()!;
-    final response = state.response;
+    final response = widget.state.response;
     final items = response?.items ?? [];
 
     final int limit = response?.query.limit ?? 20;
@@ -30,13 +54,18 @@ class ResultsBody extends ConsumerWidget {
           child: Stack(
             children: [
               ListView.separated(
+                controller: _scrollController,
                 padding: const EdgeInsets.fromLTRB(18, 20, 18, 20),
                 itemCount: items.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 16),
-                itemBuilder: (context, index) =>
-                    _RoomCard(room: items[index], brand: brand, searchTime: searchTime),
+                itemBuilder: (context, index) => _RoomCard(
+                  room: items[index],
+                  brand: brand,
+                  searchTime:
+                      response?.query.since,
+                ),
               ),
-              if (state.isLoading)
+              if (widget.state.isLoading)
                 Container(
                   color: Colors.white.withOpacity(0.5),
                   child: const Center(
@@ -49,10 +78,20 @@ class ResultsBody extends ConsumerWidget {
 
         if (totalPages > 1)
           Container(
-            padding: const EdgeInsets.all(16),
-            decoration: const BoxDecoration(
+            padding: const EdgeInsets.fromLTRB(
+              20,
+              12,
+              20,
+              32,
+            ),
+            decoration: BoxDecoration(
               color: Colors.white,
-              border: Border(top: BorderSide(color: Colors.black, width: 2)),
+              border: const Border(
+                top: BorderSide(color: Colors.black, width: 2),
+              ),
+              boxShadow: [
+                BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10),
+              ],
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -66,8 +105,11 @@ class ResultsBody extends ConsumerWidget {
                       : null,
                 ),
                 Text(
-                  "Page $currentPage of $totalPages",
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  "Página $currentPage de $totalPages",
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 13,
+                  ),
                 ),
                 _PageBtn(
                   label: "Next",
@@ -197,7 +239,6 @@ class _RoomCard extends StatelessWidget {
 
             const SizedBox(height: 14),
 
-            // Tags de características
             Wrap(
               spacing: 8,
               runSpacing: 8,
