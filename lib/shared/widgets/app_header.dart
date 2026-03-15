@@ -1,4 +1,6 @@
+import 'package:andespace/core/navigation/app_routes.dart';
 import 'package:andespace/shared/theme/app_theme_extension.dart';
+import 'package:andespace/shared/widgets/auth_popup_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -7,16 +9,47 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
     super.key,
     this.title = 'AndeSpace',
     this.onTapLeft,
-    this.onTapRight,
+    this.onTapSearch,
+    this.onTapLogo,
+    this.onLogin,
+    this.onSignUp,
+    this.onLogout,
     this.leftIconPath = 'assets/icons/profile.svg',
-    this.rightIconPath = 'assets/icons/search.svg',
+    this.searchIconPath = 'assets/icons/search.svg',
+    this.userIconPath = 'assets/icons/user.svg',
+    this.isLoggedIn = false,
   });
 
   final String title;
   final VoidCallback? onTapLeft;
-  final VoidCallback? onTapRight;
+  final VoidCallback? onTapSearch;
+  final VoidCallback? onTapLogo;
+  final VoidCallback? onLogin;
+  final VoidCallback? onSignUp;
+  final VoidCallback? onLogout;
+
   final String leftIconPath;
-  final String rightIconPath;
+  final String searchIconPath;
+  final String userIconPath;
+  final bool isLoggedIn;
+
+  Widget _buildSvgIcon(
+    BuildContext context,
+    String assetPath, {
+    double size = 24,
+  }) {
+    final brand = Theme.of(context).extension<BrandColors>()!;
+
+    return SvgPicture.asset(
+      assetPath,
+      width: size,
+      height: size,
+      colorFilter: ColorFilter.mode(
+        brand.headerForeground,
+        BlendMode.srcIn,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,33 +66,36 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
       centerTitle: true,
       leading: IconButton(
         onPressed: onTapLeft,
-        icon: SvgPicture.asset(
-          leftIconPath,
-          width: 24,
-          height: 24,
-          colorFilter: ColorFilter.mode(
-            brand.headerForeground,
-            BlendMode.srcIn,
-          ),
-        ),
+        icon: _buildSvgIcon(context, leftIconPath),
       ),
-      title: Text(
-        title,
-        style: theme.textTheme.titleLarge?.copyWith(
-          color: brand.headerForeground,
+      title: GestureDetector(
+        onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.home),
+        behavior: HitTestBehavior.opaque,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Text(
+            title,
+            style: theme.textTheme.titleLarge?.copyWith(
+              color: brand.headerForeground,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
         ),
       ),
       actions: [
         IconButton(
-          onPressed: onTapRight,
-          icon: SvgPicture.asset(
-            rightIconPath,
-            width: 24,
-            height: 24,
-            colorFilter: ColorFilter.mode(
-              brand.headerForeground,
-              BlendMode.srcIn,
-            ),
+          onPressed: onTapSearch,
+          icon: _buildSvgIcon(context, searchIconPath),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(right: 8),
+          child: AuthPopupMenu(
+            isLoggedIn: isLoggedIn,
+            onLogin: onLogin,
+            onSignUp: onSignUp,
+            onLogout: onLogout,
+            iconPath: userIconPath,
+            iconColor: brand.headerForeground,
           ),
         ),
       ],
