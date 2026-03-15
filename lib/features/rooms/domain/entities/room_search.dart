@@ -1,16 +1,13 @@
 class SearchLocation {
-  const SearchLocation({
-    required this.latitude,
-    required this.longitude,
-  });
+  const SearchLocation({required this.latitude, required this.longitude});
 
   final double latitude;
   final double longitude;
 
   Map<String, dynamic> toMap() => {
-        'latitude': latitude,
-        'longitude': longitude,
-      };
+    'latitude': latitude,
+    'longitude': longitude,
+  };
 }
 
 class RoomSearchRequest {
@@ -39,32 +36,51 @@ class RoomSearchRequest {
   final int offset;
 
   Map<String, dynamic> toMap() => {
-        'room_prefixes': roomPrefixes,
-        'date': date,
-        if (since != null) 'since': since,
-        if (until != null) 'until': until,
-        'building_codes': buildingCodes,
-        'utilities': utilities,
-        'near_me': nearMe,
-        if (userLocation != null) 'user_location': userLocation!.toMap(),
-        'limit': limit,
-        'offset': offset,
-      };
+    'room_prefixes': roomPrefixes,
+    'date': date,
+    if (since != null) 'since': since,
+    if (until != null) 'until': until,
+    'building_codes': buildingCodes,
+    'utilities': utilities,
+    'near_me': nearMe,
+    if (userLocation != null) 'user_location': userLocation!.toMap(),
+    'limit': limit,
+    'offset': offset,
+  };
+  RoomSearchRequest copyWith({
+    List<String>? roomPrefixes,
+    String? date,
+    String? since,
+    String? until,
+    List<String>? buildingCodes,
+    List<String>? utilities,
+    bool? nearMe,
+    SearchLocation? userLocation,
+    int? limit,
+    int? offset,
+  }) {
+    return RoomSearchRequest(
+      roomPrefixes: roomPrefixes ?? this.roomPrefixes,
+      date: date ?? this.date,
+      since: since ?? this.since,
+      until: until ?? this.until,
+      buildingCodes: buildingCodes ?? this.buildingCodes,
+      utilities: utilities ?? this.utilities,
+      nearMe: nearMe ?? this.nearMe,
+      userLocation: userLocation ?? this.userLocation,
+      limit: limit ?? this.limit,
+      offset: offset ?? this.offset,
+    );
+  }
 }
 
 class MatchingWindow {
-  const MatchingWindow({
-    required this.start,
-    required this.end,
-  });
+  const MatchingWindow({required this.start, required this.end});
 
   final String start;
   final String end;
 
-  Map<String, dynamic> toMap() => {
-        'start': start,
-        'end': end,
-      };
+  Map<String, dynamic> toMap() => {'start': start, 'end': end};
 }
 
 class WeeklyAvailabilityWindow {
@@ -83,12 +99,12 @@ class WeeklyAvailabilityWindow {
   final String validTo;
 
   Map<String, dynamic> toMap() => {
-        'day': day,
-        'start': start,
-        'end': end,
-        'valid_from': validFrom,
-        'valid_to': validTo,
-      };
+    'day': day,
+    'start': start,
+    'end': end,
+    'valid_from': validFrom,
+    'valid_to': validTo,
+  };
 }
 
 class RoomSearchItem {
@@ -117,18 +133,17 @@ class RoomSearchItem {
   final List<WeeklyAvailabilityWindow> weeklyAvailability;
 
   Map<String, dynamic> toMap() => {
-        'room_id': roomId,
-        'building_code': buildingCode,
-        'building_name': buildingName,
-        'room_number': roomNumber,
-        'capacity': capacity,
-        'reliability': reliability,
-        'utilities': utilities,
-        'distance_meters': distanceMeters,
-        'matching_windows': matchingWindows.map((e) => e.toMap()).toList(),
-        'weekly_availability':
-            weeklyAvailability.map((e) => e.toMap()).toList(),
-      };
+    'room_id': roomId,
+    'building_code': buildingCode,
+    'building_name': buildingName,
+    'room_number': roomNumber,
+    'capacity': capacity,
+    'reliability': reliability,
+    'utilities': utilities,
+    'distance_meters': distanceMeters,
+    'matching_windows': matchingWindows.map((e) => e.toMap()).toList(),
+    'weekly_availability': weeklyAvailability.map((e) => e.toMap()).toList(),
+  };
 }
 
 class RoomSearchResponse {
@@ -143,8 +158,8 @@ class RoomSearchResponse {
   final List<RoomSearchItem> items;
 
   Map<String, dynamic> toMap() => {
-        'query': query.toMap(),
-        'total': total,
-        'items': items.map((e) => e.toMap()).toList(),
-      };
+    'query': query.toMap(),
+    'total': total,
+    'items': items.map((e) => e.toMap()).toList(),
+  };
 }

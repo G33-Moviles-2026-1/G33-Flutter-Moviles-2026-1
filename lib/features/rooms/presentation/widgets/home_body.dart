@@ -185,8 +185,8 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
     );
   }
 
-  void _onSearch() {
-    ref
+  void _onSearch() async {
+    await ref
         .read(homeSearchControllerProvider.notifier)
         .submitSearch(
           rawRoomInput: _roomInputCtrl.text,
@@ -195,16 +195,17 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
           until: _until,
           selectedUtilities: _selectedUtilities,
           nearMe: _closeToMe,
+          offset: 0,
         );
+    if (ref.read(homeSearchControllerProvider).status ==
+        HomeSearchStatus.success) {
+      Navigator.pushNamed(context, AppRoutes.results);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     ref.listen<HomeSearchState>(homeSearchControllerProvider, (previous, next) {
-      if (next.status == HomeSearchStatus.success && next.response != null) {
-        Navigator.pushNamed(context, AppRoutes.results);
-      }
-
       final previousError = previous?.errorMessage;
       final nextError = next.errorMessage;
 
