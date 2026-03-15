@@ -189,8 +189,9 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
     );
   }
 
-  void _onSearch() {
-    ref
+  void _onSearch() async {
+    // 1. Disparamos la búsqueda
+    await ref
         .read(homeSearchControllerProvider.notifier)
         .submitSearch(
           rawRoomInput: _roomInputCtrl.text,
@@ -202,14 +203,21 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
           nearMe: _closeToMe,
           offset: 0,
         );
+
+    // 2. Navegamos manualmente solo después de que la búsqueda sea exitosa
+    // Verificamos el estado actual después del await
+    if (ref.read(homeSearchControllerProvider).status ==
+        HomeSearchStatus.success) {
+      Navigator.pushNamed(context, AppRoutes.results);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     ref.listen<HomeSearchState>(homeSearchControllerProvider, (previous, next) {
-      if (next.status == HomeSearchStatus.success && next.response != null) {
-        Navigator.pushNamed(context, AppRoutes.results);
-      }
+      //if (next.status == HomeSearchStatus.success && next.response != null) {
+      //  Navigator.pushNamed(context, AppRoutes.results);
+      //}
 
       final previousError = previous?.errorMessage;
       final nextError = next.errorMessage;
@@ -595,7 +603,6 @@ class _CtaButton extends StatelessWidget {
   }
 }
 
-
 class CompactSearchForm extends StatelessWidget {
   final TextEditingController roomCtrl;
   final VoidCallback onSearch;
@@ -603,9 +610,9 @@ class CompactSearchForm extends StatelessWidget {
   final bool isLoading;
 
   const CompactSearchForm({
-    super.key, 
-    required this.roomCtrl, 
-    required this.onSearch, 
+    super.key,
+    required this.roomCtrl,
+    required this.onSearch,
     required this.onOpenFilters,
     this.isLoading = false,
   });
@@ -620,14 +627,19 @@ class CompactSearchForm extends StatelessWidget {
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: Colors.black, width: 1.4),
-              boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(2, 2))],
+              boxShadow: const [
+                BoxShadow(color: Colors.black, offset: Offset(2, 2)),
+              ],
             ),
             child: TextField(
               controller: roomCtrl,
               decoration: const InputDecoration(
                 hintText: 'Search room...',
                 border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
               ),
               onSubmitted: (_) => onSearch(),
             ),
@@ -637,7 +649,7 @@ class CompactSearchForm extends StatelessWidget {
         _SquareButton(icon: Icons.tune, onTap: onOpenFilters),
         const SizedBox(width: 8),
         _SquareButton(
-          icon: isLoading ? Icons.hourglass_empty : Icons.search, 
+          icon: isLoading ? Icons.hourglass_empty : Icons.search,
           onTap: isLoading ? null : onSearch,
           isPrimary: true,
         ),
@@ -659,12 +671,15 @@ class _SquareButton extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Container(
-        width: 48, height: 48,
+        width: 48,
+        height: 48,
         decoration: BoxDecoration(
           color: isPrimary ? brand.accentYellow : Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: Colors.black, width: 1.4),
-          boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(2, 2))],
+          boxShadow: const [
+            BoxShadow(color: Colors.black, offset: Offset(2, 2)),
+          ],
         ),
         child: Icon(icon, color: Colors.black),
       ),
