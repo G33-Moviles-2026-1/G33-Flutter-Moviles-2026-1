@@ -1,3 +1,4 @@
+import 'package:andespace/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,11 +12,13 @@ class AuthController extends StateNotifier<AuthState> {
   final LoginUseCase loginUseCase;
   final SignUpUseCase signUpUseCase;
   final GetCurrentUserUseCase getCurrentUserUseCase;
+  final LogoutUseCase logoutUseCase;
 
   AuthController({
     required this.loginUseCase,
     required this.signUpUseCase,
     required this.getCurrentUserUseCase,
+    required this.logoutUseCase,
   }) : super(const AuthState());
 
   Future<void> loadCurrentUser() async {
@@ -115,11 +118,13 @@ class AuthController extends StateNotifier<AuthState> {
     state = state.copyWith(isLoading: true, error: null, isSuccess: false);
 
     try {
-      // agrega LogoutUseCase después si quieres, por ahora podrías llamar repo vía usecase
+      await logoutUseCase();
+
       state = const AuthState(
         isLoading: false,
         isAuthenticated: false,
         user: null,
+        isSuccess: false,
       );
     } catch (_) {
       state = state.copyWith(

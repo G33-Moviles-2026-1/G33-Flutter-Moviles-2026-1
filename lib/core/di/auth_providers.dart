@@ -1,16 +1,21 @@
+import 'package:andespace/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/di/core_provider.dart';
-import '../../data/datasources/auth_api.dart';
-import '../../data/repositories/auth_repository_impl.dart';
-import '../../domain/repositories/auth_repository.dart';
-import '../../domain/usecases/get_current_user_usecase.dart';
-import '../../domain/usecases/login_usecase.dart';
-import '../../domain/usecases/signup_usecase.dart';
-import '../controllers/auth_controller.dart';
-import '../controllers/auth_state.dart';
+import 'core_provider.dart';
+import '../../features/auth/data/datasources/auth_api.dart';
+import '../../features/auth/data/repositories/auth_repository_impl.dart';
+import '../../features/auth/domain/repositories/auth_repository.dart';
+import '../../features/auth/domain/usecases/get_current_user_usecase.dart';
+import '../../features/auth/domain/usecases/login_usecase.dart';
+import '../../features/auth/domain/usecases/signup_usecase.dart';
+import '../../features/auth/presentation/controllers/auth_controller.dart';
+import '../../features/auth/presentation/controllers/auth_state.dart';
 
 final authApiProvider = Provider<AuthApi>((ref) {
   return AuthApi(ref.read(dioProvider));
+});
+
+final logoutUseCaseProvider = Provider<LogoutUseCase>((ref) {
+  return LogoutUseCase(ref.read(authRepositoryProvider));
 });
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
@@ -35,5 +40,6 @@ final authControllerProvider =
     loginUseCase: ref.read(loginUseCaseProvider),
     signUpUseCase: ref.read(signUpUseCaseProvider),
     getCurrentUserUseCase: ref.read(getCurrentUserUseCaseProvider),
+    logoutUseCase: ref.read(logoutUseCaseProvider),
   );
 });

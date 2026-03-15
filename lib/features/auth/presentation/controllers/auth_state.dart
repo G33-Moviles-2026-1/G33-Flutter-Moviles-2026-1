@@ -19,13 +19,14 @@ class AuthState {
     bool? isLoading,
     bool? isAuthenticated,
     AuthUser? user,
+    bool clearUser = false,
     String? error,
     bool? isSuccess,
   }) {
     return AuthState(
       isLoading: isLoading ?? this.isLoading,
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
-      user: user ?? this.user,
+      user: clearUser ? null : (user ?? this.user),
       error: error,
       isSuccess: isSuccess ?? this.isSuccess,
     );
