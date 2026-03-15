@@ -15,6 +15,8 @@ class AuthState {
     this.isSuccess = false,
   });
 
+  bool get hasActiveSession => isAuthenticated && user != null;
+
   AuthState copyWith({
     bool? isLoading,
     bool? isAuthenticated,

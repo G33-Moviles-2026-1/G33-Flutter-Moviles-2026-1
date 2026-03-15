@@ -2,6 +2,7 @@ import 'package:andespace/core/di/core_provider.dart';
 import 'package:andespace/features/rooms/data/remote/rooms_api.dart';
 import 'package:andespace/features/rooms/data/repositories/rooms_repository_impl.dart';
 import 'package:andespace/features/rooms/domain/repositories/rooms_repository.dart';
+import 'package:andespace/features/rooms/domain/usecases/fetch_room_date_availability.dart';
 import 'package:andespace/features/rooms/domain/usecases/search_rooms.dart';
 import 'package:andespace/features/rooms/presentation/controllers/home_search_controller.dart';
 import 'package:andespace/features/rooms/presentation/controllers/home_search_state.dart';
@@ -22,17 +23,22 @@ final searchRoomsUseCaseProvider = Provider<SearchRooms>((ref) {
   return SearchRooms(ref.read(roomRepositoryProvider));
 });
 
+final fetchRoomDateAvailabilityUseCaseProvider =
+    Provider<FetchRoomDateAvailability>((ref) {
+      return FetchRoomDateAvailability(ref.read(roomRepositoryProvider));
+    });
+
 final homeSearchControllerProvider =
     StateNotifierProvider.autoDispose<HomeSearchController, HomeSearchState>(
-  (ref) {
-    final searchRooms = ref.read(searchRoomsUseCaseProvider);
-    final analyticsService = ref.read(analyticsServiceProvider);
-    final sessionController = ref.read(sessionControllerProvider);
+      (ref) {
+        final searchRooms = ref.read(searchRoomsUseCaseProvider);
+        final analyticsService = ref.read(analyticsServiceProvider);
+        final sessionController = ref.read(sessionControllerProvider);
 
-    return HomeSearchController(
-      searchRooms: searchRooms,
-      analyticsService: analyticsService,
-      sessionController: sessionController,
+        return HomeSearchController(
+          searchRooms: searchRooms,
+          analyticsService: analyticsService,
+          sessionController: sessionController,
+        );
+      },
     );
-  },
-);

@@ -23,7 +23,6 @@ extension BookingPurposeX on BookingPurpose {
   }
 
   String get backendKey {
-    // Useful later when backend expects a string value.
     switch (this) {
       case BookingPurpose.studyAlone:
         return 'study_alone';
@@ -32,9 +31,26 @@ extension BookingPurposeX on BookingPurpose {
       case BookingPurpose.studySmallGroup:
         return 'study_small_group';
       case BookingPurpose.hangOutWithFriends:
-        return 'hang_out_friends';
+        return 'hangout_friends';
       case BookingPurpose.tutoringBigGroup:
         return 'tutoring_big_group';
+    }
+  }
+
+  static BookingPurpose fromBackendKey(String value) {
+    switch (value) {
+      case 'study_alone':
+        return BookingPurpose.studyAlone;
+      case 'chill_alone':
+        return BookingPurpose.chillAlone;
+      case 'study_small_group':
+        return BookingPurpose.studySmallGroup;
+      case 'hangout_friends':
+        return BookingPurpose.hangOutWithFriends;
+      case 'tutoring_big_group':
+        return BookingPurpose.tutoringBigGroup;
+      default:
+        throw ArgumentError('Unknown booking purpose: $value');
     }
   }
 }

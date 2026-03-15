@@ -8,6 +8,5 @@ abstract class BookingsRepository {
     required DateTime date,
     required TimeRange timeRange,
     required BookingPurpose purpose,
-    required int peopleCount,
   });
 }

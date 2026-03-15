@@ -1,3 +1,4 @@
+import '../../domain/entities/room_date_availability.dart';
 import '../../domain/entities/room_search.dart';
 import '../../domain/repositories/rooms_repository.dart';
 
@@ -73,4 +74,45 @@ class MockRoomRepository implements RoomRepository {
     );
   }
 
+  @override
+  Future<RoomDateAvailability> fetchRoomDateAvailability({
+    required String roomId,
+    required String date,
+  }) async {
+    await Future.delayed(const Duration(milliseconds: 250));
+
+    if (roomId == 'ML 517') {
+      return const RoomDateAvailability(
+        roomId: 'ML 517',
+        date: '2026-03-16',
+        availableSlots: [
+          RoomDateSlot(
+            start: '14:30',
+            end: '16:00',
+            isAvailable: true,
+          ),
+        ],
+        blockedSlots: [
+          RoomDateSlot(
+            start: '10:00',
+            end: '11:30',
+            isAvailable: false,
+          ),
+        ],
+      );
+    }
+
+    return const RoomDateAvailability(
+      roomId: 'ML 512',
+      date: '2026-03-16',
+      availableSlots: [
+        RoomDateSlot(
+          start: '10:00',
+          end: '11:00',
+          isAvailable: true,
+        ),
+      ],
+      blockedSlots: [],
+    );
+  }
 }
