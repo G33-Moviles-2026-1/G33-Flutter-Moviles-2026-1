@@ -64,7 +64,23 @@ class AppScaffold extends ConsumerWidget {
       body: SafeArea(child: body),
       bottomNavigationBar: AppFooter(
         currentTab: currentTab,
-        onTabSelected: onTabSelected,
+          onTabSelected: (tab) {
+          switch (tab) {
+            case AppTab.rooms:
+              if (ModalRoute.of(context)?.settings.name != AppRoutes.home) {
+                Navigator.pushReplacementNamed(context, AppRoutes.home);
+              }
+              break;
+
+            case AppTab.schedule:
+              Navigator.pushReplacementNamed(context, AppRoutes.schedule);
+              break;
+
+            case AppTab.favorites:
+            case AppTab.bookings:
+              break;
+          }
+        },
       ),
     );
   }
