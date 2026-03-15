@@ -5,7 +5,7 @@ import 'package:andespace/shared/widgets/app_scaffold.dart';
 import 'package:andespace/shared/widgets/utilities_string.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../providers/homepage_providers.dart';
+import '../providers/rooms_providers.dart';
 import '../../domain/entities/room_search.dart';
 import '../../../../shared/theme/app_theme_extension.dart';
 
