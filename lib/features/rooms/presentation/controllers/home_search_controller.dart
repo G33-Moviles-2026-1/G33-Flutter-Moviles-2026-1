@@ -35,7 +35,6 @@ class HomeSearchController extends StateNotifier<HomeSearchState> {
 
   Future<void> submitSearch({
     required String rawRoomInput,
-    required String rawBuildingCodesInput,
     required DateTime? selectedDate,
     required TimeOfDay? since,
     required TimeOfDay? until,
@@ -43,8 +42,6 @@ class HomeSearchController extends StateNotifier<HomeSearchState> {
     required bool nearMe,
   }) async {
     final normalizedPrefixes = _normalizeCommaSeparated(rawRoomInput);
-    final normalizedBuildingCodes =
-        _normalizeCommaSeparated(rawBuildingCodesInput);
 
     if (selectedDate == null) {
       state = HomeSearchState.error(
@@ -84,7 +81,7 @@ class HomeSearchController extends StateNotifier<HomeSearchState> {
       date: _formatDate(selectedDate),
       since: since == null ? null : _formatTime24(since),
       until: until == null ? null : _formatTime24(until),
-      buildingCodes: normalizedBuildingCodes,
+      buildingCodes: const [],
       utilities: selectedUtilities.toList()..sort(),
       nearMe: nearMe,
       userLocation: sessionLocation == null

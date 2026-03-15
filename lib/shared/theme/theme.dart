@@ -6,11 +6,8 @@ abstract final class AppTheme {
   static const String fontTitle = 'ADLaMDisplay';
 
   static ThemeData light() {
-    final base = ThemeData(
-      useMaterial3: true,
-      brightness: Brightness.light,
-    );
-    
+    final base = ThemeData(useMaterial3: true, brightness: Brightness.light);
+
     const colorScheme = ColorScheme(
       brightness: Brightness.light,
       primary: Color(0xFFFFFBA9),
@@ -30,19 +27,39 @@ abstract final class AppTheme {
           displayColor: colorScheme.onSurface,
         )
         .copyWith(
-          displayLarge: base.textTheme.displayLarge?.copyWith(fontFamily: fontTitle),
-          displayMedium: base.textTheme.displayMedium?.copyWith(fontFamily: fontTitle),
-          displaySmall: base.textTheme.displaySmall?.copyWith(fontFamily: fontTitle),
-          headlineLarge: base.textTheme.headlineLarge?.copyWith(fontFamily: fontTitle),
-          headlineMedium: base.textTheme.headlineMedium?.copyWith(fontFamily: fontTitle),
-          headlineSmall: base.textTheme.headlineSmall?.copyWith(fontFamily: fontTitle),
-          titleLarge: base.textTheme.titleLarge?.copyWith(fontFamily: fontTitle),
+          displayLarge: base.textTheme.displayLarge?.copyWith(
+            fontFamily: fontTitle,
+          ),
+          displayMedium: base.textTheme.displayMedium?.copyWith(
+            fontFamily: fontTitle,
+          ),
+          displaySmall: base.textTheme.displaySmall?.copyWith(
+            fontFamily: fontTitle,
+          ),
+          headlineLarge: base.textTheme.headlineLarge?.copyWith(
+            fontFamily: fontTitle,
+          ),
+          headlineMedium: base.textTheme.headlineMedium?.copyWith(
+            fontFamily: fontTitle,
+          ),
+          headlineSmall: base.textTheme.headlineSmall?.copyWith(
+            fontFamily: fontTitle,
+          ),
+          titleLarge: base.textTheme.titleLarge?.copyWith(
+            fontFamily: fontTitle,
+          ),
         );
+
+    final lightButtonTextStyle = TextButton.styleFrom(
+      foregroundColor: colorScheme.onSurface,
+      textStyle: const TextStyle(fontWeight: FontWeight.w700),
+    );
 
     return base.copyWith(
       colorScheme: colorScheme,
       scaffoldBackgroundColor: const Color.fromARGB(255, 245, 245, 245),
       textTheme: textTheme,
+
       appBarTheme: const AppBarTheme(
         backgroundColor: Color(0xFFFFFBA9),
         foregroundColor: Color(0xFF000000),
@@ -52,6 +69,7 @@ abstract final class AppTheme {
         scrolledUnderElevation: 0,
         centerTitle: true,
       ),
+
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: Color(0xFFFFFBA9),
         selectedItemColor: Color(0xFF000000),
@@ -61,6 +79,68 @@ abstract final class AppTheme {
         type: BottomNavigationBarType.fixed,
         elevation: 0,
       ),
+
+      // NEW: makes default dialog/picker text buttons readable
+      textButtonTheme: TextButtonThemeData(style: lightButtonTextStyle),
+
+      // NEW: date picker button/text readability
+      datePickerTheme: DatePickerThemeData(
+        backgroundColor: colorScheme.surface,
+        surfaceTintColor: Colors.transparent,
+        headerBackgroundColor: colorScheme.surface,
+        headerForegroundColor: colorScheme.onSurface,
+        weekdayStyle: textTheme.bodyMedium?.copyWith(
+          color: colorScheme.onSurface,
+          fontWeight: FontWeight.w600,
+        ),
+        dayStyle: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
+        yearStyle: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
+        todayForegroundColor: WidgetStatePropertyAll(colorScheme.onSurface),
+        todayBackgroundColor: const WidgetStatePropertyAll(Colors.transparent),
+        dayForegroundColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return colorScheme.onSecondary;
+          }
+          return colorScheme.onSurface;
+        }),
+        dayBackgroundColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return colorScheme.secondary;
+          }
+          return null;
+        }),
+        confirmButtonStyle: lightButtonTextStyle,
+        cancelButtonStyle: TextButton.styleFrom(
+          foregroundColor: Colors.black54,
+          textStyle: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+      ),
+
+      // NEW: time picker button/text readability
+      timePickerTheme: TimePickerThemeData(
+        backgroundColor: colorScheme.surface,
+        helpTextStyle: textTheme.titleMedium?.copyWith(
+          color: colorScheme.onSurface,
+          fontWeight: FontWeight.w700,
+        ),
+        hourMinuteTextStyle: textTheme.headlineMedium?.copyWith(
+          color: colorScheme.onSurface,
+          fontWeight: FontWeight.w700,
+        ),
+        hourMinuteTextColor: colorScheme.onSurface,
+        dayPeriodTextColor: colorScheme.onSurface,
+        dayPeriodBorderSide: BorderSide(color: Colors.black26),
+        dialHandColor: colorScheme.secondary,
+        dialBackgroundColor: const Color(0xFFF2F2F2),
+        dialTextColor: colorScheme.onSurface,
+        entryModeIconColor: colorScheme.onSurface,
+        confirmButtonStyle: lightButtonTextStyle,
+        cancelButtonStyle: TextButton.styleFrom(
+          foregroundColor: Colors.black54,
+          textStyle: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+      ),
+
       extensions: const [
         BrandColors(
           softYellow: Color(0xFFFFFBA9),
@@ -101,13 +181,27 @@ abstract final class AppTheme {
           displayColor: onSurface,
         )
         .copyWith(
-          displayLarge: base.textTheme.displayLarge?.copyWith(fontFamily: fontTitle),
-          displayMedium: base.textTheme.displayMedium?.copyWith(fontFamily: fontTitle),
-          displaySmall: base.textTheme.displaySmall?.copyWith(fontFamily: fontTitle),
-          headlineLarge: base.textTheme.headlineLarge?.copyWith(fontFamily: fontTitle),
-          headlineMedium: base.textTheme.headlineMedium?.copyWith(fontFamily: fontTitle),
-          headlineSmall: base.textTheme.headlineSmall?.copyWith(fontFamily: fontTitle),
-          titleLarge: base.textTheme.titleLarge?.copyWith(fontFamily: fontTitle),
+          displayLarge: base.textTheme.displayLarge?.copyWith(
+            fontFamily: fontTitle,
+          ),
+          displayMedium: base.textTheme.displayMedium?.copyWith(
+            fontFamily: fontTitle,
+          ),
+          displaySmall: base.textTheme.displaySmall?.copyWith(
+            fontFamily: fontTitle,
+          ),
+          headlineLarge: base.textTheme.headlineLarge?.copyWith(
+            fontFamily: fontTitle,
+          ),
+          headlineMedium: base.textTheme.headlineMedium?.copyWith(
+            fontFamily: fontTitle,
+          ),
+          headlineSmall: base.textTheme.headlineSmall?.copyWith(
+            fontFamily: fontTitle,
+          ),
+          titleLarge: base.textTheme.titleLarge?.copyWith(
+            fontFamily: fontTitle,
+          ),
         );
 
     return base.copyWith(

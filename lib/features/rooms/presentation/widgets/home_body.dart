@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:andespace/core/navigation/app_routes.dart';
 import 'package:andespace/features/rooms/domain/entities/room_search.dart';
 import 'package:andespace/features/rooms/presentation/controllers/home_search_state.dart';
@@ -18,7 +16,6 @@ class HomeBody extends ConsumerStatefulWidget {
 
 class _HomeBodyState extends ConsumerState<HomeBody> {
   final _roomInputCtrl = TextEditingController();
-  final _buildingCodesCtrl = TextEditingController();
 
   DateTime? _selectedDate;
   TimeOfDay? _since;
@@ -48,7 +45,6 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
   @override
   void dispose() {
     _roomInputCtrl.dispose();
-    _buildingCodesCtrl.dispose();
     super.dispose();
   }
 
@@ -144,14 +140,6 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
                   children: [
                     Text('Filters', style: theme.textTheme.headlineSmall),
                     const SizedBox(height: 12),
-                    TextField(
-                      controller: _buildingCodesCtrl,
-                      decoration: const InputDecoration(
-                        labelText: 'Building codes (comma separated)',
-                        hintText: 'ML, SD, RGD',
-                      ),
-                    ),
-                    const SizedBox(height: 16),
                     Text('Utilities', style: theme.textTheme.titleMedium),
                     const SizedBox(height: 8),
                     ..._utilityLabels.entries.map(
@@ -174,7 +162,15 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
                     const SizedBox(height: 12),
                     SizedBox(
                       width: double.infinity,
-                      child: ElevatedButton(
+                      child: FilledButton(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: theme.colorScheme.onSurface,
+                          foregroundColor: theme.colorScheme.surface,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
                         onPressed: () => Navigator.pop(context),
                         child: const Text('Done'),
                       ),
@@ -194,7 +190,6 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
         .read(homeSearchControllerProvider.notifier)
         .submitSearch(
           rawRoomInput: _roomInputCtrl.text,
-          rawBuildingCodesInput: _buildingCodesCtrl.text,
           selectedDate: _selectedDate,
           since: _since,
           until: _until,
@@ -223,7 +218,6 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
     final state = ref.watch(homeSearchControllerProvider);
     final theme = Theme.of(context);
     final brand = theme.extension<BrandColors>()!;
-    final response = state.response;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(18, 18, 18, 24),
@@ -247,11 +241,15 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
                   child: TextField(
                     controller: _roomInputCtrl,
                     style: theme.textTheme.bodyLarge,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       hintText: 'Classroom e.g. ML 201, ML 5, ML',
+                      hintStyle: TextStyle(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                      floatingLabelBehavior: FloatingLabelBehavior.never,
                       border: InputBorder.none,
                       isDense: true,
-                      contentPadding: EdgeInsets.symmetric(
+                      contentPadding: const EdgeInsets.symmetric(
                         horizontal: 14,
                         vertical: 12,
                       ),
@@ -336,54 +334,6 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
             child: _CtaButton(
               label: state.isLoading ? 'Searching...' : 'Search',
               onPressed: state.isLoading ? null : _onSearch,
-            ),
-          ),
-          if (response != null) ...[
-            const SizedBox(height: 18),
-            _DebugResponseCard(response: response),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _DebugResponseCard extends StatelessWidget {
-  const _DebugResponseCard({required this.response});
-
-  final RoomSearchResponse response;
-
-  @override
-  Widget build(BuildContext context) {
-    final pretty = const JsonEncoder.withIndent('  ').convert(response.toMap());
-    final theme = Theme.of(context);
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: theme.colorScheme.outlineVariant),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Temporary raw response', style: theme.textTheme.titleMedium),
-          const SizedBox(height: 8),
-          Text('Total: ${response.total}'),
-          const SizedBox(height: 10),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 320),
-            child: SingleChildScrollView(
-              child: SelectionArea(
-                child: Text(
-                  pretty,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    fontFamily: 'monospace',
-                  ),
-                ),
-              ),
             ),
           ),
         ],
