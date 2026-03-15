@@ -17,7 +17,7 @@ class ResultsPage extends ConsumerWidget {
     final state = ref.watch(homeSearchControllerProvider);
     final theme = Theme.of(context);
     final brand = theme.extension<BrandColors>()!;
-    
+
     final response = state.response;
     final items = response?.items ?? [];
 
@@ -33,27 +33,20 @@ class ResultsPage extends ConsumerWidget {
       onTabSelected: (_) {},
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: CompactSearchForm(
-              roomCtrl: TextEditingController(text: response?.query.roomPrefixes.join(', ')),
-              isLoading: state.isLoading,
-              onOpenFilters: () {},
-              onSearch: () {},
-            ),
-          ),
-
           Expanded(
             child: Stack(
               children: [
                 ListView.separated(
-                  padding: const EdgeInsets.symmetric(horizontal: 18),
+                  padding: const EdgeInsets.only(left: 18, right: 18, top: 20),
                   itemCount: items.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 16),
-                  itemBuilder: (context, index) => _RoomCard(room: items[index], brand: brand),
+                  itemBuilder: (context, index) =>
+                      _RoomCard(room: items[index], brand: brand),
                 ),
                 if (state.isLoading)
-                  const Center(child: CircularProgressIndicator(color: Colors.black)),
+                  const Center(
+                    child: CircularProgressIndicator(color: Colors.black),
+                  ),
               ],
             ),
           ),
@@ -68,13 +61,24 @@ class ResultsPage extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   _PageBtn(
-                    label: "Prev", 
-                    onTap: currentPage > 1 ? () => ref.read(homeSearchControllerProvider.notifier).goToPage(currentPage - 1) : null
+                    label: "Prev",
+                    onTap: currentPage > 1
+                        ? () => ref
+                              .read(homeSearchControllerProvider.notifier)
+                              .goToPage(currentPage - 1)
+                        : null,
                   ),
-                  Text("Page $currentPage of $totalPages", style: const TextStyle(fontWeight: FontWeight.bold)),
+                  Text(
+                    "Page $currentPage of $totalPages",
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
                   _PageBtn(
-                    label: "Next", 
-                    onTap: currentPage < totalPages ? () => ref.read(homeSearchControllerProvider.notifier).goToPage(currentPage + 1) : null
+                    label: "Next",
+                    onTap: currentPage < totalPages
+                        ? () => ref
+                              .read(homeSearchControllerProvider.notifier)
+                              .goToPage(currentPage + 1)
+                        : null,
                   ),
                 ],
               ),
@@ -101,9 +105,17 @@ class _PageBtn extends StatelessWidget {
           color: isEnabled ? Colors.white : Colors.grey[200],
           border: Border.all(color: Colors.black, width: 1.5),
           borderRadius: BorderRadius.circular(8),
-          boxShadow: isEnabled ? [const BoxShadow(color: Colors.black, offset: Offset(2, 2))] : null,
+          boxShadow: isEnabled
+              ? [const BoxShadow(color: Colors.black, offset: Offset(2, 2))]
+              : null,
         ),
-        child: Text(label, style: TextStyle(fontWeight: FontWeight.bold, color: isEnabled ? Colors.black : Colors.grey)),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: isEnabled ? Colors.black : Colors.grey,
+          ),
+        ),
       ),
     );
   }
@@ -118,20 +130,19 @@ class _RoomCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return InkWell(
-      onTap: () => Navigator.pushNamed(
-        context, 
-        AppRoutes.roomDetail, 
-        arguments: room,
-      ),
+      onTap: () =>
+          Navigator.pushNamed(context, AppRoutes.roomDetail, arguments: room),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: Colors.black, width: 1.4),
-          boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(4, 4))],
+          boxShadow: const [
+            BoxShadow(color: Colors.black, offset: Offset(4, 4)),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -139,19 +150,36 @@ class _RoomCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(room.roomId, style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                Text(
+                  room.roomId,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 if (room.distanceMeters != null)
-                  Text('${room.distanceMeters!.toStringAsFixed(0)}m away', style: theme.textTheme.bodySmall),
+                  Text(
+                    '${room.distanceMeters!.toStringAsFixed(0)}m away',
+                    style: theme.textTheme.bodySmall,
+                  ),
               ],
             ),
             const SizedBox(height: 8),
-            Text('${room.buildingName ?? room.buildingCode} - Room ${room.roomNumber}'),
+            Text(
+              '${room.buildingName ?? room.buildingCode} - Room ${room.roomNumber}',
+            ),
             const SizedBox(height: 12),
             Wrap(
               spacing: 8,
               children: [
                 _Badge(label: 'Cap: ${room.capacity}', color: brand.softYellow),
-                ...room.utilities.take(2).map((u) => _Badge(label: u.toTitleCase(), color: Colors.grey[200]!)),
+                ...room.utilities
+                    .take(2)
+                    .map(
+                      (u) => _Badge(
+                        label: u.toTitleCase(),
+                        color: Colors.grey[200]!,
+                      ),
+                    ),
               ],
             ),
           ],
@@ -175,7 +203,10 @@ class _Badge extends StatelessWidget {
         borderRadius: BorderRadius.circular(6),
         border: Border.all(color: Colors.black, width: 1),
       ),
-      child: Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+      child: Text(
+        label,
+        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+      ),
     );
   }
 }
