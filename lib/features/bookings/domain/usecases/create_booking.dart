@@ -13,22 +13,14 @@ class CreateBooking {
     required DateTime date,
     required TimeRange timeRange,
     required BookingPurpose purpose,
-    required int peopleCount,
-    required int roomCapacity,
   }) async {
-    if (peopleCount < 1) {
-      throw ArgumentError('peopleCount must be >= 1');
-    }
-    if (peopleCount > roomCapacity) {
-      throw ArgumentError('peopleCount cannot exceed room capacity');
-    }
+    final normalizedDate = DateTime(date.year, date.month, date.day);
 
     return _repo.createBooking(
       roomId: roomId,
-      date: date,
+      date: normalizedDate,
       timeRange: timeRange,
       purpose: purpose,
-      peopleCount: peopleCount,
     );
   }
 }

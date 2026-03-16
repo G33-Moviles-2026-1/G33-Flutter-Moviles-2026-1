@@ -1,3 +1,4 @@
+import 'package:andespace/core/navigation/app_routes.dart';
 import 'package:andespace/core/navigation/app_tab.dart';
 import 'package:andespace/features/rooms/presentation/widgets/room_detail_body.dart';
 import 'package:andespace/shared/widgets/app_scaffold.dart';
@@ -12,8 +13,7 @@ class RoomDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppScaffold(
       currentTab: AppTab.rooms,
-      onTabSelected: (_) {
-      },
+      onTabSelected: (tab) => AppRoutes.handleTabSelection(context, tab),
       body: RoomDetailBody(room: room),
     );
   }
