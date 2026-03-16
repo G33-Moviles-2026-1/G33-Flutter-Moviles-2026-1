@@ -45,6 +45,8 @@ final createBookingControllerProvider = StateNotifierProvider.autoDispose
       createBooking: ref.read(createBookingUseCaseProvider),
       fetchRoomDateAvailability:
           ref.read(fetchRoomDateAvailabilityUseCaseProvider),
+      analyticsService: ref.read(analyticsServiceProvider),
+      sessionController: ref.read(sessionControllerProvider),
     );
   },
 );

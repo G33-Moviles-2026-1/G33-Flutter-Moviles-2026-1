@@ -1,9 +1,12 @@
+import 'package:andespace/core/analytics/analytics_events.dart';
+import 'package:andespace/core/analytics/analytics_service.dart';
+import 'package:andespace/core/session/session_controller.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../rooms/domain/entities/time_range.dart';
-import '../../../rooms/domain/usecases/fetch_room_date_availability.dart';
 import '../../../rooms/domain/entities/room_search.dart';
+import '../../../rooms/domain/usecases/fetch_room_date_availability.dart';
 import '../../domain/entities/booking_purpose.dart';
 import '../../domain/usecases/create_booking.dart';
 import 'create_booking_state.dart';
@@ -13,8 +16,12 @@ class CreateBookingController extends StateNotifier<CreateBookingState> {
     required this.room,
     required CreateBooking createBooking,
     required FetchRoomDateAvailability fetchRoomDateAvailability,
+    required AnalyticsService analyticsService,
+    required SessionController sessionController,
   })  : _createBooking = createBooking,
         _fetchRoomDateAvailability = fetchRoomDateAvailability,
+        _analyticsService = analyticsService,
+        _sessionController = sessionController,
         super(CreateBookingState.initial(_today())) {
     _loadAvailabilityFor(state.selectedDate);
   }
@@ -22,6 +29,8 @@ class CreateBookingController extends StateNotifier<CreateBookingState> {
   final RoomSearchItem room;
   final CreateBooking _createBooking;
   final FetchRoomDateAvailability _fetchRoomDateAvailability;
+  final AnalyticsService _analyticsService;
+  final SessionController _sessionController;
 
   static DateTime _today() {
     final now = DateTime.now();
@@ -101,6 +110,11 @@ class CreateBookingController extends StateNotifier<CreateBookingState> {
         purpose: state.selectedPurpose,
       );
 
+      await _trackBookingCreated(
+        purpose: state.selectedPurpose,
+        timeRange: selectedTimeRange,
+      );
+
       state = state.copyWith(
         isSubmitting: false,
         created: booking,
@@ -148,6 +162,35 @@ class CreateBookingController extends StateNotifier<CreateBookingState> {
         availableTimeRanges: const [],
         clearSelectedTimeRange: true,
       );
+    }
+  }
+
+  Future<void> _trackBookingCreated({
+    required BookingPurpose purpose,
+    required TimeRange timeRange,
+  }) async {
+    try {
+      await _analyticsService.track(
+        sessionId: _sessionController.sessionId,
+        deviceId: _sessionController.deviceId,
+        eventName: AnalyticsEvents.bookingCreated,
+        screen: 'create_booking',
+        propsJson: {
+          'feature': 'bookings',
+          'source_screen': 'create_booking',
+          'room_id': room.roomId,
+          'room_number': room.roomNumber,
+          'building_code': room.buildingCode,
+          'building_name': room.buildingName ?? room.buildingCode,
+          'purpose': purpose.backendKey,
+          'start_time': timeRange.start,
+          'end_time': timeRange.end,
+          'time_window': '${timeRange.start}-${timeRange.end}',
+          'initial_status': 'active',
+        },
+      );
+    } catch (_) {
+      // Best effort only: booking success must not fail because analytics failed.
     }
   }
 
