@@ -1,4 +1,6 @@
 import 'dart:math';
+import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 
 class SessionLocation {
   const SessionLocation({
@@ -10,22 +12,44 @@ class SessionLocation {
   final double longitude;
 }
 
-class SessionController {
+
+class SessionController extends ChangeNotifier {
   SessionController({
     SessionLocation? debugLocation,
-  }) : _debugLocation = debugLocation ??
-            const SessionLocation(
-              latitude: 4.6021,
-              longitude: -74.0659,
-            );
-
-  final SessionLocation _debugLocation;
+  }) : _currentLocation = debugLocation;
 
   final String sessionId = _generateUuidLike();
   final String deviceId = 'flutter-debug-device';
 
-  // Temporary until real device location is wired.
-  SessionLocation? get currentLocation => _debugLocation;
+  SessionLocation? _currentLocation;
+  SessionLocation? get currentLocation => _currentLocation;
+
+  Future<void> refreshLocation() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) return;
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) return;
+    }
+    
+    if (permission == LocationPermission.deniedForever) return;
+
+    final position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high
+    );
+
+    _currentLocation = SessionLocation(
+      latitude: position.latitude,
+      longitude: position.longitude,
+    );
+    
+    notifyListeners();
+  }
 
   static String _generateUuidLike() {
     final random = Random.secure();
