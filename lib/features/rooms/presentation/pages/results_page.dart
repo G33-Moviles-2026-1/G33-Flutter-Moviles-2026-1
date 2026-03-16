@@ -29,7 +29,7 @@ class ResultsPage extends ConsumerWidget {
 
     return AppScaffold(
       currentTab: AppTab.rooms,
-      onTabSelected: (_) {},
+      onTabSelected: (tab) => AppRoutes.handleTabSelection(context, tab),
       body: Column(
         children: [
           Expanded(

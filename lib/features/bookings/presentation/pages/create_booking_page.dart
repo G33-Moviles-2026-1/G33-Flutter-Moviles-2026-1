@@ -53,7 +53,7 @@ class CreateBookingPage extends ConsumerWidget {
 
     return AppScaffold(
       currentTab: AppTab.bookings,
-      onTabSelected: (_) {},
+      onTabSelected: (tab) => AppRoutes.handleTabSelection(context, tab),
       body: SafeArea(
         child: Column(
           children: [

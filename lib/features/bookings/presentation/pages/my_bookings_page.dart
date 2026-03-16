@@ -1,0 +1,141 @@
+import 'package:andespace/core/di/auth_providers.dart';
+import 'package:andespace/core/navigation/app_routes.dart';
+import 'package:andespace/core/navigation/app_tab.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../shared/widgets/app_scaffold.dart';
+import '../controllers/my_bookings_state.dart';
+import '../providers/bookings_providers.dart';
+import '../widgets/my_booking_card.dart';
+
+class MyBookingsPage extends ConsumerWidget {
+  const MyBookingsPage({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authControllerProvider);
+
+    if (!authState.hasActiveSession) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) {
+          Navigator.pushReplacementNamed(context, AppRoutes.login);
+        }
+      });
+
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final state = ref.watch(myBookingsControllerProvider);
+    final controller = ref.read(myBookingsControllerProvider.notifier);
+
+    ref.listen<MyBookingsState>(myBookingsControllerProvider, (previous, next) {
+      final nextError = next.errorMessage;
+      final previousError = previous?.errorMessage;
+
+      if (nextError != null && nextError != previousError) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(nextError)),
+        );
+      }
+    });
+
+    return AppScaffold(
+      currentTab: AppTab.bookings,
+      onTabSelected: (tab) => AppRoutes.handleTabSelection(context, tab),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(18, 18, 18, 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'My Bookings',
+                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                      fontSize: 32,
+                    ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Bookings created in the last 30 days',
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+              const SizedBox(height: 20),
+              Expanded(
+                child: Builder(
+                  builder: (context) {
+                    if (state.isLoading) {
+                      return const Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    }
+
+                    if (state.items.isEmpty) {
+                      return Center(
+                        child: Text(
+                          'You have no recent bookings.',
+                          style: Theme.of(context).textTheme.bodyLarge,
+                        ),
+                      );
+                    }
+
+                    return RefreshIndicator(
+                      onRefresh: controller.load,
+                      child: ListView.builder(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        itemCount: state.items.length,
+                        itemBuilder: (context, index) {
+                          final booking = state.items[index];
+                          final isDeleting =
+                              state.deletingIds.contains(booking.id);
+
+                          return MyBookingCard(
+                            booking: booking,
+                            isDeleting: isDeleting,
+                            onDeleteTap: () async {
+                              final confirmed = await showDialog<bool>(
+                                context: context,
+                                builder: (dialogContext) {
+                                  return AlertDialog(
+                                    title: const Text('Delete booking?'),
+                                    content: const Text(
+                                      'This booking will disappear from your bookings list. Are you sure you want to continue?',
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.pop(dialogContext, false);
+                                        },
+                                        child: const Text('Cancel'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.pop(dialogContext, true);
+                                        },
+                                        child: const Text('Delete'),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+
+                              if (confirmed == true) {
+                                await controller.deleteBooking(booking.id);
+                              }
+                            },
+                          );
+                        },
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
