@@ -144,7 +144,6 @@ class _RoomCard extends StatelessWidget {
 
     final bool isAvailableInQuery = room.isAvailableAt(referenceTime);
 
-    // Estética Neobrutalista
     final Color statusColor = isAvailableInQuery
         ? const Color(0xFF4CAF50)
         : const Color(0xFFFF9800);
@@ -182,7 +181,7 @@ class _RoomCard extends StatelessWidget {
                 ),
                 if (room.distanceMeters != null)
                   _Badge(
-                    label: '${room.distanceMeters!.toStringAsFixed(0)}m',
+                    label: '${room.distanceMeters!.toStringAsFixed(0)} Seconds',
                     color: Colors.white,
                   ),
               ],

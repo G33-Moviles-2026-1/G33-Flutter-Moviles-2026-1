@@ -175,10 +175,27 @@ class HomeSearchController extends StateNotifier<HomeSearchState> {
   }
 
   Future<void> goToPage(int page) async {
-    final lastQuery = state.response?.query;
-    if (lastQuery == null) return;
+    final lastResponse = state.response;
+    if (lastResponse == null) return;
+    final lastQuery = lastResponse.query;
     final newOffset = (page - 1) * lastQuery.limit;
-    final updatedRequest = lastQuery.copyWith(offset: newOffset);
+    SearchLocation? recoveredLocation = lastQuery.userLocation;
+
+    if (lastQuery.nearMe && recoveredLocation == null) {
+      final currentSessionLoc = _sessionController.currentLocation;
+      if (currentSessionLoc != null) {
+        recoveredLocation = SearchLocation(
+          latitude: currentSessionLoc.latitude,
+          longitude: currentSessionLoc.longitude,
+        );
+      }
+    }
+
+    final updatedRequest = lastQuery.copyWith(
+      offset: newOffset,
+      userLocation: recoveredLocation,
+    );
+
     await _performSearch(updatedRequest);
   }
 

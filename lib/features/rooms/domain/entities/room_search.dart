@@ -35,18 +35,24 @@ class RoomSearchRequest {
   final int limit;
   final int offset;
 
-  Map<String, dynamic> toMap() => {
-    'room_prefixes': roomPrefixes,
-    'date': date,
-    if (since != null) 'since': since,
-    if (until != null) 'until': until,
-    'building_codes': buildingCodes,
-    'utilities': utilities,
-    'near_me': nearMe,
-    if (userLocation != null) 'user_location': userLocation!.toMap(),
-    'limit': limit,
-    'offset': offset,
-  };
+  Map<String, dynamic> toMap() {
+    final Map<String, dynamic> map = {
+      'room_prefixes': roomPrefixes,
+      'date': date,
+      'building_codes': buildingCodes,
+      'utilities': utilities,
+      'near_me': nearMe,
+      'limit': limit,
+      'offset': offset,
+    };
+    if (since != null) map['since'] = since;
+    if (until != null) map['until'] = until;
+
+    if (userLocation != null) {
+      map['user_location'] = userLocation!.toMap();
+    }
+    return map;
+  }
   RoomSearchRequest copyWith({
     List<String>? roomPrefixes,
     String? date,
