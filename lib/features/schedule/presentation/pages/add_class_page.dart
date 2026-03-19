@@ -57,6 +57,24 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
     }
   }
 
+  bool _dateRangesOverlap({
+    required DateTime startA,
+    required DateTime endA,
+    required DateTime startB,
+    required DateTime endB,
+  }) {
+    return !startA.isAfter(endB) && !startB.isAfter(endA);
+  }
+
+  bool _timeRangesOverlap({
+    required int startMinutesA,
+    required int endMinutesA,
+    required int startMinutesB,
+    required int endMinutesB,
+  }) {
+    return startMinutesA < endMinutesB && startMinutesB < endMinutesA;
+  }
+
   @override
   void dispose() {
     _titleController.dispose();
@@ -188,6 +206,55 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
         ),
       );
       return;
+    }
+
+    final existingClasses = await ref
+    .read(scheduleControllerProvider.notifier)
+    .getExistingClassesForValidation();
+
+    if (!mounted) return;
+
+    for (final existing in existingClasses) {
+      final sameWeekday = existing.weekdays.any(
+        (day) => selectedWeekdays.contains(day),
+      );
+
+      if (!sameWeekday) continue;
+
+      final datesOverlap = _dateRangesOverlap(
+        startA: _startDate!,
+        endA: _endDate!,
+        startB: existing.startDate,
+        endB: existing.endDate,
+      );
+
+      if (!datesOverlap) continue;
+
+      final existingStartParts = existing.startTime.split(':');
+      final existingEndParts = existing.endTime.split(':');
+
+      final existingStartMinutes =
+          int.parse(existingStartParts[0]) * 60 + int.parse(existingStartParts[1]);
+      final existingEndMinutes =
+          int.parse(existingEndParts[0]) * 60 + int.parse(existingEndParts[1]);
+
+      final overlaps = _timeRangesOverlap(
+        startMinutesA: startMinutes,
+        endMinutesA: endMinutes,
+        startMinutesB: existingStartMinutes,
+        endMinutesB: existingEndMinutes,
+      );
+
+      if (overlaps) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'This class overlaps with "${existing.title ?? 'another class'}".',
+            ),
+          ),
+        );
+        return;
+      }
     }
 
     final manualClass = ManualClass(

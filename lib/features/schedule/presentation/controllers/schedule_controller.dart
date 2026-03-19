@@ -1,3 +1,4 @@
+import 'package:andespace/features/schedule/domain/entities/schedule_class.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -248,5 +249,10 @@ class ScheduleController extends StateNotifier<ScheduleState> {
         errorMessage: e.toString(),
       );
     }
+  }
+
+  Future<List<ScheduleClass>> getExistingClassesForValidation() async {
+    final userEmail = await _getUserEmail();
+    return getScheduleClasses(userEmail: userEmail);
   }
 }
