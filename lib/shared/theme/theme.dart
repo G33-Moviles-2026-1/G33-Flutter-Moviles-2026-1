@@ -80,10 +80,31 @@ abstract final class AppTheme {
         elevation: 0,
       ),
 
-      // NEW: makes default dialog/picker text buttons readable
       textButtonTheme: TextButtonThemeData(style: lightButtonTextStyle),
 
-      // NEW: date picker button/text readability
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: colorScheme.primary,
+          foregroundColor: Colors.black,
+          textStyle: const TextStyle(
+            fontWeight: FontWeight.w700,
+            color: Colors.black,
+          ),
+          disabledForegroundColor: Colors.black54,
+        ),
+      ),
+
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: Colors.black,
+          textStyle: const TextStyle(
+            fontWeight: FontWeight.w700,
+            color: Colors.black,
+          ),
+          side: const BorderSide(color: Colors.black),
+        ),
+      ),
+
       datePickerTheme: DatePickerThemeData(
         backgroundColor: colorScheme.surface,
         surfaceTintColor: Colors.transparent,
@@ -116,7 +137,6 @@ abstract final class AppTheme {
         ),
       ),
 
-      // NEW: time picker button/text readability
       timePickerTheme: TimePickerThemeData(
         backgroundColor: colorScheme.surface,
         helpTextStyle: textTheme.titleMedium?.copyWith(
@@ -225,6 +245,18 @@ abstract final class AppTheme {
         showUnselectedLabels: false,
         type: BottomNavigationBarType.fixed,
         elevation: 0,
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          foregroundColor: Colors.black,
+          textStyle: const TextStyle(fontWeight: FontWeight.w700),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: Colors.black,
+          textStyle: const TextStyle(fontWeight: FontWeight.w700),
+        ),
       ),
       extensions: const [
         BrandColors(

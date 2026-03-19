@@ -20,6 +20,7 @@ class WeeklyCalendarView extends StatelessWidget {
     final grouped = <DateTime, List<ScheduleOccurrence>>{};
 
     for (final occurrence in occurrences) {
+      if (occurrence.date.weekday == DateTime.sunday) continue;
       final key = DateTime(
         occurrence.date.year,
         occurrence.date.month,
@@ -38,21 +39,25 @@ class WeeklyCalendarView extends StatelessWidget {
     final weekDays = List.generate(
       7,
       (index) => schedule.weekStart.add(Duration(days: index)),
-    );
+    ).where((day) => day.weekday != DateTime.sunday).toList();
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      child: Row(
-        children: weekDays.map((day) {
-          final key = DateTime(day.year, day.month, day.day);
-          final occurrences = grouped[key] ?? [];
+      child: SingleChildScrollView(
+        scrollDirection: Axis.vertical,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: weekDays.map((day) {
+            final key = DateTime(day.year, day.month, day.day);
+            final occurrences = grouped[key] ?? [];
 
-          return DayColumn(
-            day: day,
-            occurrences: occurrences,
-            onDeleteOccurrence: onDeleteOccurrence,
-          );
-        }).toList(),
+            return DayColumn(
+              day: day,
+              occurrences: occurrences,
+              onDeleteOccurrence: onDeleteOccurrence,
+            );
+          }).toList(),
+        ),
       ),
     );
   }

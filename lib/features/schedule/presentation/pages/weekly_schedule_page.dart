@@ -31,6 +31,29 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
     // Reemplaza esta lógica con tus rutas reales si ya las tienes cableadas.
   }
 
+    String _monthName(int month) {
+    const months = [
+      'Enero',
+      'Febrero',
+      'Marzo',
+      'Abril',
+      'Mayo',
+      'Junio',
+      'Julio',
+      'Agosto',
+      'Septiembre',
+      'Octubre',
+      'Noviembre',
+      'Diciembre',
+    ];
+    return months[month - 1];
+  }
+
+  String _formatWeekRange(DateTime start, DateTime end) {
+    return '${start.day} de ${_monthName(start.month)} - '
+        '${end.day} de ${_monthName(end.month)}';
+  }
+
   Future<void> _confirmDeleteOccurrence({
     required String classId,
     required DateTime date,
@@ -159,9 +182,11 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
                     Expanded(
                       child: Center(
                         child: Text(
-                          '${schedule.weekStart.day}/${schedule.weekStart.month}/${schedule.weekStart.year}'
-                          ' - '
-                          '${schedule.weekEnd.day}/${schedule.weekEnd.month}/${schedule.weekEnd.year}',
+                          _formatWeekRange(
+                            schedule.weekStart,
+                            schedule.weekEnd,
+                          ),
+                          textAlign: TextAlign.center,
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,

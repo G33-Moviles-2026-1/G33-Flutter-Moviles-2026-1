@@ -34,7 +34,6 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
     'TH': false,
     'FR': false,
     'SA': false,
-    'SU': false,
   };
 
   @override

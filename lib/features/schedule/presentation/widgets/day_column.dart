@@ -16,8 +16,11 @@ class DayColumn extends StatelessWidget {
   });
 
   String _weekdayLabel(DateTime date) {
-    const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    return labels[date.weekday - 1];
+    const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    if (date.weekday >= 1 && date.weekday <= 6) {
+      return labels[date.weekday - 1];
+    }
+    return '';
   }
 
   @override
@@ -32,7 +35,7 @@ class DayColumn extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '${_weekdayLabel(day)} ${day.day}/${day.month}',
+            '${_weekdayLabel(day)} ${day.day}',
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,

@@ -16,8 +16,6 @@ class ClassTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final subtitle = [
       '${occurrence.startTime} - ${occurrence.endTime}',
-      if ((occurrence.locationText ?? '').trim().isNotEmpty)
-        occurrence.locationText!,
       if ((occurrence.roomId ?? '').trim().isNotEmpty) 'Room: ${occurrence.roomId}',
     ].join('\n');
 
