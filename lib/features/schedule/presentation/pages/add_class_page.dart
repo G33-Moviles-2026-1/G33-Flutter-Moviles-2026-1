@@ -1,5 +1,6 @@
 import 'package:andespace/core/navigation/app_routes.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:andespace/core/navigation/app_tab.dart';
@@ -154,6 +155,27 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
       return;
     }
 
+    if (_startDate!.isAfter(_endDate!)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Start date must be earlier than or equal to end date.'),
+        ),
+      );
+      return;
+    }
+
+    final startMinutes = _startTime!.hour * 60 + _startTime!.minute;
+    final endMinutes = _endTime!.hour * 60 + _endTime!.minute;
+
+    if (startMinutes >= endMinutes) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Start time must be earlier than end time.'),
+        ),
+      );
+      return;
+    }
+
     final selectedWeekdays = _weekdays.entries
         .where((entry) => entry.value)
         .map((entry) => entry.key)
@@ -170,10 +192,10 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
 
     final manualClass = ManualClass(
       title: _titleController.text.trim(),
-      locationText: _locationController.text.trim().isEmpty
-          ? null
-          : _locationController.text.trim(),
       roomId: _roomIdController.text.trim().isEmpty
+          ? null
+          : _roomIdController.text.trim(),
+      locationText: _roomIdController.text.trim().isEmpty
           ? null
           : _roomIdController.text.trim(),
       startDate: _startDate!,
@@ -225,25 +247,40 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
           child: Form(
             key: _formKey,
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.arrow_back),
+                ),
                 TextFormField(
                   controller: _titleController,
+                  inputFormatters: [
+                    LengthLimitingTextInputFormatter(60),
+                  ],
                   decoration: const InputDecoration(
                     labelText: 'Class Title',
                     border: OutlineInputBorder(),
+                    counterText: '',
                   ),
                   validator: (value) {
-                    if ((value ?? '').trim().isEmpty) {
+                    final text = (value ?? '').trim();
+
+                    if (text.isEmpty) {
                       return 'Enter a class title';
                     }
+
                     return null;
                   },
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _roomIdController,
+                  inputFormatters: [
+                    LengthLimitingTextInputFormatter(30),
+                  ],
                   decoration: const InputDecoration(
-                    labelText: 'Room ID',
+                    labelText: 'Room (Optional)',
                     border: OutlineInputBorder(),
                   ),
                 ),

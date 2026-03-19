@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/manual_class.dart';
@@ -67,6 +68,22 @@ class ScheduleController extends StateNotifier<ScheduleState> {
       state = state.copyWith(
         status: ScheduleStatus.loaded,
         weeklySchedule: schedule,
+      );
+    } on DioException catch (e) {
+      final statusCode = e.response?.statusCode;
+
+      if (statusCode == 404) {
+        state = state.copyWith(
+          status: ScheduleStatus.empty,
+          clearWeeklySchedule: true,
+          errorMessage: null,
+        );
+        return;
+      }
+
+      state = state.copyWith(
+        status: ScheduleStatus.error,
+        errorMessage: e.message ?? 'Failed to load schedule.',
       );
     } catch (e) {
       state = state.copyWith(

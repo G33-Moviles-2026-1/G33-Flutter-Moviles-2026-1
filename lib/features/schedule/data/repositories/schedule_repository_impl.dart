@@ -70,7 +70,9 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
               classId: e.classId,
               title: e.title,
               locationText: e.locationText,
-              roomId: e.roomId,
+              roomId: (e.roomId != null && e.roomId!.trim().isNotEmpty)
+                  ? e.roomId
+                  : e.locationText,
               date: e.date,
               weekday: e.weekday,
               startTime: e.startTime,
@@ -95,7 +97,9 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
             classId: e.classId,
             title: e.title,
             locationText: e.locationText,
-            roomId: e.roomId,
+            roomId: (e.roomId != null && e.roomId!.trim().isNotEmpty)
+              ? e.roomId
+              : e.locationText,
             startDate: e.startDate,
             endDate: e.endDate,
             startTime: e.startTime,

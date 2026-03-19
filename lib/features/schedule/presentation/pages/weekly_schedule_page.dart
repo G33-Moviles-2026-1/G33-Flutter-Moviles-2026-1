@@ -249,7 +249,7 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
                           builder: (_) => const ScheduleLoadPage(),
                         ),
                       ),
-                      child: const Text('Reload the Schedule'),
+                      child: const Text('Filter from Schedule'),
                     ),
                     OutlinedButton(
                       onPressed: () {

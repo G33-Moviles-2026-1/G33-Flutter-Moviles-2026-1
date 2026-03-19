@@ -60,6 +60,10 @@ abstract final class AppTheme {
       scaffoldBackgroundColor: const Color.fromARGB(255, 245, 245, 245),
       textTheme: textTheme,
 
+      progressIndicatorTheme: const ProgressIndicatorThemeData(
+        color: Color.fromRGBO(253, 242, 28, 1),
+      ),
+
       appBarTheme: const AppBarTheme(
         backgroundColor: Color(0xFFFFFBA9),
         foregroundColor: Color(0xFF000000),
@@ -126,7 +130,7 @@ abstract final class AppTheme {
         }),
         dayBackgroundColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return colorScheme.secondary;
+            return Color.fromRGBO(253, 242, 28, 1);
           }
           return null;
         }),

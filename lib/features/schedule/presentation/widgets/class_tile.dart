@@ -12,10 +12,26 @@ class ClassTile extends StatelessWidget {
     this.onDelete,
   });
 
+  String _formatDisplayTime(String raw) {
+    final value = raw.trim();
+    if (value.isEmpty) return value;
+
+    final parts = value.split(':');
+    if (parts.length < 2) return value;
+
+    final hour = int.tryParse(parts[0]);
+    final minute = int.tryParse(parts[1]);
+
+    if (hour == null || minute == null) return value;
+    final suffix = hour >= 12 ? 'PM' : 'AM';
+    final displayHour = hour > 12 ? hour - 12 : hour;
+    return '$displayHour:${minute.toString().padLeft(2, '0')} $suffix';
+  }
+
   @override
   Widget build(BuildContext context) {
     final subtitle = [
-      '${occurrence.startTime} - ${occurrence.endTime}',
+      '${_formatDisplayTime(occurrence.startTime)} - ${_formatDisplayTime(occurrence.endTime)}',
       if ((occurrence.roomId ?? '').trim().isNotEmpty) 'Room: ${occurrence.roomId}',
     ].join('\n');
 
