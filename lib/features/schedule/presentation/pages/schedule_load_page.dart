@@ -1,3 +1,4 @@
+import 'package:andespace/core/navigation/app_routes.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -42,7 +43,7 @@ class ScheduleLoadPage extends ConsumerWidget {
   }
 
   void _onTabSelected(BuildContext context, AppTab tab) {
-    // Reemplaza esta lógica con tus rutas reales si ya las tienes cableadas.
+    AppRoutes.handleTabSelection(context, tab);
   }
 
   @override

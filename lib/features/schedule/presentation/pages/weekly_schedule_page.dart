@@ -1,3 +1,4 @@
+import 'package:andespace/core/navigation/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -22,13 +23,17 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() {
-      ref.read(scheduleControllerProvider.notifier).loadWeek();
-    });
+
+    final state = ref.read(scheduleControllerProvider);
+    if (state.weeklySchedule == null) {
+      Future.microtask(() {
+        ref.read(scheduleControllerProvider.notifier).loadWeek();
+      });
+    }
   }
 
   void _onTabSelected(BuildContext context, AppTab tab) {
-    // Reemplaza esta lógica con tus rutas reales si ya las tienes cableadas.
+    AppRoutes.handleTabSelection(context, tab);
   }
 
     String _monthName(int month) {
@@ -238,7 +243,12 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
                   alignment: WrapAlignment.center,
                   children: [
                     ElevatedButton(
-                      onPressed: controller.refresh,
+                      onPressed: () => Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const ScheduleLoadPage(),
+                        ),
+                      ),
                       child: const Text('Reload the Schedule'),
                     ),
                     OutlinedButton(

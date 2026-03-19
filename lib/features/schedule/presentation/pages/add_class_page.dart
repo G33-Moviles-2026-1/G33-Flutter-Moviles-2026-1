@@ -1,3 +1,4 @@
+import 'package:andespace/core/navigation/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -28,13 +29,32 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
   DateTime? _endDate;
 
   final Map<String, bool> _weekdays = {
-    'MO': false,
-    'TU': false,
-    'WE': false,
-    'TH': false,
-    'FR': false,
-    'SA': false,
+    'monday': false,
+    'tuesday': false,
+    'wednesday': false,
+    'thursday': false,
+    'friday': false,
+    'saturday': false,
   };
+
+  String _weekdayLabel(String value) {
+    switch (value) {
+      case 'monday':
+        return 'MO';
+      case 'tuesday':
+        return 'TU';
+      case 'wednesday':
+        return 'WE';
+      case 'thursday':
+        return 'TH';
+      case 'friday':
+        return 'FR';
+      case 'saturday':
+        return 'SA';
+      default:
+        return value;
+    }
+  }
 
   @override
   void dispose() {
@@ -45,7 +65,7 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
   }
 
   void _onTabSelected(BuildContext context, AppTab tab) {
-    // Reemplaza esta lógica con tus rutas reales si ya las tienes cableadas.
+    AppRoutes.handleTabSelection(context, tab);
   }
 
   Future<void> _pickStartTime() async {
@@ -221,14 +241,6 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
-                  controller: _locationController,
-                  decoration: const InputDecoration(
-                    labelText: 'Location Text',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
                   controller: _roomIdController,
                   decoration: const InputDecoration(
                     labelText: 'Room ID',
@@ -306,7 +318,7 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
                     final selected = _weekdays[day] ?? false;
 
                     return FilterChip(
-                      label: Text(day),
+                      label: Text(_weekdayLabel(day)),
                       selected: selected,
                       onSelected: (value) {
                         setState(() {
