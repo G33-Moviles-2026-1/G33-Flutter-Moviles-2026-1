@@ -67,12 +67,14 @@ class HomeSearchController extends StateNotifier<HomeSearchState> {
       return;
     }
 
+    if (nearMe) {
+      await _sessionController.refreshLocation();
+    }
+
     final sessionLocation = nearMe ? _sessionController.currentLocation : null;
+
     if (nearMe && sessionLocation == null) {
-      state = HomeSearchState.error(
-        'Close to me requires location, and location is not available.',
-        previousResponse: state.response,
-      );
+      state = HomeSearchState.error('No se pudo obtener tu ubicación GPS.');
       return;
     }
 
@@ -172,25 +174,41 @@ class HomeSearchController extends StateNotifier<HomeSearchState> {
     return error.toString();
   }
 
+  Future<void> goToPage(int page) async {
+    final lastResponse = state.response;
+    if (lastResponse == null) return;
+    final lastQuery = lastResponse.query;
+    final newOffset = (page - 1) * lastQuery.limit;
+    SearchLocation? recoveredLocation = lastQuery.userLocation;
 
-Future<void> goToPage(int page) async {
-  final lastQuery = state.response?.query;
-  if (lastQuery == null) return;
-  final newOffset = (page - 1) * lastQuery.limit;
-  final updatedRequest = lastQuery.copyWith(offset: newOffset);
-  await _performSearch(updatedRequest);
-}
+    if (lastQuery.nearMe && recoveredLocation == null) {
+      final currentSessionLoc = _sessionController.currentLocation;
+      if (currentSessionLoc != null) {
+        recoveredLocation = SearchLocation(
+          latitude: currentSessionLoc.latitude,
+          longitude: currentSessionLoc.longitude,
+        );
+      }
+    }
 
-Future<void> _performSearch(RoomSearchRequest request) async {
-  state = HomeSearchState.loading(previousResponse: state.response);
-  try {
-    final response = await _searchRooms(request);
-    state = HomeSearchState.success(response);
-  } catch (e) {
-    state = HomeSearchState.error(
-      _mapError(e), 
-      previousResponse: state.response,
+    final updatedRequest = lastQuery.copyWith(
+      offset: newOffset,
+      userLocation: recoveredLocation,
     );
+
+    await _performSearch(updatedRequest);
   }
-}
+
+  Future<void> _performSearch(RoomSearchRequest request) async {
+    state = HomeSearchState.loading(previousResponse: state.response);
+    try {
+      final response = await _searchRooms(request);
+      state = HomeSearchState.success(response);
+    } catch (e) {
+      state = HomeSearchState.error(
+        _mapError(e),
+        previousResponse: state.response,
+      );
+    }
+  }
 }

@@ -28,10 +28,17 @@ class PurposeSelector extends StatelessWidget {
             onChanged: (v) {
               if (v != null) onChanged(v);
             },
+            activeColor: Colors.black,
+            fillColor: WidgetStateProperty.resolveWith<Color>((states) {
+              return Colors.black;
+            }),
             dense: true,
-            visualDensity: const VisualDensity(vertical: -3), // tighter!
+            visualDensity: const VisualDensity(vertical: -3),
             contentPadding: EdgeInsets.zero,
-            title: Text(p.label),
+            title: Text(
+              p.label,
+              style: const TextStyle(color: Colors.black),
+            ),
           );
         }).toList(),
       ),

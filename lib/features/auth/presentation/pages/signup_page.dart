@@ -205,7 +205,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
             ),
           ),
         ),
-      ), currentTab: AppTab.rooms, onTabSelected: (AppTab value) {  },
+      ), currentTab: AppTab.rooms, onTabSelected: (tab) => AppRoutes.handleTabSelection(context, tab),
     );
   }
 
