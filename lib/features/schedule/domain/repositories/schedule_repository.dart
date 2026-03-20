@@ -1,5 +1,3 @@
-import 'package:andespace/features/rooms/domain/entities/room_search.dart';
-
 import '../entities/free_rooms_for_day.dart';
 import '../entities/manual_class.dart';
 import '../entities/schedule_class.dart';
@@ -42,11 +40,6 @@ abstract class ScheduleRepository {
   Future<void> deleteScheduleOccurrence({
     required String userEmail,
     required String classId,
-    required DateTime date,
-  });
-
-  Future<List<RoomSearchItem>> getRecommendedRoomsForDay({
-    required String userEmail,
     required DateTime date,
   });
 }

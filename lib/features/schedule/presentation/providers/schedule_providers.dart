@@ -1,4 +1,3 @@
-import 'package:andespace/features/schedule/domain/usecases/get_recommended_rooms_for_day.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:andespace/core/di/auth_providers.dart';
@@ -66,11 +65,6 @@ final deleteScheduleOccurrenceProvider = Provider<DeleteScheduleOccurrence>((ref
   return DeleteScheduleOccurrence(repository);
 });
 
-final getRecommendedRoomsForDayProvider = Provider<GetRecommendedRoomsForDay>((ref) {
-  final repository = ref.watch(scheduleRepositoryProvider);
-  return GetRecommendedRoomsForDay(repository);
-});
-
 final scheduleControllerProvider =
     StateNotifierProvider<ScheduleController, ScheduleState>((ref) {
   return ScheduleController(
@@ -81,7 +75,6 @@ final scheduleControllerProvider =
     deleteFullSchedule: ref.watch(deleteFullScheduleProvider),
     deleteScheduleClass: ref.watch(deleteScheduleClassProvider),
     deleteScheduleOccurrence: ref.watch(deleteScheduleOccurrenceProvider),
-    getRecommendedRoomsForDay: ref.watch(getRecommendedRoomsForDayProvider),
     resolveUserEmail: () async {
       final getCurrentUser = ref.read(getCurrentUserUseCaseProvider);
       final currentUser = await getCurrentUser();
