@@ -1,3 +1,4 @@
+import 'package:andespace/features/rooms/domain/entities/room_search.dart';
 import 'package:andespace/features/schedule/domain/entities/schedule_class.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,6 +7,7 @@ import '../../domain/entities/manual_class.dart';
 import '../../domain/usecases/delete_full_schedule.dart';
 import '../../domain/usecases/delete_schedule_class.dart';
 import '../../domain/usecases/delete_schedule_occurrence.dart';
+import '../../domain/usecases/get_recommended_rooms_for_day.dart';
 import '../../domain/usecases/get_schedule_classes.dart';
 import '../../domain/usecases/get_weekly_schedule.dart';
 import '../../domain/usecases/upload_ics_schedule.dart';
@@ -20,6 +22,7 @@ class ScheduleController extends StateNotifier<ScheduleState> {
   final DeleteFullSchedule deleteFullSchedule;
   final DeleteScheduleClass deleteScheduleClass;
   final DeleteScheduleOccurrence deleteScheduleOccurrence;
+  final GetRecommendedRoomsForDay getRecommendedRoomsForDay;
   final Future<String> Function() resolveUserEmail;
 
   ScheduleController({
@@ -30,6 +33,7 @@ class ScheduleController extends StateNotifier<ScheduleState> {
     required this.deleteFullSchedule,
     required this.deleteScheduleClass,
     required this.deleteScheduleOccurrence,
+    required this.getRecommendedRoomsForDay,
     required this.resolveUserEmail,
   }) : super(ScheduleState.initial());
 
@@ -39,6 +43,41 @@ class ScheduleController extends StateNotifier<ScheduleState> {
       throw Exception('No authenticated user email found.');
     }
     return email;
+  }
+
+  String _extractBackendErrorMessage(Object error) {
+    if (error is DioException) {
+      final data = error.response?.data;
+
+      if (data is Map<String, dynamic>) {
+        final detail = data['detail'];
+
+        if (detail is String && detail.trim().isNotEmpty) {
+          return detail;
+        }
+
+        if (detail is List && detail.isNotEmpty) {
+          final first = detail.first;
+
+          if (first is Map<String, dynamic>) {
+            final msg = first['msg'];
+            if (msg is String && msg.trim().isNotEmpty) {
+              return msg;
+            }
+          }
+
+          return detail.join(', ');
+        }
+      }
+
+      if (data is String && data.trim().isNotEmpty) {
+        return data;
+      }
+
+      return error.message ?? 'Something went wrong. Please try again.';
+    }
+
+    return error.toString();
   }
 
   Future<void> loadWeek({DateTime? date}) async {
@@ -84,12 +123,12 @@ class ScheduleController extends StateNotifier<ScheduleState> {
 
       state = state.copyWith(
         status: ScheduleStatus.error,
-        errorMessage: e.message ?? 'Failed to load schedule.',
+        errorMessage: _extractBackendErrorMessage(e),
       );
     } catch (e) {
       state = state.copyWith(
         status: ScheduleStatus.error,
-        errorMessage: e.toString(),
+        errorMessage: _extractBackendErrorMessage(e),
       );
     }
   }
@@ -128,7 +167,7 @@ class ScheduleController extends StateNotifier<ScheduleState> {
     } catch (e) {
       state = state.copyWith(
         status: ScheduleStatus.error,
-        errorMessage: e.toString(),
+        errorMessage: _extractBackendErrorMessage(e),
       );
     }
   }
@@ -171,7 +210,7 @@ class ScheduleController extends StateNotifier<ScheduleState> {
     } catch (e) {
       state = state.copyWith(
         status: ScheduleStatus.error,
-        errorMessage: e.toString(),
+        errorMessage: _extractBackendErrorMessage(e),
       );
     }
   }
@@ -194,7 +233,7 @@ class ScheduleController extends StateNotifier<ScheduleState> {
     } catch (e) {
       state = state.copyWith(
         status: ScheduleStatus.error,
-        errorMessage: e.toString(),
+        errorMessage: _extractBackendErrorMessage(e),
       );
     }
   }
@@ -219,7 +258,7 @@ class ScheduleController extends StateNotifier<ScheduleState> {
     } catch (e) {
       state = state.copyWith(
         status: ScheduleStatus.error,
-        errorMessage: e.toString(),
+        errorMessage: _extractBackendErrorMessage(e),
       );
     }
   }
@@ -246,7 +285,7 @@ class ScheduleController extends StateNotifier<ScheduleState> {
     } catch (e) {
       state = state.copyWith(
         status: ScheduleStatus.error,
-        errorMessage: e.toString(),
+        errorMessage: _extractBackendErrorMessage(e),
       );
     }
   }
@@ -254,5 +293,24 @@ class ScheduleController extends StateNotifier<ScheduleState> {
   Future<List<ScheduleClass>> getExistingClassesForValidation() async {
     final userEmail = await _getUserEmail();
     return getScheduleClasses(userEmail: userEmail);
+  }
+
+  Future<List<RoomSearchItem>> loadRecommendedRoomsForSelectedDay() async {
+    try {
+      final userEmail = await _getUserEmail();
+
+      final items = await getRecommendedRoomsForDay(
+        userEmail: userEmail,
+        date: state.selectedDate,
+      );
+
+      return items;
+    } catch (e) {
+      state = state.copyWith(
+        status: ScheduleStatus.error,
+        errorMessage: _extractBackendErrorMessage(e),
+      );
+      rethrow;
+    }
   }
 }
