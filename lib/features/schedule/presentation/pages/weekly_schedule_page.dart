@@ -1,4 +1,5 @@
 import 'package:andespace/core/navigation/app_routes.dart';
+import 'package:andespace/features/schedule/presentation/pages/recommended_rooms_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -242,15 +243,22 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
                   runSpacing: 12,
                   alignment: WrapAlignment.center,
                   children: [
-                    ElevatedButton(
-                      onPressed: () => Navigator.pushReplacement(
+                  ElevatedButton(
+                    onPressed: () async {
+                      final controller = ref.read(scheduleControllerProvider.notifier);
+                      final items = await controller.loadRecommendedRoomsForSelectedDay();
+
+                      if (!mounted) return;
+
+                      Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => const ScheduleLoadPage(),
+                          builder: (_) => RecommendedRoomsPage(items: items),
                         ),
-                      ),
-                      child: const Text('Filter from Schedule'),
-                    ),
+                      );
+                    },
+                    child: const Text('Filter from Schedule'),
+                  ),
                     OutlinedButton(
                       onPressed: () {
                         Navigator.push(

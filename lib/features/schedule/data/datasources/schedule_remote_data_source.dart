@@ -46,6 +46,11 @@ abstract class ScheduleRemoteDataSource {
     required String classId,
     required DateTime date,
   });
+
+  Future<Map<String, dynamic>> getRecommendedRoomsForDay({
+    required String userEmail,
+    required DateTime date,
+  });
 }
 
 class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
@@ -210,5 +215,32 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
     final mm = date.month.toString().padLeft(2, '0');
     final yyyy = date.year.toString();
     return '$dd-$mm-$yyyy';
+  }
+
+  String _formatYyyyMmDd(DateTime date) {
+    final dd = date.day.toString().padLeft(2, '0');
+    final mm = date.month.toString().padLeft(2, '0');
+    final yyyy = date.year.toString();
+    return '$yyyy-$mm-$dd';
+  }
+
+  @override
+  Future<Map<String, dynamic>> getRecommendedRoomsForDay({
+    required String userEmail,
+    required DateTime date,
+  }) async {
+    final response = await dio.get(
+      '/schedule/recommendations/day',
+      queryParameters: {
+        'user_email': userEmail,
+        'date': _formatYyyyMmDd(date),
+      },
+    );
+
+    final data = response.data;
+    if (data is Map<String, dynamic>) return data;
+    if (data is Map) return Map<String, dynamic>.from(data);
+
+    throw const FormatException('Invalid recommendations response format.');
   }
 }
