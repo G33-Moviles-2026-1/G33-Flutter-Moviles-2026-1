@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:andespace/core/navigation/app_tab.dart';
 import 'package:andespace/shared/widgets/app_scaffold.dart';
+import 'package:andespace/core/analytics/analytics_events.dart';
 
 import '../../domain/entities/manual_class.dart';
 import '../controllers/schedule_state.dart';
@@ -23,6 +24,7 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
   final _titleController = TextEditingController();
   final _locationController = TextEditingController();
   final _roomIdController = TextEditingController();
+  bool _submitted = false;
 
   TimeOfDay? _startTime;
   TimeOfDay? _endTime;
@@ -73,6 +75,27 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
     required int endMinutesB,
   }) {
     return startMinutesA < endMinutesB && startMinutesB < endMinutesA;
+  }
+
+  Future<void> _trackManualAbandoned() async {
+    try {
+      final analytics = ref.read(analyticsServiceProvider);
+      final userEmail =
+          await ref.read(scheduleControllerProvider.notifier).resolveUserEmail();
+
+      await analytics.track(
+        sessionId: DateTime.now().microsecondsSinceEpoch.toString(),
+        deviceId: 'mobile',
+        userEmail: userEmail,
+        eventName: AnalyticsEvents.scheduleImportStep,
+        screen: 'add_class',
+        propsJson: {
+          'method': 'manual',
+          'step': 'abandoned',
+          'source_screen': 'add_class',
+        },
+      );
+    } catch (_) {}
   }
 
   @override
@@ -272,6 +295,8 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
       weekdays: selectedWeekdays,
     );
 
+    _submitted = true;
+
     await ref.read(scheduleControllerProvider.notifier).saveManualClass(
           manualClass: manualClass,
         );
@@ -302,155 +327,169 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
     final state = ref.watch(scheduleControllerProvider);
     final isSaving = state.status == ScheduleStatus.savingManualClass;
 
-    return AppScaffold(
-      title: 'Add Class',
-      currentTab: AppTab.schedule,
-      onTabSelected: (tab) => _onTabSelected(context, tab),
-      resizeToAvoidBottomInset: true,
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: AbsorbPointer(
-          absorbing: isSaving,
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.arrow_back),
-                ),
-                TextFormField(
-                  controller: _titleController,
-                  inputFormatters: [
-                    LengthLimitingTextInputFormatter(60),
-                  ],
-                  decoration: const InputDecoration(
-                    labelText: 'Class Title',
-                    border: OutlineInputBorder(),
-                    counterText: '',
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop && !_submitted) {
+          await _trackManualAbandoned();
+        }
+      },
+      child: AppScaffold(
+        title: 'Add Class',
+        currentTab: AppTab.schedule,
+        onTabSelected: (tab) => _onTabSelected(context, tab),
+        resizeToAvoidBottomInset: true,
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: AbsorbPointer(
+            absorbing: isSaving,
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  IconButton(
+                    onPressed: () async {
+                      if (!_submitted) {
+                        await _trackManualAbandoned();
+                      }
+                      if (!mounted) return;
+                      Navigator.pop(context);
+                    },
+                    icon: const Icon(Icons.arrow_back),
                   ),
-                  validator: (value) {
-                    final text = (value ?? '').trim();
+                  TextFormField(
+                    controller: _titleController,
+                    inputFormatters: [
+                      LengthLimitingTextInputFormatter(60),
+                    ],
+                    decoration: const InputDecoration(
+                      labelText: 'Class Title',
+                      border: OutlineInputBorder(),
+                      counterText: '',
+                    ),
+                    validator: (value) {
+                      final text = (value ?? '').trim();
 
-                    if (text.isEmpty) {
-                      return 'Enter a class title';
-                    }
+                      if (text.isEmpty) {
+                        return 'Enter a class title';
+                      }
 
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _roomIdController,
-                  inputFormatters: [
-                    LengthLimitingTextInputFormatter(30),
-                  ],
-                  decoration: const InputDecoration(
-                    labelText: 'Room (Optional)',
-                    border: OutlineInputBorder(),
+                      return null;
+                    },
                   ),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: _pickStartDate,
-                        child: Text(
-                          _startDate == null
-                              ? 'Start Date'
-                              : _formatDate(_startDate!),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: _pickEndDate,
-                        child: Text(
-                          _endDate == null
-                              ? 'End Date'
-                              : _formatDate(_endDate!),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: _pickStartTime,
-                        child: Text(
-                          _startTime == null
-                              ? 'Start Time'
-                              : _startTime!.format(context),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: _pickEndTime,
-                        child: Text(
-                          _endTime == null
-                              ? 'End Time'
-                              : _endTime!.format(context),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                const Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Days of the Week',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: _weekdays.keys.map((day) {
-                    final selected = _weekdays[day] ?? false;
-
-                    return FilterChip(
-                      label: Text(_weekdayLabel(day)),
-                      selected: selected,
-                      onSelected: (value) {
-                        setState(() {
-                          _weekdays[day] = value;
-                        });
-                      },
-                    );
-                  }).toList(),
-                ),
-                const SizedBox(height: 28),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: isSaving ? null : _submit,
-                    child: Text(
-                      isSaving ? 'Saving...' : 'Add',
-                    ),
-                  ),
-                ),
-                if (isSaving) ...[
                   const SizedBox(height: 16),
-                  const LinearProgressIndicator(),
+                  TextFormField(
+                    controller: _roomIdController,
+                    inputFormatters: [
+                      LengthLimitingTextInputFormatter(30),
+                    ],
+                    decoration: const InputDecoration(
+                      labelText: 'Room (Optional)',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: _pickStartDate,
+                          child: Text(
+                            _startDate == null
+                                ? 'Start Date'
+                                : _formatDate(_startDate!),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: _pickEndDate,
+                          child: Text(
+                            _endDate == null
+                                ? 'End Date'
+                                : _formatDate(_endDate!),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: _pickStartTime,
+                          child: Text(
+                            _startTime == null
+                                ? 'Start Time'
+                                : _startTime!.format(context),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: _pickEndTime,
+                          child: Text(
+                            _endTime == null
+                                ? 'End Time'
+                                : _endTime!.format(context),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Days of the Week',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: _weekdays.keys.map((day) {
+                      final selected = _weekdays[day] ?? false;
+
+                      return FilterChip(
+                        label: Text(_weekdayLabel(day)),
+                        selected: selected,
+                        onSelected: (value) {
+                          setState(() {
+                            _weekdays[day] = value;
+                          });
+                        },
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 28),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: isSaving ? null : _submit,
+                      child: Text(
+                        isSaving ? 'Saving...' : 'Add',
+                      ),
+                    ),
+                  ),
+                  if (isSaving) ...[
+                    const SizedBox(height: 16),
+                    const LinearProgressIndicator(),
+                  ],
                 ],
-              ],
+              ),
             ),
           ),
         ),
-      ),
+      )
     );
   }
 }

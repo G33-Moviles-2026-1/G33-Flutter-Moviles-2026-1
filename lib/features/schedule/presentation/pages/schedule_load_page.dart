@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:andespace/core/navigation/app_tab.dart';
 import 'package:andespace/shared/widgets/app_scaffold.dart';
+import 'package:andespace/core/analytics/analytics_events.dart';
 
 import '../controllers/schedule_state.dart';
 import '../providers/schedule_providers.dart';
@@ -19,6 +20,24 @@ class ScheduleLoadPage extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
   ) async {
+    
+    final analytics = ref.read(analyticsServiceProvider);
+    final controller = ref.read(scheduleControllerProvider.notifier);
+    final userEmail = await controller.resolveUserEmail();
+
+    await analytics.track(
+      sessionId: DateTime.now().microsecondsSinceEpoch.toString(),
+      deviceId: 'mobile',
+      userEmail: userEmail,
+      eventName: AnalyticsEvents.scheduleImportStep,
+      screen: 'schedule_load',
+      propsJson: {
+        'method': 'ics',
+        'step': 'started',
+        'source_screen': 'schedule_load',
+      },
+    );
+
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['ics'],
@@ -26,6 +45,19 @@ class ScheduleLoadPage extends ConsumerWidget {
 
     final path = result?.files.single.path;
     if (path == null) return;
+
+    await analytics.track(
+      sessionId: DateTime.now().microsecondsSinceEpoch.toString(),
+      deviceId: 'mobile',
+      userEmail: userEmail,
+      eventName: AnalyticsEvents.scheduleImportStep,
+      screen: 'schedule_load',
+      propsJson: {
+        'method': 'ics',
+        'step': 'file_selected',
+        'source_screen': 'schedule_load',
+      },
+    );
 
     await ref.read(scheduleControllerProvider.notifier).importIcs(
           filePath: path,
@@ -104,7 +136,26 @@ class ScheduleLoadPage extends ConsumerWidget {
                 ScheduleImportOptionCard(
                   title: 'Load Manually',
                   icon: Icons.edit_calendar_outlined,
-                  onTap: () {
+                  onTap: () async {
+                    final analytics = ref.read(analyticsServiceProvider);
+                    final controller = ref.read(scheduleControllerProvider.notifier);
+                    final userEmail = await controller.resolveUserEmail();
+
+                    await analytics.track(
+                      sessionId: DateTime.now().microsecondsSinceEpoch.toString(),
+                      deviceId: 'mobile',
+                      userEmail: userEmail,
+                      eventName: AnalyticsEvents.scheduleImportStep,
+                      screen: 'schedule_load',
+                      propsJson: {
+                        'method': 'manual',
+                        'step': 'form_opened',
+                        'source_screen': 'schedule_load',
+                      },
+                    );
+
+                    if (!context.mounted) return;
+
                     Navigator.push(
                       context,
                       MaterialPageRoute(
