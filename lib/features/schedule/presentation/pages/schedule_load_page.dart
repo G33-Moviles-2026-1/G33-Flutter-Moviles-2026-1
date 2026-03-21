@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:andespace/core/navigation/app_tab.dart';
 import 'package:andespace/shared/widgets/app_scaffold.dart';
-import 'package:andespace/core/analytics/analytics_events.dart';
+import 'package:uuid/uuid.dart';
 
 import '../controllers/schedule_state.dart';
 import '../providers/schedule_providers.dart';
@@ -20,20 +20,20 @@ class ScheduleLoadPage extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
   ) async {
-    
     final analytics = ref.read(analyticsServiceProvider);
     final controller = ref.read(scheduleControllerProvider.notifier);
+    final importSessionId = const Uuid().v4();
+
     final userEmail = await controller.resolveUserEmail();
 
-    await analytics.track(
-      sessionId: DateTime.now().microsecondsSinceEpoch.toString(),
+    await analytics.trackScheduleImportStep(
+      sessionId: importSessionId,
       deviceId: 'mobile',
       userEmail: userEmail,
-      eventName: AnalyticsEvents.scheduleImportStep,
-      screen: 'schedule_load',
+      method: 'ics',
+      step: 'started',
+      stepNumber: 1,
       propsJson: {
-        'method': 'ics',
-        'step': 'started',
         'source_screen': 'schedule_load',
       },
     );
@@ -46,25 +46,51 @@ class ScheduleLoadPage extends ConsumerWidget {
     final path = result?.files.single.path;
     if (path == null) return;
 
-    await analytics.track(
-      sessionId: DateTime.now().microsecondsSinceEpoch.toString(),
+    await analytics.trackScheduleImportStep(
+      sessionId: importSessionId,
       deviceId: 'mobile',
       userEmail: userEmail,
-      eventName: AnalyticsEvents.scheduleImportStep,
-      screen: 'schedule_load',
+      method: 'ics',
+      step: 'file_selected',
+      stepNumber: 2,
       propsJson: {
-        'method': 'ics',
-        'step': 'file_selected',
         'source_screen': 'schedule_load',
       },
     );
 
-    await ref.read(scheduleControllerProvider.notifier).importIcs(
-          filePath: path,
-        );
+    await analytics.trackScheduleImportStep(
+      sessionId: importSessionId,
+      deviceId: 'mobile',
+      userEmail: userEmail,
+      method: 'ics',
+      step: 'parsed',
+      stepNumber: 3,
+      propsJson: {
+        'source_screen': 'schedule_load',
+      },
+    );
 
-    final newState = ref.read(scheduleControllerProvider);
-    if (context.mounted && newState.status == ScheduleStatus.loaded) {
+    await controller.importIcs(
+      filePath: path,
+      importSessionId: importSessionId,
+    );
+
+    if (!context.mounted) return;
+
+    await analytics.trackScheduleImportStep(
+      sessionId: importSessionId,
+      deviceId: 'mobile',
+      userEmail: userEmail,
+      method: 'ics',
+      step: 'confirmed',
+      stepNumber: 4,
+      propsJson: {
+        'source_screen': 'schedule_load',
+      },
+    );
+
+    final newState = controller.state;
+    if (newState.status == ScheduleStatus.loaded) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -140,16 +166,16 @@ class ScheduleLoadPage extends ConsumerWidget {
                     final analytics = ref.read(analyticsServiceProvider);
                     final controller = ref.read(scheduleControllerProvider.notifier);
                     final userEmail = await controller.resolveUserEmail();
+                    final importSessionId = const Uuid().v4();
 
-                    await analytics.track(
-                      sessionId: DateTime.now().microsecondsSinceEpoch.toString(),
+                    await analytics.trackScheduleImportStep(
+                      sessionId: importSessionId,
                       deviceId: 'mobile',
                       userEmail: userEmail,
-                      eventName: AnalyticsEvents.scheduleImportStep,
-                      screen: 'schedule_load',
+                      method: 'manual',
+                      step: 'started',
+                      stepNumber: 1,
                       propsJson: {
-                        'method': 'manual',
-                        'step': 'form_opened',
                         'source_screen': 'schedule_load',
                       },
                     );
@@ -159,7 +185,7 @@ class ScheduleLoadPage extends ConsumerWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => const AddClassPage(),
+                        builder: (_) => AddClassPage(importSessionId: importSessionId),
                       ),
                     );
                   },

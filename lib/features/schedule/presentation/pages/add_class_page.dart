@@ -6,13 +6,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:andespace/core/navigation/app_tab.dart';
 import 'package:andespace/shared/widgets/app_scaffold.dart';
 import 'package:andespace/core/analytics/analytics_events.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../domain/entities/manual_class.dart';
 import '../controllers/schedule_state.dart';
 import '../providers/schedule_providers.dart';
 
 class AddClassPage extends ConsumerStatefulWidget {
-  const AddClassPage({super.key});
+  const AddClassPage({
+    super.key,
+    required this.importSessionId,
+  });
+
+  final String importSessionId;
 
   @override
   ConsumerState<AddClassPage> createState() => _AddClassPageState();
@@ -79,12 +85,13 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
 
   Future<void> _trackManualAbandoned() async {
     try {
+
       final analytics = ref.read(analyticsServiceProvider);
       final userEmail =
           await ref.read(scheduleControllerProvider.notifier).resolveUserEmail();
 
       await analytics.track(
-        sessionId: DateTime.now().microsecondsSinceEpoch.toString(),
+        sessionId: widget.importSessionId,
         deviceId: 'mobile',
         userEmail: userEmail,
         eventName: AnalyticsEvents.scheduleImportStep,
@@ -299,6 +306,7 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
 
     await ref.read(scheduleControllerProvider.notifier).saveManualClass(
           manualClass: manualClass,
+          importSessionId: widget.importSessionId,
         );
 
     final state = ref.read(scheduleControllerProvider);
@@ -349,13 +357,7 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   IconButton(
-                    onPressed: () async {
-                      if (!_submitted) {
-                        await _trackManualAbandoned();
-                      }
-                      if (!mounted) return;
-                      Navigator.pop(context);
-                    },
+                    onPressed: () => Navigator.pop(context),
                     icon: const Icon(Icons.arrow_back),
                   ),
                   TextFormField(

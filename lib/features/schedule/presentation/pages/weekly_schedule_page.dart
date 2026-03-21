@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:andespace/core/navigation/app_tab.dart';
 import 'package:andespace/shared/widgets/app_scaffold.dart';
+import 'package:uuid/uuid.dart';
 
 import '../controllers/schedule_state.dart';
 import '../providers/schedule_providers.dart';
@@ -166,7 +167,7 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => const AddClassPage(),
+                    builder: (_) => AddClassPage(importSessionId: const Uuid().v4()),
                   ),
                 );
               },
@@ -264,7 +265,7 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => const AddClassPage(),
+                            builder: (_) => AddClassPage(importSessionId: const Uuid().v4()),
                           ),
                         );
                       },
