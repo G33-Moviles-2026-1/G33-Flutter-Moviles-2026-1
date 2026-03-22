@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import '../../domain/entities/schedule_occurrence.dart';
 
 class ClassTile extends StatelessWidget {
@@ -24,32 +23,71 @@ class ClassTile extends StatelessWidget {
 
     if (hour == null || minute == null) return value;
     final suffix = hour >= 12 ? 'PM' : 'AM';
-    final displayHour = hour > 12 ? hour - 12 : hour;
-    return '$displayHour:${minute.toString().padLeft(2, '0')} $suffix';
+    final normalizedHour = hour % 12 == 0 ? 12 : hour % 12;
+    return '$normalizedHour:${minute.toString().padLeft(2, '0')} $suffix';
   }
 
   @override
   Widget build(BuildContext context) {
-    final subtitle = [
-      '${_formatDisplayTime(occurrence.startTime)} - ${_formatDisplayTime(occurrence.endTime)}',
-      if ((occurrence.roomId ?? '').trim().isNotEmpty) 'Room: ${occurrence.roomId}',
-    ].join('\n');
+    final theme = Theme.of(context);
+    final room = (occurrence.roomId ?? '').trim();
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 6),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        title: Text(
-          occurrence.title ?? 'Class',
-          style: const TextStyle(fontWeight: FontWeight.w600),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: theme.dividerColor.withValues(alpha: 0.18),
         ),
-        subtitle: Text(subtitle),
-        trailing: onDelete == null
-            ? null
-            : IconButton(
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 6,
+              height: 56,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.secondary,
+                borderRadius: BorderRadius.circular(999),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    occurrence.title ?? 'Class',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    '${_formatDisplayTime(occurrence.startTime)} - ${_formatDisplayTime(occurrence.endTime)}',
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                  if (room.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      'Room: $room',
+                      style: theme.textTheme.bodySmall,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            if (onDelete != null)
+              IconButton(
                 onPressed: onDelete,
                 icon: const Icon(Icons.delete_outline),
+                tooltip: 'Delete occurrence',
               ),
+          ],
+        ),
       ),
     );
   }

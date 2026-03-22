@@ -38,13 +38,45 @@ class _EmptyRecommendationsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
-        child: Text(
-          'No recommended rooms were found for this day.',
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.bodyLarge,
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 420),
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: theme.cardColor,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: theme.dividerColor.withValues(alpha: 0.18),
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.meeting_room_outlined,
+                size: 52,
+                color: theme.colorScheme.secondary,
+              ),
+              const SizedBox(height: 14),
+              Text(
+                'No recommendations found',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'No recommended rooms were found for this day.',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyLarge,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -60,6 +92,7 @@ class _RecommendedRoomCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final title = room.roomId.isNotEmpty
         ? room.roomId
         : '${room.buildingCode} ${room.roomNumber}'.trim();
@@ -68,69 +101,90 @@ class _RecommendedRoomCard extends StatelessWidget {
     final slotLabel = _buildSlotLabel(room);
     final distanceLabel = _buildDistanceLabel(room.distanceMeters);
 
-    return InkWell(
-      borderRadius: BorderRadius.circular(16),
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => RoomDetailPage(room: room),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => RoomDetailPage(room: room),
+            ),
+          );
+        },
+        child: Ink(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: theme.dividerColor.withValues(alpha: 0.18),
+            ),
+            borderRadius: BorderRadius.circular(18),
+            color: theme.cardColor,
           ),
-        );
-      },
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.shade300),
-          borderRadius: BorderRadius.circular(16),
-          color: Theme.of(context).cardColor,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              subtitle,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey.shade700,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.secondary.withValues(alpha: 0.16),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: const Icon(Icons.meeting_room_outlined),
                   ),
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                if (slotLabel != null)
-                  _InfoChip(
-                    label: slotLabel,
-                    icon: Icons.schedule_outlined,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                   ),
-                _InfoChip(
-                  label: 'Capacity ${room.capacity}',
-                  icon: Icons.people_outline,
-                ),
-                if (distanceLabel != null)
-                  _InfoChip(
-                    label: distanceLabel,
-                    icon: Icons.directions_walk_outlined,
-                  ),
-              ],
-            ),
-            if (room.utilities.isNotEmpty) ...[
-              const SizedBox(height: 12),
+                  const Icon(Icons.chevron_right),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Text(
+                subtitle,
+                style: theme.textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 14),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
-                children: room.utilities
-                    .map((utility) => _TagChip(label: utility))
-                    .toList(),
+                children: [
+                  if (slotLabel != null)
+                    _InfoChip(
+                      label: slotLabel,
+                      icon: Icons.schedule_outlined,
+                    ),
+                  _InfoChip(
+                    label: 'Capacity ${room.capacity}',
+                    icon: Icons.people_outline,
+                  ),
+                  if (distanceLabel != null)
+                    _InfoChip(
+                      label: distanceLabel,
+                      icon: Icons.directions_walk_outlined,
+                    ),
+                ],
               ),
+              if (room.utilities.isNotEmpty) ...[
+                const SizedBox(height: 14),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: room.utilities
+                      .map((utility) => _TagChip(label: utility))
+                      .toList(),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
@@ -179,10 +233,12 @@ class _InfoChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
+        color: theme.colorScheme.secondary.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Row(
@@ -190,7 +246,12 @@ class _InfoChip extends StatelessWidget {
         children: [
           Icon(icon, size: 16),
           const SizedBox(width: 6),
-          Text(label),
+          Text(
+            label,
+            style: theme.textTheme.bodySmall?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ],
       ),
     );
@@ -206,9 +267,18 @@ class _TagChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Chip(
       label: Text(label),
       visualDensity: VisualDensity.compact,
+      backgroundColor: theme.cardColor,
+      side: BorderSide(
+        color: theme.dividerColor.withValues(alpha: 0.18),
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(999),
+      ),
     );
   }
 }

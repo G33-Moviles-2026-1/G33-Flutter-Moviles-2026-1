@@ -6,8 +6,6 @@ abstract final class AppTheme {
   static const String fontTitle = 'ADLaMDisplay';
 
   static ThemeData light() {
-    final base = ThemeData(useMaterial3: true, brightness: Brightness.light);
-
     const colorScheme = ColorScheme(
       brightness: Brightness.light,
       primary: Color(0xFFFFFBA9),
@@ -16,52 +14,24 @@ abstract final class AppTheme {
       onSecondary: Color(0xFF000000),
       error: Colors.red,
       onError: Colors.white,
-      surface: Color.fromARGB(255, 255, 255, 255),
+      surface: Color(0xFFFFFFFF),
       onSurface: Color(0xFF000000),
     );
 
-    final textTheme = base.textTheme
-        .apply(
-          fontFamily: fontBody,
-          bodyColor: colorScheme.onSurface,
-          displayColor: colorScheme.onSurface,
-        )
-        .copyWith(
-          displayLarge: base.textTheme.displayLarge?.copyWith(
-            fontFamily: fontTitle,
-          ),
-          displayMedium: base.textTheme.displayMedium?.copyWith(
-            fontFamily: fontTitle,
-          ),
-          displaySmall: base.textTheme.displaySmall?.copyWith(
-            fontFamily: fontTitle,
-          ),
-          headlineLarge: base.textTheme.headlineLarge?.copyWith(
-            fontFamily: fontTitle,
-          ),
-          headlineMedium: base.textTheme.headlineMedium?.copyWith(
-            fontFamily: fontTitle,
-          ),
-          headlineSmall: base.textTheme.headlineSmall?.copyWith(
-            fontFamily: fontTitle,
-          ),
-          titleLarge: base.textTheme.titleLarge?.copyWith(
-            fontFamily: fontTitle,
-          ),
-        );
-
-    final lightButtonTextStyle = TextButton.styleFrom(
-      foregroundColor: colorScheme.onSurface,
-      textStyle: const TextStyle(fontWeight: FontWeight.w700),
+    final base = ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.light,
+      colorScheme: colorScheme,
     );
 
+    final textTheme = _buildTextTheme(base, colorScheme.onSurface);
+
     return base.copyWith(
-      colorScheme: colorScheme,
-      scaffoldBackgroundColor: const Color.fromARGB(255, 245, 245, 245),
+      scaffoldBackgroundColor: const Color(0xFFF5F5F5),
       textTheme: textTheme,
 
       progressIndicatorTheme: const ProgressIndicatorThemeData(
-        color: Color.fromRGBO(253, 242, 28, 1),
+        color: Color(0xFFFDF21C),
       ),
 
       appBarTheme: const AppBarTheme(
@@ -84,15 +54,55 @@ abstract final class AppTheme {
         elevation: 0,
       ),
 
-      textButtonTheme: TextButtonThemeData(style: lightButtonTextStyle),
+      inputDecorationTheme: InputDecorationTheme(
+        hintStyle: const TextStyle(
+          fontSize: 16,
+          color: Colors.black54,
+        ),
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 18,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: Colors.black12),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: Colors.redAccent),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: Colors.redAccent),
+        ),
+      ),
+
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: const Color.fromARGB(255, 252, 189, 0),
+          textStyle: const TextStyle(fontWeight: FontWeight.w700),
+        ),
+      ),
 
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: colorScheme.primary,
-          foregroundColor: Colors.black,
+          backgroundColor: colorScheme.secondary,
+          foregroundColor: colorScheme.onSecondary,
+          elevation: 3,
+          shadowColor: Colors.black38,
+          minimumSize: const Size.fromHeight(56),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           textStyle: const TextStyle(
-            fontWeight: FontWeight.w700,
-            color: Colors.black,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
           ),
           disabledForegroundColor: Colors.black54,
         ),
@@ -101,68 +111,13 @@ abstract final class AppTheme {
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: Colors.black,
-          textStyle: const TextStyle(
-            fontWeight: FontWeight.w700,
-            color: Colors.black,
-          ),
+          textStyle: const TextStyle(fontWeight: FontWeight.w700),
           side: const BorderSide(color: Colors.black),
         ),
       ),
 
-      datePickerTheme: DatePickerThemeData(
-        backgroundColor: colorScheme.surface,
-        surfaceTintColor: Colors.transparent,
-        headerBackgroundColor: colorScheme.surface,
-        headerForegroundColor: colorScheme.onSurface,
-        weekdayStyle: textTheme.bodyMedium?.copyWith(
-          color: colorScheme.onSurface,
-          fontWeight: FontWeight.w600,
-        ),
-        dayStyle: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
-        yearStyle: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
-        todayForegroundColor: WidgetStatePropertyAll(colorScheme.onSurface),
-        todayBackgroundColor: const WidgetStatePropertyAll(Colors.transparent),
-        dayForegroundColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) {
-            return colorScheme.onSecondary;
-          }
-          return colorScheme.onSurface;
-        }),
-        dayBackgroundColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) {
-            return Color.fromRGBO(253, 242, 28, 1);
-          }
-          return null;
-        }),
-        confirmButtonStyle: lightButtonTextStyle,
-        cancelButtonStyle: TextButton.styleFrom(
-          foregroundColor: Colors.black54,
-          textStyle: const TextStyle(fontWeight: FontWeight.w600),
-        ),
-      ),
-
-      timePickerTheme: TimePickerThemeData(
-        backgroundColor: colorScheme.surface,
-        helpTextStyle: textTheme.titleMedium?.copyWith(
-          color: colorScheme.onSurface,
-          fontWeight: FontWeight.w700,
-        ),
-        hourMinuteTextStyle: textTheme.headlineMedium?.copyWith(
-          color: colorScheme.onSurface,
-          fontWeight: FontWeight.w700,
-        ),
-        hourMinuteTextColor: colorScheme.onSurface,
-        dayPeriodTextColor: colorScheme.onSurface,
-        dayPeriodBorderSide: BorderSide(color: Colors.black26),
-        dialHandColor: colorScheme.secondary,
-        dialBackgroundColor: const Color(0xFFF2F2F2),
-        dialTextColor: colorScheme.onSurface,
-        entryModeIconColor: colorScheme.onSurface,
-        confirmButtonStyle: lightButtonTextStyle,
-        cancelButtonStyle: TextButton.styleFrom(
-          foregroundColor: Colors.black54,
-          textStyle: const TextStyle(fontWeight: FontWeight.w600),
-        ),
+      snackBarTheme: const SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
       ),
 
       extensions: const [
@@ -180,17 +135,15 @@ abstract final class AppTheme {
   }
 
   static ThemeData dark() {
-    final base = ThemeData(useMaterial3: true, brightness: Brightness.dark);
-
     const background = Color(0xFF0F1115);
-    const surface = Color(0xFF121417);
+    const cardColor = Color(0xFF1A1D22);
     const onSurface = Color(0xFFF5F5F5);
 
     const colorScheme = ColorScheme(
       brightness: Brightness.dark,
-      primary: surface,
-      onPrimary: onSurface,
-      secondary: Color(0xFFFDF21C),
+      primary: Color(0xFF121417),
+      onPrimary: Color(0xFFF5F5F5),
+      secondary: Color(0xFFFFA500),
       onSecondary: Color(0xFF000000),
       error: Colors.redAccent,
       onError: Colors.white,
@@ -198,11 +151,127 @@ abstract final class AppTheme {
       onSurface: onSurface,
     );
 
-    final textTheme = base.textTheme
+    final base = ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      colorScheme: colorScheme,
+    );
+
+    final textTheme = _buildTextTheme(base, onSurface);
+
+    return base.copyWith(
+      scaffoldBackgroundColor: background,
+      textTheme: textTheme,
+
+      progressIndicatorTheme: const ProgressIndicatorThemeData(
+        color: Color(0xFFFFA500),
+      ),
+
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Color(0xFF121417),
+        foregroundColor: Color(0xFFF5F5F5),
+        surfaceTintColor: Colors.transparent,
+        shadowColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        centerTitle: true,
+      ),
+
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        backgroundColor: Color(0xFF121417),
+        selectedItemColor: Color(0xFFF5F5F5),
+        unselectedItemColor: Color(0xFF9AA0A6),
+        showSelectedLabels: false,
+        showUnselectedLabels: false,
+        type: BottomNavigationBarType.fixed,
+        elevation: 0,
+      ),
+
+      inputDecorationTheme: InputDecorationTheme(
+        hintStyle: const TextStyle(
+          fontSize: 16,
+          color: Colors.white60,
+        ),
+        filled: true,
+        fillColor: cardColor,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 18,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: Colors.white24),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: Colors.redAccent),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: Colors.redAccent),
+        ),
+      ),
+
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: const Color(0xFFFFA500),
+          textStyle: const TextStyle(fontWeight: FontWeight.w700),
+        ),
+      ),
+
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: colorScheme.secondary,
+          foregroundColor: colorScheme.onSecondary,
+          elevation: 3,
+          shadowColor: Colors.black54,
+          minimumSize: const Size.fromHeight(56),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          textStyle: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: onSurface,
+          textStyle: const TextStyle(fontWeight: FontWeight.w700),
+          side: const BorderSide(color: Colors.white24),
+        ),
+      ),
+
+      snackBarTheme: const SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+      ),
+
+      extensions: const [
+        BrandColors(
+          softYellow: Color(0xFFFFFBA9),
+          accentYellow: Color(0xFFFFA500),
+          headerBackground: Color(0xFF121417),
+          footerBackground: Color(0xFF121417),
+          headerForeground: Color(0xFFF5F5F5),
+          footerSelected: Color(0xFFF5F5F5),
+          footerUnselected: Color(0xFF9AA0A6),
+        ),
+      ],
+    );
+  }
+
+  static TextTheme _buildTextTheme(ThemeData base, Color textColor) {
+    return base.textTheme
         .apply(
           fontFamily: fontBody,
-          bodyColor: onSurface,
-          displayColor: onSurface,
+          bodyColor: textColor,
+          displayColor: textColor,
         )
         .copyWith(
           displayLarge: base.textTheme.displayLarge?.copyWith(
@@ -227,52 +296,5 @@ abstract final class AppTheme {
             fontFamily: fontTitle,
           ),
         );
-
-    return base.copyWith(
-      colorScheme: colorScheme,
-      scaffoldBackgroundColor: background,
-      textTheme: textTheme,
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Color(0xFF121417),
-        foregroundColor: Color(0xFFF5F5F5),
-        surfaceTintColor: Colors.transparent,
-        shadowColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        centerTitle: true,
-      ),
-      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-        backgroundColor: Color(0xFF121417),
-        selectedItemColor: Color(0xFFF5F5F5),
-        unselectedItemColor: Color(0xFF9AA0A6),
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        type: BottomNavigationBarType.fixed,
-        elevation: 0,
-      ),
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          foregroundColor: Colors.black,
-          textStyle: const TextStyle(fontWeight: FontWeight.w700),
-        ),
-      ),
-      outlinedButtonTheme: OutlinedButtonThemeData(
-        style: OutlinedButton.styleFrom(
-          foregroundColor: Colors.black,
-          textStyle: const TextStyle(fontWeight: FontWeight.w700),
-        ),
-      ),
-      extensions: const [
-        BrandColors(
-          softYellow: Color(0xFFFFFBA9),
-          accentYellow: Color(0xFFFDF21C),
-          headerBackground: Color(0xFF121417),
-          footerBackground: Color(0xFF121417),
-          headerForeground: Color(0xFFF5F5F5),
-          footerSelected: Color(0xFFF5F5F5),
-          footerUnselected: Color(0xFF9AA0A6),
-        ),
-      ],
-    );
   }
 }

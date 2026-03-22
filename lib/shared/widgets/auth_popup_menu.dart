@@ -9,7 +9,7 @@ class AuthPopupMenu extends StatelessWidget {
     this.onSignUp,
     this.onLogout,
     this.iconPath = 'assets/icons/user.svg',
-    this.iconColor = Colors.black,
+    this.iconColor,
   });
 
   final bool isLoggedIn;
@@ -17,16 +17,20 @@ class AuthPopupMenu extends StatelessWidget {
   final VoidCallback? onSignUp;
   final VoidCallback? onLogout;
   final String iconPath;
-  final Color iconColor;
+  final Color? iconColor;
 
   void _showAuthDialog(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     showGeneralDialog(
       context: context,
       barrierLabel: 'Auth menu',
       barrierDismissible: true,
       barrierColor: Colors.black54,
       transitionDuration: const Duration(milliseconds: 180),
-      pageBuilder: (context, animation, secondaryAnimation) {
+      pageBuilder: (dialogContext, animation, secondaryAnimation) {
         return SafeArea(
           child: Stack(
             children: [
@@ -39,30 +43,33 @@ class AuthPopupMenu extends StatelessWidget {
                     width: 320,
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: const Color.fromARGB(255, 247, 247, 247),
+                      color: theme.cardColor,
                       borderRadius: BorderRadius.circular(14),
-                      boxShadow: const [
+                      border: Border.all(
+                        color: isDark ? Colors.white10 : Colors.black12,
+                      ),
+                      boxShadow: [
                         BoxShadow(
-                          color: Colors.black26,
+                          color: Colors.black.withOpacity(isDark ? 0.35 : 0.18),
                           blurRadius: 14,
-                          offset: Offset(0, 8),
+                          offset: const Offset(0, 8),
                         ),
                       ],
                     ),
                     child: isLoggedIn
                         ? _LoggedInContent(
                             onLogout: () {
-                              Navigator.of(context).pop();
+                              Navigator.of(dialogContext).pop();
                               onLogout?.call();
                             },
                           )
                         : _LoggedOutContent(
                             onLogin: () {
-                              Navigator.of(context).pop();
+                              Navigator.of(dialogContext).pop();
                               onLogin?.call();
                             },
                             onSignUp: () {
-                              Navigator.of(context).pop();
+                              Navigator.of(dialogContext).pop();
                               onSignUp?.call();
                             },
                           ),
@@ -89,6 +96,9 @@ class AuthPopupMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final resolvedIconColor = iconColor ?? theme.appBarTheme.foregroundColor ?? theme.colorScheme.onSurface;
+
     return IconButton(
       onPressed: () => _showAuthDialog(context),
       icon: SvgPicture.asset(
@@ -96,7 +106,7 @@ class AuthPopupMenu extends StatelessWidget {
         width: 24,
         height: 24,
         colorFilter: ColorFilter.mode(
-          iconColor,
+          resolvedIconColor,
           BlendMode.srcIn,
         ),
       ),
@@ -115,20 +125,25 @@ class _LoggedOutContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         _AuthButton(
           text: 'Log in',
-          color: const Color(0xFFFFF200),
-          textColor: Colors.black,
+          backgroundColor: colorScheme.secondary,
+          foregroundColor: colorScheme.onSecondary,
           onTap: onLogin,
         ),
         const SizedBox(height: 16),
         _AuthButton(
           text: 'Sign Up',
-          color: const Color.fromARGB(255, 255, 255, 255),
-          textColor: Colors.black,
+          backgroundColor: colorScheme.surface,
+          foregroundColor: colorScheme.onSurface,
+          borderColor: Theme.of(context).brightness == Brightness.dark
+              ? Colors.white10
+              : Colors.black12,
           onTap: onSignUp,
         ),
       ],
@@ -145,11 +160,15 @@ class _LoggedInContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return _AuthButton(
       text: 'Log out',
-      color: const Color(0xFFFFF200),
-      textColor: Colors.black,
-      borderColor: Colors.black12,
+      backgroundColor: colorScheme.secondary,
+      foregroundColor: colorScheme.onSecondary,
+      borderColor: Theme.of(context).brightness == Brightness.dark
+          ? Colors.white10
+          : Colors.black12,
       onTap: onLogout,
     );
   }
@@ -158,22 +177,24 @@ class _LoggedInContent extends StatelessWidget {
 class _AuthButton extends StatelessWidget {
   const _AuthButton({
     required this.text,
-    required this.color,
-    required this.textColor,
+    required this.backgroundColor,
+    required this.foregroundColor,
     required this.onTap,
     this.borderColor,
   });
 
   final String text;
-  final Color color;
-  final Color textColor;
+  final Color backgroundColor;
+  final Color foregroundColor;
   final VoidCallback onTap;
   final Color? borderColor;
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
     return Material(
-      color: color,
+      color: backgroundColor,
       elevation: 4,
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
@@ -189,11 +210,15 @@ class _AuthButton extends StatelessWidget {
           alignment: Alignment.center,
           child: Text(
             text,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: textColor,
-            ),
+            style: textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: foregroundColor,
+                ) ??
+                TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: foregroundColor,
+                ),
           ),
         ),
       ),

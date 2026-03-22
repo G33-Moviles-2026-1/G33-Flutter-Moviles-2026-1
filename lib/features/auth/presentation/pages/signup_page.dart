@@ -51,11 +51,14 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
     });
 
     final state = ref.watch(authControllerProvider);
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final colorScheme = theme.colorScheme;
 
     return AppScaffold(
-      
+      currentTab: AppTab.rooms,
+      onTabSelected: (tab) => AppRoutes.handleTabSelection(context, tab),
       body: SafeArea(
-
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
           child: Form(
@@ -63,26 +66,31 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
             child: Column(
               children: [
                 const SizedBox(height: 28),
-                const Text(
+
+                Text(
                   'Sign Up',
-                  style: TextStyle(
-                    fontSize: 34,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black,
+                  style: textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: colorScheme.onSurface,
                   ),
                 ),
+
                 const SizedBox(height: 36),
 
                 TextFormField(
                   controller: _emailCtrl,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: _inputDecoration('Uniandes Mail'),
+                  decoration: const InputDecoration(
+                    hintText: 'Uniandes Mail',
+                  ),
                   validator: (value) {
                     final email = value?.trim() ?? '';
                     if (email.isEmpty) {
                       return 'Enter your email';
                     }
-                    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+$').hasMatch(email) || !email.endsWith('@uniandes.edu.co') || email.length > 35) {
+                    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+$').hasMatch(email) ||
+                        !email.endsWith('@uniandes.edu.co') ||
+                        email.length > 35) {
                       return 'Enter a valid Uniandes email';
                     }
                     return null;
@@ -94,7 +102,9 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                 TextFormField(
                   controller: _passwordCtrl,
                   obscureText: true,
-                  decoration: _inputDecoration('Password'),
+                  decoration: const InputDecoration(
+                    hintText: 'Password',
+                  ),
                   validator: (value) {
                     final password = value?.trim() ?? '';
                     if (password.isEmpty) {
@@ -112,7 +122,9 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                 TextFormField(
                   controller: _carnetCtrl,
                   keyboardType: TextInputType.number,
-                  decoration: _inputDecoration('Student Code'),
+                  decoration: const InputDecoration(
+                    hintText: 'Student Code',
+                  ),
                   validator: (value) {
                     final raw = value?.trim() ?? '';
                     final digitsOnly = raw.replaceAll(RegExp(r'[^0-9]'), '');
@@ -133,7 +145,6 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
 
                 SizedBox(
                   width: double.infinity,
-                  height: 56,
                   child: ElevatedButton(
                     onPressed: state.isLoading
                         ? null
@@ -153,47 +164,37 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                                   firstSemester: first5Digits,
                                 );
                           },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFFF200),
-                      foregroundColor: Colors.black,
-                      elevation: 3,
-                      shadowColor: Colors.black38,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
                     child: state.isLoading
                         ? const SizedBox(
                             width: 24,
                             height: 24,
                             child: CircularProgressIndicator(strokeWidth: 2.5),
                           )
-                        : const Text(
-                            'Save',
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                        : const Text('Save'),
                   ),
                 ),
+
                 const SizedBox(height: 30),
 
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text("If you have an account, "),
+                    Text(
+                      'If you have an account, ',
+                      style: textTheme.bodyMedium,
+                    ),
                     TextButton(
+                      onPressed: () {
+                        Navigator.pushReplacementNamed(
+                          context,
+                          AppRoutes.login,
+                        );
+                      },
                       style: TextButton.styleFrom(
-                        foregroundColor: const Color.fromARGB(255, 252, 189, 0),
                         padding: EdgeInsets.zero,
                         minimumSize: Size.zero,
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
-                      onPressed: () {
-
-                        Navigator.pushReplacementNamed(context, AppRoutes.login);
-                      },
                       child: const Text(
                         'log in',
                         style: TextStyle(fontWeight: FontWeight.w900),
@@ -205,38 +206,6 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
             ),
           ),
         ),
-      ), currentTab: AppTab.rooms, onTabSelected: (tab) => AppRoutes.handleTabSelection(context, tab),
-    );
-  }
-
-  InputDecoration _inputDecoration(String hint) {
-    return InputDecoration(
-      hintText: hint,
-      hintStyle: const TextStyle(
-        fontSize: 16,
-        color: Colors.black54,
-      ),
-      filled: true,
-      fillColor: Colors.white,
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: 20,
-        vertical: 18,
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide.none,
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: Colors.black12),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: Colors.redAccent),
-      ),
-      focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: Colors.redAccent),
       ),
     );
   }
