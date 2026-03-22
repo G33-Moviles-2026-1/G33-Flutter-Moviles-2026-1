@@ -1,8 +1,7 @@
+import 'package:andespace/core/di/theme_mode_provider.dart';
 import 'package:andespace/core/navigation/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import 'core/theme/smart_theme_controller.dart';
 import 'shared/theme/theme.dart';
 
 class AndespaceApp extends ConsumerWidget {
@@ -10,7 +9,7 @@ class AndespaceApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final themeMode = ref.watch(smartThemeModeProvider);
+    final themeMode = ref.watch(themeModeProvider);
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,

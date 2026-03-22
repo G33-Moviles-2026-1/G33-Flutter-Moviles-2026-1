@@ -44,7 +44,6 @@ class AppScaffold extends ConsumerWidget {
       extendBody: extendBody,
       appBar: AppHeader(
         title: title,
-        onTapLeft: onTapHeaderLeft,
         onTapSearch: onTapHeaderSearch,
         onLogin: () {
           Navigator.pushReplacementNamed(context, AppRoutes.login);
