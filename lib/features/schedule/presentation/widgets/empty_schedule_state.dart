@@ -27,7 +27,7 @@ class EmptyScheduleState extends StatelessWidget {
               color: theme.cardColor,
               borderRadius: BorderRadius.circular(22),
               border: Border.all(
-                color: theme.dividerColor.withOpacity(0.18),
+                color: theme.dividerColor.withValues(alpha: .18),
               ),
             ),
             child: Column(

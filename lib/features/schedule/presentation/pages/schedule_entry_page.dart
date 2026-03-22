@@ -69,7 +69,7 @@ class _ScheduleEntryPageState extends ConsumerState<ScheduleEntryPage> {
                   color: theme.cardColor,
                   borderRadius: BorderRadius.circular(22),
                   border: Border.all(
-                    color: theme.dividerColor.withOpacity(0.18),
+                    color: theme.dividerColor.withValues(alpha: 0.18),
                   ),
                 ),
                 child: Column(
@@ -139,7 +139,7 @@ class _ScheduleEntryPageState extends ConsumerState<ScheduleEntryPage> {
                   color: theme.cardColor,
                   borderRadius: BorderRadius.circular(22),
                   border: Border.all(
-                    color: theme.dividerColor.withOpacity(0.18),
+                    color: theme.dividerColor.withValues(alpha: 0.18),
                   ),
                 ),
                 child: Column(
@@ -193,7 +193,7 @@ class _ScheduleEntryPageState extends ConsumerState<ScheduleEntryPage> {
                   color: theme.cardColor,
                   borderRadius: BorderRadius.circular(22),
                   border: Border.all(
-                    color: theme.dividerColor.withOpacity(0.18),
+                    color: theme.dividerColor.withValues(alpha: 0.18),
                   ),
                 ),
                 child: Column(

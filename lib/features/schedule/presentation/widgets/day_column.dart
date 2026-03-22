@@ -42,7 +42,7 @@ class DayColumn extends StatelessWidget {
               color: theme.cardColor,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: theme.dividerColor.withOpacity(0.18),
+                color: theme.dividerColor.withValues(alpha: .18),
               ),
             ),
             child: Text(
@@ -61,7 +61,7 @@ class DayColumn extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
                 color: theme.cardColor,
                 border: Border.all(
-                  color: theme.dividerColor.withOpacity(0.12),
+                  color: theme.dividerColor.withValues(alpha: .12),
                 ),
               ),
               child: Text(

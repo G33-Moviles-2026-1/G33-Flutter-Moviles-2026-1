@@ -261,6 +261,7 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
                             if (!mounted) return;
 
                             Navigator.push(
+                              // ignore: use_build_context_synchronously
                               context,
                               MaterialPageRoute(
                                 builder: (_) => RecommendedRoomsPage(items: items),
