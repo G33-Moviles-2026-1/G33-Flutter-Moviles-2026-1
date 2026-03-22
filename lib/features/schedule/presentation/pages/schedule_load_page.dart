@@ -89,7 +89,7 @@ class ScheduleLoadPage extends ConsumerWidget {
       },
     );
 
-    final newState = controller.state;
+    final newState = ref.read(scheduleControllerProvider);
     if (newState.status == ScheduleStatus.loaded) {
       Navigator.pushReplacement(
         context,

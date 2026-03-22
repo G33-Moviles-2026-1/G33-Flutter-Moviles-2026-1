@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:andespace/core/navigation/app_tab.dart';
 import 'package:andespace/shared/widgets/app_scaffold.dart';
-import 'package:andespace/core/analytics/analytics_events.dart';
 
 import '../../domain/entities/manual_class.dart';
 import '../controllers/schedule_state.dart';
@@ -29,7 +28,6 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
   final _titleController = TextEditingController();
   final _locationController = TextEditingController();
   final _roomIdController = TextEditingController();
-  bool _submitted = false;
 
   TimeOfDay? _startTime;
   TimeOfDay? _endTime;
@@ -304,8 +302,6 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
       endTime: _formatTimeOfDay(_endTime!),
       weekdays: selectedWeekdays,
     );
-
-    _submitted = true;
 
     await ref.read(scheduleControllerProvider.notifier).saveManualClass(
           manualClass: manualClass,

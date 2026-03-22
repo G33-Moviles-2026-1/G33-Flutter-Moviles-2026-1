@@ -16,7 +16,7 @@ class AndespaceApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       darkTheme: AppTheme.dark(),
       theme: AppTheme.light(),
-      themeMode: ThemeMode.light,
+      themeMode: themeMode,
       initialRoute: AppRoutes.login,
       routes: AppRoutes.routes,
     );
