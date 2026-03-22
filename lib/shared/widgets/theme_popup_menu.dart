@@ -16,7 +16,7 @@ class ThemePopupMenu extends ConsumerWidget {
   void _showThemeDialog(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final currentMode = ref.read(themeModeProvider);
+    final currentPreference = ref.read(themePreferenceProvider);
 
     showGeneralDialog(
       context: context,
@@ -34,7 +34,7 @@ class ThemePopupMenu extends ConsumerWidget {
                 child: Material(
                   color: Colors.transparent,
                   child: Container(
-                    width: 260,
+                    width: 280,
                     padding: const EdgeInsets.all(18),
                     decoration: BoxDecoration(
                       color: theme.cardColor,
@@ -62,35 +62,59 @@ class ThemePopupMenu extends ConsumerWidget {
                         ),
                         const SizedBox(height: 14),
                         _ThemeOptionTile(
+                          label: 'Automatic',
+                          subtitle: 'Uses ambient light sensor',
+                          selected:
+                              currentPreference == AppThemePreference.automatic,
+                          onTap: () async {
+                            await ref
+                                .read(themePreferenceProvider.notifier)
+                                .setPreference(AppThemePreference.automatic);
+                            if (dialogContext.mounted) {
+                              Navigator.of(dialogContext).pop();
+                            }
+                          },
+                        ),
+                        const SizedBox(height: 10),
+                        _ThemeOptionTile(
                           label: 'System',
-                          selected: currentMode == ThemeMode.system,
-                          onTap: () {
-                            ref
-                                .read(themeModeProvider.notifier)
-                                .setThemeMode(ThemeMode.system);
-                            Navigator.of(dialogContext).pop();
+                          subtitle: 'Follows device theme',
+                          selected:
+                              currentPreference == AppThemePreference.system,
+                          onTap: () async {
+                            await ref
+                                .read(themePreferenceProvider.notifier)
+                                .setPreference(AppThemePreference.system);
+                            if (dialogContext.mounted) {
+                              Navigator.of(dialogContext).pop();
+                            }
                           },
                         ),
                         const SizedBox(height: 10),
                         _ThemeOptionTile(
                           label: 'Light',
-                          selected: currentMode == ThemeMode.light,
-                          onTap: () {
-                            ref
-                                .read(themeModeProvider.notifier)
-                                .setThemeMode(ThemeMode.light);
-                            Navigator.of(dialogContext).pop();
+                          selected:
+                              currentPreference == AppThemePreference.light,
+                          onTap: () async {
+                            await ref
+                                .read(themePreferenceProvider.notifier)
+                                .setPreference(AppThemePreference.light);
+                            if (dialogContext.mounted) {
+                              Navigator.of(dialogContext).pop();
+                            }
                           },
                         ),
                         const SizedBox(height: 10),
                         _ThemeOptionTile(
                           label: 'Dark',
-                          selected: currentMode == ThemeMode.dark,
-                          onTap: () {
-                            ref
-                                .read(themeModeProvider.notifier)
-                                .setThemeMode(ThemeMode.dark);
-                            Navigator.of(dialogContext).pop();
+                          selected: currentPreference == AppThemePreference.dark,
+                          onTap: () async {
+                            await ref
+                                .read(themePreferenceProvider.notifier)
+                                .setPreference(AppThemePreference.dark);
+                            if (dialogContext.mounted) {
+                              Navigator.of(dialogContext).pop();
+                            }
                           },
                         ),
                       ],
@@ -139,9 +163,11 @@ class _ThemeOptionTile extends StatelessWidget {
     required this.label,
     required this.selected,
     required this.onTap,
+    this.subtitle,
   });
 
   final String label;
+  final String? subtitle;
   final bool selected;
   final VoidCallback onTap;
 
@@ -151,7 +177,7 @@ class _ThemeOptionTile extends StatelessWidget {
 
     return Material(
       color: selected
-          ? theme.colorScheme.secondary.withValues(alpha: .16)
+          ? theme.colorScheme.secondary.withValues(alpha: 0.16)
           : Colors.transparent,
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
@@ -165,17 +191,29 @@ class _ThemeOptionTile extends StatelessWidget {
             border: Border.all(
               color: selected
                   ? theme.colorScheme.secondary
-                  : theme.dividerColor.withValues(alpha: .18),
+                  : theme.dividerColor.withValues(alpha: 0.18),
             ),
           ),
           child: Row(
             children: [
               Expanded(
-                child: Text(
-                  label,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle!,
+                        style: theme.textTheme.bodySmall,
+                      ),
+                    ],
+                  ],
                 ),
               ),
               if (selected) const Icon(Icons.check, size: 18),

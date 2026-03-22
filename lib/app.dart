@@ -1,20 +1,21 @@
-import 'package:andespace/core/di/theme_mode_provider.dart';
-import 'package:andespace/core/navigation/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'core/navigation/app_routes.dart';
 import 'shared/theme/theme.dart';
+import 'core/di/theme_mode_provider.dart';
 
 class AndespaceApp extends ConsumerWidget {
   const AndespaceApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final themeMode = ref.watch(themeModeProvider);
+    final themeMode = ref.watch(effectiveThemeModeProvider);
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      darkTheme: AppTheme.dark(),
       theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
       themeMode: themeMode,
       initialRoute: AppRoutes.login,
       routes: AppRoutes.routes,
