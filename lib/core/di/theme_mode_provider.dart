@@ -11,53 +11,82 @@ enum AppThemePreference {
   automatic,
 }
 
-final themePreferenceProvider =
-    StateNotifierProvider<ThemePreferenceNotifier, AppThemePreference>((ref) {
-  final notifier = ThemePreferenceNotifier();
-  ref.onDispose(notifier.dispose);
-  return notifier;
-});
+class ThemeControllerState {
+  final AppThemePreference preference;
+  final ThemeMode effectiveMode;
 
-final effectiveThemeModeProvider = Provider<ThemeMode>((ref) {
-  final preference = ref.watch(themePreferenceProvider);
-  final notifier = ref.read(themePreferenceProvider.notifier);
-  return notifier.resolveThemeMode(preference);
-});
+  const ThemeControllerState({
+    required this.preference,
+    required this.effectiveMode,
+  });
 
-class ThemePreferenceNotifier extends StateNotifier<AppThemePreference> {
-  ThemePreferenceNotifier() : super(AppThemePreference.system);
+  ThemeControllerState copyWith({
+    AppThemePreference? preference,
+    ThemeMode? effectiveMode,
+  }) {
+    return ThemeControllerState(
+      preference: preference ?? this.preference,
+      effectiveMode: effectiveMode ?? this.effectiveMode,
+    );
+  }
+}
+
+final themeControllerProvider =
+    StateNotifierProvider<ThemeControllerNotifier, ThemeControllerState>((ref) {
+      final notifier = ThemeControllerNotifier();
+      ref.onDispose(notifier.dispose);
+      return notifier;
+    });
+
+class ThemeControllerNotifier extends StateNotifier<ThemeControllerState> {
+  ThemeControllerNotifier()
+      : super(
+          const ThemeControllerState(
+            preference: AppThemePreference.system,
+            effectiveMode: ThemeMode.system,
+          ),
+        );
 
   static const int _darkThresholdLux = 20;
   static const int _lightThresholdLux = 35;
 
   StreamSubscription<int>? _luxSubscription;
-  ThemeMode _automaticResolvedMode = ThemeMode.light;
   bool _sensorStarted = false;
   DateTime? _lastFlipAt;
 
-  ThemeMode resolveThemeMode(AppThemePreference preference) {
-    switch (preference) {
-      case AppThemePreference.system:
-        return ThemeMode.system;
-      case AppThemePreference.light:
-        return ThemeMode.light;
-      case AppThemePreference.dark:
-        return ThemeMode.dark;
-      case AppThemePreference.automatic:
-        return _automaticResolvedMode;
-    }
-  }
-
   Future<void> setPreference(AppThemePreference preference) async {
-    state = preference;
-
-    if (preference == AppThemePreference.automatic) {
-      await _startSensorIfNeeded();
-    } else {
+    if (preference == AppThemePreference.system) {
       await _stopSensor();
+      state = state.copyWith(
+        preference: preference,
+        effectiveMode: ThemeMode.system,
+      );
+      return;
     }
 
-    state = state;
+    if (preference == AppThemePreference.light) {
+      await _stopSensor();
+      state = state.copyWith(
+        preference: preference,
+        effectiveMode: ThemeMode.light,
+      );
+      return;
+    }
+
+    if (preference == AppThemePreference.dark) {
+      await _stopSensor();
+      state = state.copyWith(
+        preference: preference,
+        effectiveMode: ThemeMode.dark,
+      );
+      return;
+    }
+
+    state = state.copyWith(
+      preference: AppThemePreference.automatic,
+    );
+
+    await _startSensorIfNeeded();
   }
 
   Future<void> _startSensorIfNeeded() async {
@@ -67,26 +96,23 @@ class ThemePreferenceNotifier extends StateNotifier<AppThemePreference> {
     try {
       final hasSensor = await LightSensor.hasSensor();
       if (!hasSensor) {
-        _automaticResolvedMode = ThemeMode.system;
-        state = state;
+        state = state.copyWith(effectiveMode: ThemeMode.system);
         return;
       }
 
       _luxSubscription = LightSensor.luxStream().listen(
         _onLuxChanged,
         onError: (_) {
-          _automaticResolvedMode = ThemeMode.system;
-          state = state;
+          state = state.copyWith(effectiveMode: ThemeMode.system);
         },
       );
     } catch (_) {
-      _automaticResolvedMode = ThemeMode.system;
-      state = state;
+      state = state.copyWith(effectiveMode: ThemeMode.system);
     }
   }
 
   void _onLuxChanged(int lux) {
-    if (state != AppThemePreference.automatic) return;
+    if (state.preference != AppThemePreference.automatic) return;
 
     final now = DateTime.now();
 
@@ -95,18 +121,15 @@ class ThemePreferenceNotifier extends StateNotifier<AppThemePreference> {
       return;
     }
 
-    if (_automaticResolvedMode != ThemeMode.dark && lux <= _darkThresholdLux) {
-      _automaticResolvedMode = ThemeMode.dark;
+    if (state.effectiveMode != ThemeMode.dark && lux <= _darkThresholdLux) {
       _lastFlipAt = now;
-      state = state;
+      state = state.copyWith(effectiveMode: ThemeMode.dark);
       return;
     }
 
-    if (_automaticResolvedMode != ThemeMode.light &&
-        lux >= _lightThresholdLux) {
-      _automaticResolvedMode = ThemeMode.light;
+    if (state.effectiveMode != ThemeMode.light && lux >= _lightThresholdLux) {
       _lastFlipAt = now;
-      state = state;
+      state = state.copyWith(effectiveMode: ThemeMode.light);
     }
   }
 

@@ -10,13 +10,13 @@ class AndespaceApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final themeMode = ref.watch(effectiveThemeModeProvider);
+    final themeState = ref.watch(themeControllerProvider);
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
-      themeMode: themeMode,
+      themeMode: themeState.effectiveMode,
       initialRoute: AppRoutes.login,
       routes: AppRoutes.routes,
     );

@@ -16,7 +16,7 @@ class ThemePopupMenu extends ConsumerWidget {
   void _showThemeDialog(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final currentPreference = ref.read(themePreferenceProvider);
+    final currentPreference = ref.read(themeControllerProvider).preference;
 
     showGeneralDialog(
       context: context,
@@ -68,7 +68,7 @@ class ThemePopupMenu extends ConsumerWidget {
                               currentPreference == AppThemePreference.automatic,
                           onTap: () async {
                             await ref
-                                .read(themePreferenceProvider.notifier)
+                                .read(themeControllerProvider.notifier)
                                 .setPreference(AppThemePreference.automatic);
                             if (dialogContext.mounted) {
                               Navigator.of(dialogContext).pop();
@@ -83,7 +83,7 @@ class ThemePopupMenu extends ConsumerWidget {
                               currentPreference == AppThemePreference.system,
                           onTap: () async {
                             await ref
-                                .read(themePreferenceProvider.notifier)
+                                .read(themeControllerProvider.notifier)
                                 .setPreference(AppThemePreference.system);
                             if (dialogContext.mounted) {
                               Navigator.of(dialogContext).pop();
@@ -97,7 +97,7 @@ class ThemePopupMenu extends ConsumerWidget {
                               currentPreference == AppThemePreference.light,
                           onTap: () async {
                             await ref
-                                .read(themePreferenceProvider.notifier)
+                                .read(themeControllerProvider.notifier)
                                 .setPreference(AppThemePreference.light);
                             if (dialogContext.mounted) {
                               Navigator.of(dialogContext).pop();
@@ -110,7 +110,7 @@ class ThemePopupMenu extends ConsumerWidget {
                           selected: currentPreference == AppThemePreference.dark,
                           onTap: () async {
                             await ref
-                                .read(themePreferenceProvider.notifier)
+                                .read(themeControllerProvider.notifier)
                                 .setPreference(AppThemePreference.dark);
                             if (dialogContext.mounted) {
                               Navigator.of(dialogContext).pop();
