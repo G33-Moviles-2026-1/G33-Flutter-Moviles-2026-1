@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:andespace/core/navigation/app_tab.dart';
 import 'package:andespace/shared/widgets/app_scaffold.dart';
 import 'package:andespace/core/analytics/analytics_events.dart';
-import 'package:uuid/uuid.dart';
 
 import '../../domain/entities/manual_class.dart';
 import '../controllers/schedule_state.dart';
@@ -81,28 +80,6 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
     required int endMinutesB,
   }) {
     return startMinutesA < endMinutesB && startMinutesB < endMinutesA;
-  }
-
-  Future<void> _trackManualAbandoned() async {
-    try {
-
-      final analytics = ref.read(analyticsServiceProvider);
-      final userEmail =
-          await ref.read(scheduleControllerProvider.notifier).resolveUserEmail();
-
-      await analytics.track(
-        sessionId: widget.importSessionId,
-        deviceId: 'mobile',
-        userEmail: userEmail,
-        eventName: AnalyticsEvents.scheduleImportStep,
-        screen: 'add_class',
-        propsJson: {
-          'method': 'manual',
-          'step': 'abandoned',
-          'source_screen': 'add_class',
-        },
-      );
-    } catch (_) {}
   }
 
   @override
@@ -189,6 +166,20 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
   }
 
   Future<void> _submit() async {
+    final analytics = ref.read(analyticsServiceProvider);
+    final userEmail = await ref.read(scheduleControllerProvider.notifier).resolveUserEmail();
+
+    await analytics.trackScheduleImportStep(
+      sessionId: widget.importSessionId,
+      deviceId: 'mobile',
+      userEmail: userEmail,
+      method: 'manual',
+      step: 'first_class_added',
+      stepNumber: 2,
+      propsJson: {
+        'source_screen': 'add_class',
+      },
+    );
     if (!_formKey.currentState!.validate()) return;
 
     if (_startDate == null ||
@@ -285,6 +276,18 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
         );
         return;
       }
+      
+      await analytics.trackScheduleImportStep(
+        sessionId: widget.importSessionId,
+        deviceId: 'mobile',
+        userEmail: userEmail,
+        method: 'manual',
+        step: 'confirmed',
+        stepNumber: 3,
+        propsJson: {
+          'source_screen': 'add_class',
+        },
+      );
     }
 
     final manualClass = ManualClass(
@@ -335,14 +338,7 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
     final state = ref.watch(scheduleControllerProvider);
     final isSaving = state.status == ScheduleStatus.savingManualClass;
 
-    return PopScope(
-      canPop: true,
-      onPopInvokedWithResult: (didPop, result) async {
-        if (didPop && !_submitted) {
-          await _trackManualAbandoned();
-        }
-      },
-      child: AppScaffold(
+    return AppScaffold(
         title: 'Add Class',
         currentTab: AppTab.schedule,
         onTabSelected: (tab) => _onTabSelected(context, tab),
@@ -491,7 +487,6 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
             ),
           ),
         ),
-      )
-    );
+      );
   }
 }

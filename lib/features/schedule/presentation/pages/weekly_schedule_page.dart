@@ -261,11 +261,27 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
                     child: const Text('Filter from Schedule'),
                   ),
                     OutlinedButton(
-                      onPressed: () {
+                      onPressed: () async{
+                        final analytics = ref.read(analyticsServiceProvider);
+                        final userEmail = await controller.resolveUserEmail();
+                        final importSessionId = const Uuid().v4();
+
+                        await analytics.trackScheduleImportStep(
+                          sessionId: importSessionId,
+                          deviceId: 'mobile',
+                          userEmail: userEmail,
+                          method: 'manual',
+                          step: 'started',
+                          stepNumber: 1,
+                          propsJson: {
+                            'source_screen': 'schedule_load',
+                          },
+                        );
+                        if (!context.mounted) return;
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => AddClassPage(importSessionId: const Uuid().v4()),
+                            builder: (_) => AddClassPage(importSessionId: importSessionId),
                           ),
                         );
                       },
