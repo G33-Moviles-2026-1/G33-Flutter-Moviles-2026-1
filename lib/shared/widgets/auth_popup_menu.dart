@@ -21,7 +21,6 @@ class AuthPopupMenu extends StatelessWidget {
 
   void _showAuthDialog(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
 
     showGeneralDialog(
