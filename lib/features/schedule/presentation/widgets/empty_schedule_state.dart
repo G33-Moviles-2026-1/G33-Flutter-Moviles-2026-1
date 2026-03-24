@@ -64,7 +64,11 @@ class EmptyScheduleState extends StatelessWidget {
                           height: 56,
                           child: ElevatedButton(
                             onPressed: onLoadSchedule,
-                            child: const Text('Load Schedule'),
+                            child: const Text(
+                              'Load Schedule',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              softWrap: false,),
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -73,7 +77,11 @@ class EmptyScheduleState extends StatelessWidget {
                           height: 56,
                           child: OutlinedButton(
                             onPressed: onAddClassManually,
-                            child: const Text('Add Class Manually'),
+                            child: const Text(
+                              'Add Class Manually',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              softWrap: false,),
                           ),
                         ),
                       ],
