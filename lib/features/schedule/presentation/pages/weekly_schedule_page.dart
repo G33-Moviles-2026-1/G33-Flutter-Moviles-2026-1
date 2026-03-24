@@ -9,7 +9,6 @@ import 'package:uuid/uuid.dart';
 
 import '../controllers/schedule_state.dart';
 import '../providers/schedule_providers.dart';
-import '../widgets/empty_schedule_state.dart';
 import '../widgets/weekly_calendar_view.dart';
 import 'add_class_page.dart';
 import 'schedule_load_page.dart';
@@ -149,26 +148,8 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
             return const Center(child: CircularProgressIndicator());
           }
 
-          if (state.status == ScheduleStatus.empty ||
-              state.weeklySchedule == null) {
-            return EmptyScheduleState(
-              onLoadSchedule: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const ScheduleLoadPage(),
-                  ),
-                );
-              },
-              onAddClassManually: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => AddClassPage(importSessionId: const Uuid().v4()),
-                  ),
-                );
-              },
-            );
+          if (state.weeklySchedule == null) {
+            return const ScheduleLoadPage();
           }
 
           final schedule = state.weeklySchedule!;

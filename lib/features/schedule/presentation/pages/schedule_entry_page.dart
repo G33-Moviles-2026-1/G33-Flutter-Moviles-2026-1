@@ -184,10 +184,6 @@ class _ScheduleEntryPageState extends ConsumerState<ScheduleEntryPage> {
       return const WeeklySchedulePage();
     }
 
-    if (state.status == ScheduleStatus.empty) {
-      return const ScheduleLoadPage();
-    }
-
     if (state.status == ScheduleStatus.error) {
       return AppScaffold(
         title: 'My Schedule',

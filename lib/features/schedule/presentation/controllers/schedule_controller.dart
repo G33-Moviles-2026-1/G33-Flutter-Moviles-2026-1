@@ -161,8 +161,10 @@ class ScheduleController extends StateNotifier<ScheduleState> {
   }
 
   Future<void> refresh() async {
-    await loadWeek(date: state.selectedDate);
+    await loadWeek(date: DateTime.now());
   }
+
+  
 
   Future<void> goToPreviousWeek() async {
     final previousWeek = state.selectedDate.subtract(const Duration(days: 7));
