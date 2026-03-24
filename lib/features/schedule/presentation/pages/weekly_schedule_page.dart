@@ -74,7 +74,7 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
                   onPressed: () => Navigator.pop(context, false),
                   child: const Text('Cancel'),
                 ),
-                ElevatedButton(
+                TextButton(
                   onPressed: () => Navigator.pop(context, true),
                   child: const Text('Delete'),
                 ),
