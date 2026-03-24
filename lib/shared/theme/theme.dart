@@ -86,7 +86,7 @@ abstract final class AppTheme {
 
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: const Color.fromARGB(255, 252, 189, 0),
+          foregroundColor: const Color(0xFFFCBD00),
           textStyle: const TextStyle(fontWeight: FontWeight.w700),
         ),
       ),
@@ -132,68 +132,20 @@ abstract final class AppTheme {
           footerUnselected: Color(0xFF000000),
         ),
       ],
+
       datePickerTheme: DatePickerThemeData(
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.transparent,
-        headerBackgroundColor: Colors.white,
-        headerForegroundColor: Colors.black,
-        dayForegroundColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) {
-            return Colors.black;
-          }
-          return Colors.black;
-        }),
-        dayBackgroundColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) {
-            return const Color(0xFFFFFBA9);
-          }
-          return Colors.transparent;
-        }),
         todayForegroundColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
             return Colors.black;
           }
-          return Colors.black87;
+          return Color(0xFFFCBD00);
         }),
-        todayBackgroundColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) {
-            return const Color(0xFFFFFBA9);
-          }
-          return Colors.transparent;
-        }),
-        todayBorder: const BorderSide(
-          color: Color(0xFFF0D84A),
-          width: 1.4,
-        ),
-        cancelButtonStyle: TextButton.styleFrom(
-          foregroundColor: const Color.fromARGB(255, 252, 189, 0),
-        ),
-        confirmButtonStyle: TextButton.styleFrom(
-          foregroundColor: const Color.fromARGB(255, 252, 189, 0),
-        ),
+
       ),
 
-      timePickerTheme: TimePickerThemeData(
-        backgroundColor: Colors.white,
-        hourMinuteTextColor: Colors.black,
-        hourMinuteColor: Colors.grey.shade100,
-        dialBackgroundColor: Colors.grey.shade100,
-        dialHandColor: const Color(0xFFF0D84A),
-        dialTextColor: Colors.black,
-        entryModeIconColor: Colors.black54,
-        dayPeriodTextColor: Colors.black,
-        dayPeriodColor: Colors.white,
-        dayPeriodBorderSide: const BorderSide(color: Colors.black26),
-        dayPeriodTextStyle: const TextStyle(
-          fontWeight: FontWeight.w600,
-        ),
-        helpTextStyle: const TextStyle(color: Colors.black),
-        cancelButtonStyle: TextButton.styleFrom(
-          foregroundColor: const Color.fromARGB(255, 252, 189, 0),
-        ),
-        confirmButtonStyle: TextButton.styleFrom(
-          foregroundColor: const Color.fromARGB(255, 252, 189, 0),
-        ),
+      timePickerTheme: const TimePickerThemeData(
+        dialHandColor: Color(0xFFFDF21C),
+        entryModeIconColor: Colors.white70,
       ),
     );
   }
@@ -328,69 +280,35 @@ abstract final class AppTheme {
           footerUnselected: Color(0xFF9AA0A6),
         ),
       ],
+
       datePickerTheme: DatePickerThemeData(
-        backgroundColor: const Color(0xFF121417),
-        surfaceTintColor: Colors.transparent,
-        headerBackgroundColor: const Color(0xFF121417),
-        headerForegroundColor: const Color(0xFFF5F5F5),
-        dayForegroundColor: WidgetStateProperty.resolveWith((states) {
+        todayForegroundColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return Colors.black;
+            return Colors.white;
           }
-          return const Color(0xFFF5F5F5);
+          return Color(0xFFFFA500);
         }),
         dayBackgroundColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return const Color(0xFFFFA500);
+            return const Color(0xFFC78201);
           }
           return Colors.transparent;
-        }),
-        todayForegroundColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) {
-            return Colors.black;
-          }
-          return const Color(0xFFFFD27A);
         }),
         todayBackgroundColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return const Color(0xFFFFA500);
+            return const Color(0xFFC78201);
           }
           return Colors.transparent;
         }),
-        todayBorder: const BorderSide(
-          color: Color(0xFFFFA500),
-          width: 1.5,
-        ),
-        cancelButtonStyle: TextButton.styleFrom(
-          foregroundColor: Color(0xFFFFA500),
-        ),
-        confirmButtonStyle: TextButton.styleFrom(
-          foregroundColor: Color(0xFFFFA500),
-        ),
+
+      ),
+      
+
+      timePickerTheme: const TimePickerThemeData(
+        dialHandColor: Color(0xFFFFA500),
+        entryModeIconColor: Colors.white70,
       ),
 
-      timePickerTheme: TimePickerThemeData(
-        backgroundColor: const Color(0xFF121417),
-        hourMinuteTextColor: const Color(0xFFF5F5F5),
-        hourMinuteColor: const Color(0xFF1A1D22),
-        dialBackgroundColor: const Color(0xFF1A1D22),
-        dialHandColor: const Color(0xFFFFA500),
-        dialTextColor: const Color(0xFFF5F5F5),
-        entryModeIconColor: Colors.white70,
-        dayPeriodTextColor: const Color(0xFFF5F5F5),
-        dayPeriodColor: const Color(0xFF121417),
-        dayPeriodBorderSide: const BorderSide(color: Colors.white30),
-        dayPeriodTextStyle: const TextStyle(
-          fontWeight: FontWeight.w600,
-        ),
-        helpTextStyle: const TextStyle(color: Color(0xFFF5F5F5)),
-        cancelButtonStyle: TextButton.styleFrom(
-          foregroundColor: const Color(0xFFFFA500),
-        ),
-        confirmButtonStyle: TextButton.styleFrom(
-          foregroundColor: const Color(0xFFFFA500),
-        ),
-      ),
     );
   }
 
