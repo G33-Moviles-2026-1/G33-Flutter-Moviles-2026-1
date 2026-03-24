@@ -237,11 +237,13 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                   ),
                 ),
                 const SizedBox(height: 30),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     Text(
                       'If you have an account, ',
+                      textAlign: TextAlign.center,
                       style: textTheme.bodyMedium,
                     ),
                     TextButton(

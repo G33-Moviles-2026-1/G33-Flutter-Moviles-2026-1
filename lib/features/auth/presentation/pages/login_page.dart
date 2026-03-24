@@ -155,11 +155,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   ),
                 ),
                 const SizedBox(height: 30),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     Text(
                       "If you don't have an account, ",
+                      textAlign: TextAlign.center,
                       style: textTheme.bodyMedium,
                     ),
                     TextButton(
@@ -182,11 +184,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   ],
                 ),
                 const SizedBox(height: 15),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     Text(
                       'Enter as a ',
+                      textAlign: TextAlign.center,
                       style: textTheme.bodyMedium,
                     ),
                     TextButton(
