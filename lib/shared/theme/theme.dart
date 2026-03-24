@@ -59,6 +59,7 @@ abstract final class AppTheme {
           fontSize: 16,
           color: Colors.black54,
         ),
+        suffixIconColor: Colors.black54,
         filled: true,
         fillColor: Colors.white,
         contentPadding: const EdgeInsets.symmetric(
@@ -192,6 +193,7 @@ abstract final class AppTheme {
           fontSize: 16,
           color: Colors.white60,
         ),
+        suffixIconColor: Colors.white60,
         filled: true,
         fillColor: cardColor,
         contentPadding: const EdgeInsets.symmetric(

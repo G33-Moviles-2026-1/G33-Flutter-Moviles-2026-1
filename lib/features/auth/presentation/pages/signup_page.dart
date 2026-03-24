@@ -17,13 +17,36 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
 
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
+  final _confirmPasswordCtrl = TextEditingController();
   final _carnetCtrl = TextEditingController();
+
+  final _passwordFocusNode = FocusNode();
+  final _confirmPasswordFocusNode = FocusNode();
+
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _passwordFocusNode.addListener(() {
+      setState(() {});
+    });
+
+    _confirmPasswordFocusNode.addListener(() {
+      setState(() {});
+    });
+  }
 
   @override
   void dispose() {
     _emailCtrl.dispose();
     _passwordCtrl.dispose();
+    _confirmPasswordCtrl.dispose();
     _carnetCtrl.dispose();
+    _passwordFocusNode.dispose();
+    _confirmPasswordFocusNode.dispose();
     super.dispose();
   }
 
@@ -66,7 +89,6 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
             child: Column(
               children: [
                 const SizedBox(height: 28),
-
                 Text(
                   'Sign Up',
                   style: textTheme.headlineMedium?.copyWith(
@@ -74,9 +96,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                     color: colorScheme.onSurface,
                   ),
                 ),
-
                 const SizedBox(height: 36),
-
                 TextFormField(
                   controller: _emailCtrl,
                   keyboardType: TextInputType.emailAddress,
@@ -96,14 +116,27 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                     return null;
                   },
                 ),
-
                 const SizedBox(height: 18),
-
                 TextFormField(
                   controller: _passwordCtrl,
-                  obscureText: true,
-                  decoration: const InputDecoration(
+                  focusNode: _passwordFocusNode,
+                  obscureText: _obscurePassword,
+                  decoration: InputDecoration(
                     hintText: 'Password',
+                    suffixIcon: _passwordFocusNode.hasFocus
+                        ? IconButton(
+                            icon: Icon(
+                              _obscurePassword
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _obscurePassword = !_obscurePassword;
+                              });
+                            },
+                          )
+                        : null,
                   ),
                   validator: (value) {
                     final password = value?.trim() ?? '';
@@ -116,9 +149,41 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                     return null;
                   },
                 ),
-
                 const SizedBox(height: 18),
-
+                TextFormField(
+                  controller: _confirmPasswordCtrl,
+                  focusNode: _confirmPasswordFocusNode,
+                  obscureText: _obscureConfirmPassword,
+                  decoration: InputDecoration(
+                    hintText: 'Repeat Password',
+                    suffixIcon: _confirmPasswordFocusNode.hasFocus
+                        ? IconButton(
+                            icon: Icon(
+                              _obscureConfirmPassword
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _obscureConfirmPassword =
+                                    !_obscureConfirmPassword;
+                              });
+                            },
+                          )
+                        : null,
+                  ),
+                  validator: (value) {
+                    final confirmPassword = value?.trim() ?? '';
+                    if (confirmPassword.isEmpty) {
+                      return 'Repeat your password';
+                    }
+                    if (confirmPassword != _passwordCtrl.text.trim()) {
+                      return 'Passwords do not match';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 18),
                 TextFormField(
                   controller: _carnetCtrl,
                   keyboardType: TextInputType.number,
@@ -140,9 +205,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                     return null;
                   },
                 ),
-
                 const SizedBox(height: 28),
-
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -173,9 +236,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                         : const Text('Save'),
                   ),
                 ),
-
                 const SizedBox(height: 30),
-
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

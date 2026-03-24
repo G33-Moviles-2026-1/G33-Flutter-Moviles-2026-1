@@ -18,10 +18,24 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
 
+  final _passwordFocusNode = FocusNode();
+
+  bool _obscurePassword = true;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _passwordFocusNode.addListener(() {
+      setState(() {});
+    });
+  }
+
   @override
   void dispose() {
     _emailCtrl.dispose();
     _passwordCtrl.dispose();
+    _passwordFocusNode.dispose();
     super.dispose();
   }
 
@@ -58,7 +72,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             child: Column(
               children: [
                 const SizedBox(height: 28),
-
                 Text(
                   'Log In',
                   style: textTheme.headlineMedium?.copyWith(
@@ -66,9 +79,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     color: colorScheme.onSurface,
                   ),
                 ),
-
                 const SizedBox(height: 36),
-
                 TextFormField(
                   controller: _emailCtrl,
                   keyboardType: TextInputType.emailAddress,
@@ -86,14 +97,27 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     return null;
                   },
                 ),
-
                 const SizedBox(height: 18),
-
                 TextFormField(
                   controller: _passwordCtrl,
-                  obscureText: true,
-                  decoration: const InputDecoration(
+                  focusNode: _passwordFocusNode,
+                  obscureText: _obscurePassword,
+                  decoration: InputDecoration(
                     hintText: 'Password',
+                    suffixIcon: _passwordFocusNode.hasFocus
+                        ? IconButton(
+                            icon: Icon(
+                              _obscurePassword
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _obscurePassword = !_obscurePassword;
+                              });
+                            },
+                          )
+                        : null,
                   ),
                   validator: (value) {
                     final password = value?.trim() ?? '';
@@ -103,9 +127,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     return null;
                   },
                 ),
-
                 const SizedBox(height: 28),
-
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -132,9 +154,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         : const Text('Continue'),
                   ),
                 ),
-
                 const SizedBox(height: 30),
-
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -161,9 +181,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 15),
-
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
