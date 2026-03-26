@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:andespace/core/di/auth_providers.dart';
 import 'package:andespace/core/di/core_provider.dart';
+import 'package:andespace/core/analytics/analytics_service.dart';
 
 import '../../data/datasources/schedule_remote_data_source.dart';
 import '../../data/repositories/schedule_repository_impl.dart';
@@ -71,6 +72,11 @@ final getRecommendedRoomsForDayProvider = Provider<GetRecommendedRoomsForDay>((r
   return GetRecommendedRoomsForDay(repository);
 });
 
+final analyticsServiceProvider = Provider<AnalyticsService>((ref) {
+  final dio = ref.watch(dioProvider);
+  return AnalyticsService(dio);
+});
+
 final scheduleControllerProvider =
     StateNotifierProvider<ScheduleController, ScheduleState>((ref) {
   return ScheduleController(
@@ -82,6 +88,7 @@ final scheduleControllerProvider =
     deleteScheduleClass: ref.watch(deleteScheduleClassProvider),
     deleteScheduleOccurrence: ref.watch(deleteScheduleOccurrenceProvider),
     getRecommendedRoomsForDay: ref.watch(getRecommendedRoomsForDayProvider),
+    analyticsService: ref.watch(analyticsServiceProvider),
     resolveUserEmail: () async {
       final getCurrentUser = ref.read(getCurrentUserUseCaseProvider);
       final currentUser = await getCurrentUser();

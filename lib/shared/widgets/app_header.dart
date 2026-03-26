@@ -1,6 +1,7 @@
 import 'package:andespace/core/navigation/app_routes.dart';
 import 'package:andespace/shared/theme/app_theme_extension.dart';
 import 'package:andespace/shared/widgets/auth_popup_menu.dart';
+import 'package:andespace/shared/widgets/theme_popup_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -8,27 +9,23 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
   const AppHeader({
     super.key,
     this.title = 'AndeSpace',
-    this.onTapLeft,
     this.onTapSearch,
     this.onTapLogo,
     this.onLogin,
     this.onSignUp,
     this.onLogout,
-    this.leftIconPath = 'assets/icons/profile.svg',
     this.searchIconPath = 'assets/icons/search.svg',
     this.userIconPath = 'assets/icons/user.svg',
     this.isLoggedIn = false,
   });
 
   final String title;
-  final VoidCallback? onTapLeft;
   final VoidCallback? onTapSearch;
   final VoidCallback? onTapLogo;
   final VoidCallback? onLogin;
   final VoidCallback? onSignUp;
   final VoidCallback? onLogout;
 
-  final String leftIconPath;
   final String searchIconPath;
   final String userIconPath;
   final bool isLoggedIn;
@@ -64,12 +61,13 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
       elevation: 0,
       scrolledUnderElevation: 0,
       centerTitle: true,
-      leading: IconButton(
-        onPressed: onTapLeft,
-        icon: _buildSvgIcon(context, leftIconPath),
+      leadingWidth: 56,
+      leading: ThemePopupMenu(
+        icon: Icons.settings,
+        iconColor: brand.headerForeground,
       ),
       title: GestureDetector(
-        onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.home),
+        onTap: onTapLogo ?? () => Navigator.pushReplacementNamed(context, AppRoutes.home),
         behavior: HitTestBehavior.opaque,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 8),

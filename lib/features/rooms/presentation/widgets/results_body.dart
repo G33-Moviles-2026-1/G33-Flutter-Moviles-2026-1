@@ -3,8 +3,8 @@ import 'package:andespace/features/rooms/domain/entities/room_search.dart';
 import 'package:andespace/features/rooms/presentation/controllers/home_search_state.dart';
 import 'package:andespace/features/rooms/presentation/providers/rooms_providers.dart';
 import 'package:andespace/shared/theme/app_theme_extension.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ResultsBody extends ConsumerStatefulWidget {
   final HomeSearchState state;
@@ -38,6 +38,8 @@ class _ResultsBodyState extends ConsumerState<ResultsBody> {
     });
 
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
     final brand = theme.extension<BrandColors>()!;
     final response = widget.state.response;
     final items = response?.items ?? [];
@@ -53,51 +55,107 @@ class _ResultsBodyState extends ConsumerState<ResultsBody> {
         Expanded(
           child: Stack(
             children: [
-              ListView.separated(
-                controller: _scrollController,
-                padding: const EdgeInsets.fromLTRB(18, 20, 18, 20),
-                itemCount: items.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 16),
-                itemBuilder: (context, index) => _RoomCard(
-                  room: items[index],
-                  brand: brand,
-                  searchTime:
-                      response?.query.since,
+              if (items.isEmpty && !widget.state.isLoading)
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Container(
+                      constraints: const BoxConstraints(maxWidth: 420),
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: theme.cardColor,
+                        borderRadius: BorderRadius.circular(22),
+                        border: Border.all(
+                          color: theme.dividerColor.withValues(alpha: .18),
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.search_off_rounded,
+                            size: 52,
+                            color: colorScheme.secondary,
+                          ),
+                          const SizedBox(height: 14),
+                          Text(
+                            'No rooms found',
+                            textAlign: TextAlign.center,
+                            style: textTheme.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Try changing the filters or search time.',
+                            textAlign: TextAlign.center,
+                            style: textTheme.bodyMedium,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                )
+              else
+                ListView.separated(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.fromLTRB(18, 20, 18, 20),
+                  itemCount: items.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 16),
+                  itemBuilder: (context, index) => _RoomCard(
+                    room: items[index],
+                    brand: brand,
+                    searchTime: response?.query.since,
+                  ),
                 ),
-              ),
               if (widget.state.isLoading)
                 Container(
-                  color: Colors.white.withOpacity(0.5),
-                  child: const Center(
-                    child: CircularProgressIndicator(color: Colors.black),
+                  color: theme.scaffoldBackgroundColor.withValues(alpha: .65),
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 18,
+                      ),
+                      decoration: BoxDecoration(
+                        color: theme.cardColor,
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(
+                          color: theme.dividerColor.withValues(alpha: .18),
+                        ),
+                      ),
+                      child: const CircularProgressIndicator(),
+                    ),
                   ),
                 ),
             ],
           ),
         ),
-
         if (totalPages > 1)
           Container(
-            padding: const EdgeInsets.fromLTRB(
-              20,
-              12,
-              20,
-              32,
-            ),
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
             decoration: BoxDecoration(
-              color: Colors.white,
-              border: const Border(
-                top: BorderSide(color: Colors.black, width: 2),
+              color: theme.cardColor,
+              border: Border(
+                top: BorderSide(
+                  color: theme.dividerColor.withValues(alpha: .25),
+                ),
               ),
               boxShadow: [
-                BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 
+                    theme.brightness == Brightness.dark ? 0.25 : 0.08,
+                  ),
+                  blurRadius: 10,
+                  offset: const Offset(0, -2),
+                ),
               ],
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 _PageBtn(
-                  label: "Prev",
+                  label: 'Prev',
                   onTap: currentPage > 1
                       ? () => ref
                             .read(homeSearchControllerProvider.notifier)
@@ -105,14 +163,13 @@ class _ResultsBodyState extends ConsumerState<ResultsBody> {
                       : null,
                 ),
                 Text(
-                  "Página $currentPage de $totalPages",
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 13,
+                  'Page $currentPage of $totalPages',
+                  style: textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
                 _PageBtn(
-                  label: "Next",
+                  label: 'Next',
                   onTap: currentPage < totalPages
                       ? () => ref
                             .read(homeSearchControllerProvider.notifier)
@@ -132,128 +189,174 @@ class _RoomCard extends StatelessWidget {
   final BrandColors brand;
   final String? searchTime;
 
-  const _RoomCard({required this.room, required this.brand, this.searchTime});
+  const _RoomCard({
+    required this.room,
+    required this.brand,
+    this.searchTime,
+  });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     final String referenceTime =
         searchTime ??
-        "${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}";
+        '${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}';
 
     final bool isAvailableInQuery = room.isAvailableAt(referenceTime);
 
     final Color statusColor = isAvailableInQuery
-        ? const Color(0xFF4CAF50)
-        : const Color(0xFFFF9800);
-    final Color statusBg = isAvailableInQuery
-        ? const Color(0xFFE8F5E9)
-        : const Color(0xFFFFF3E0);
-    final String statusLabel = isAvailableInQuery
-        ? "LIBRE EN TU HORARIO"
-        : "DISPONIBLE DESPUÉS";
+        ? const Color(0xFF2E7D32)
+        : const Color(0xFFE68A00);
 
-    return InkWell(
-      onTap: () =>
-          Navigator.pushNamed(context, AppRoutes.roomDetail, arguments: room),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.black, width: 1.5),
-          boxShadow: const [
-            BoxShadow(color: Colors.black, offset: Offset(4, 4)),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  room.roomId,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
+    final Color statusBg = isAvailableInQuery
+        ? (theme.brightness == Brightness.dark
+              ? const Color(0xFF132218)
+              : const Color(0xFFE8F5E9))
+        : (theme.brightness == Brightness.dark
+              ? const Color(0xFF2A1D0B)
+              : const Color(0xFFFFF3E0));
+
+    final String statusLabel = isAvailableInQuery
+        ? 'FREE IN YOUR TIME'
+        : 'AVAILABLE LATER';
+
+return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: () {
+          Navigator.pushNamed(
+            context,
+            AppRoutes.roomDetail,
+            arguments: room,
+          );
+        },
+        child: Ink(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: theme.cardColor,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: theme.dividerColor.withValues(alpha: .18),
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      room.roomId,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  // Priorizamos mostrar los segundos de Dijkstra si existen
+                  if (room.distanceSeconds != null)
+                    _Badge(
+                      label: '${room.distanceSeconds!.toStringAsFixed(0)} sec',
+                      backgroundColor: theme.brightness == Brightness.dark
+                          ? const Color(0xFF2D220C)
+                          : brand.softYellow,
+                      foregroundColor: colorScheme.onSurface,
+                      borderColor: theme.dividerColor.withValues(alpha: .18),
+                    )
+                  else if (room.distanceSeconds != null)
+                    _Badge(
+                      label: '${room.distanceSeconds!.toStringAsFixed(0)} m',
+                      backgroundColor: theme.brightness == Brightness.dark
+                          ? const Color(0xFF1A1A1A)
+                          : colorScheme.surface,
+                      foregroundColor: colorScheme.onSurface,
+                      borderColor: theme.dividerColor.withValues(alpha: .18),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                '${room.buildingName ?? room.buildingCode} • Room ${room.roomNumber}',
+                style: theme.textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 14),
+              // Contenedor de Estado de Disponibilidad (Viene de la rama entrante)
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color: statusBg,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: theme.dividerColor.withValues(alpha: .18),
                   ),
                 ),
-                if (room.distanceSeconds != null)
-                  _Badge(
-                    label: '${room.distanceSeconds!.toStringAsFixed(0)} Seconds',
-                    color: Colors.white,
-                  ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Text(
-              '${room.buildingName ?? room.buildingCode} • Salón ${room.roomNumber}',
-              style: TextStyle(color: Colors.grey[800], fontSize: 14),
-            ),
-
-            const SizedBox(height: 14),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              decoration: BoxDecoration(
-                color: statusBg,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.black, width: 1.2),
+                child: Row(
+                  children: [
+                    Icon(
+                      isAvailableInQuery
+                          ? Icons.check_circle_outline
+                          : Icons.schedule_outlined,
+                      size: 18,
+                      color: statusColor,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            statusLabel,
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              fontWeight: FontWeight.w900,
+                              color: statusColor,
+                              letterSpacing: 0.4,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            room.availabilityStatusText(referenceTime),
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              child: Row(
+              const SizedBox(height: 14),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
                 children: [
-                  Icon(
-                    isAvailableInQuery ? Icons.check_circle : Icons.schedule,
-                    size: 18,
-                    color: statusColor,
+                  _Badge(
+                    label: 'Cap: ${room.capacity}',
+                    backgroundColor: theme.brightness == Brightness.dark
+                        ? const Color(0xFF2D220C)
+                        : brand.softYellow,
+                    foregroundColor: colorScheme.onSurface,
+                    borderColor: theme.dividerColor.withValues(alpha: .18),
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          statusLabel,
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w900,
-                            color: statusColor.withOpacity(0.9),
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                        Text(
-                          room.availabilityStatusText(referenceTime),
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ],
+                  ...room.utilities.take(2).map(
+                    (u) => _Badge(
+                      label: u.toTitleCase(),
+                      backgroundColor: theme.brightness == Brightness.dark
+                          ? theme.cardColor
+                          : colorScheme.surface,
+                      foregroundColor: colorScheme.onSurface,
+                      borderColor: theme.dividerColor.withValues(alpha: .18),
                     ),
                   ),
                 ],
               ),
-            ),
-
-            const SizedBox(height: 14),
-
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                _Badge(label: 'Cap: ${room.capacity}', color: brand.softYellow),
-                ...room.utilities
-                    .take(2)
-                    .map(
-                      (u) => _Badge(
-                        label: u.toTitleCase(),
-                        color: Colors.grey[200]!,
-                      ),
-                    ),
-              ],
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -262,21 +365,33 @@ class _RoomCard extends StatelessWidget {
 
 class _Badge extends StatelessWidget {
   final String label;
-  final Color color;
-  const _Badge({required this.label, required this.color});
+  final Color backgroundColor;
+  final Color foregroundColor;
+  final Color borderColor;
+
+  const _Badge({
+    required this.label,
+    required this.backgroundColor,
+    required this.foregroundColor,
+    required this.borderColor,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: Colors.black, width: 1),
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: borderColor),
       ),
       child: Text(
         label,
-        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          color: foregroundColor,
+        ),
       ),
     );
   }
@@ -285,28 +400,38 @@ class _Badge extends StatelessWidget {
 class _PageBtn extends StatelessWidget {
   final String label;
   final VoidCallback? onTap;
-  const _PageBtn({required this.label, this.onTap});
+
+  const _PageBtn({
+    required this.label,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final isEnabled = onTap != null;
+
     return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(999),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: isEnabled ? Colors.white : Colors.grey[200],
-          border: Border.all(color: Colors.black, width: 1.5),
-          borderRadius: BorderRadius.circular(8),
-          boxShadow: isEnabled
-              ? [const BoxShadow(color: Colors.black, offset: Offset(2, 2))]
-              : null,
+          color: isEnabled
+              ? theme.colorScheme.secondary
+              : theme.disabledColor.withValues(alpha: .12),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: theme.dividerColor.withValues(alpha: .18),
+          ),
         ),
         child: Text(
           label,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: isEnabled ? Colors.black : Colors.grey,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w800,
+            color: isEnabled
+                ? theme.colorScheme.onSecondary
+                : theme.disabledColor,
           ),
         ),
       ),
@@ -345,19 +470,19 @@ extension RoomAvailabilityX on RoomSearchItem {
         .firstOrNull;
 
     if (current != null) {
-      return 'De ${current.start} a ${current.end}';
+      return 'From ${current.start} to ${current.end}';
     }
-    final nextWindows =
-        matchingWindows
-            .where((w) => w.start.compareTo(referenceTime) > 0)
-            .toList()
-          ..sort((a, b) => a.start.compareTo(b.start));
+
+    final nextWindows = matchingWindows
+        .where((w) => w.start.compareTo(referenceTime) > 0)
+        .toList()
+      ..sort((a, b) => a.start.compareTo(b.start));
 
     if (nextWindows.isNotEmpty) {
       final next = nextWindows.first;
-      return 'De ${next.start} a ${next.end}';
+      return 'From ${next.start} to ${next.end}';
     }
 
-    return 'Sin disponibilidad para esta fecha';
+    return 'No availability for this time';
   }
 }

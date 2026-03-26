@@ -18,10 +18,24 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
 
+  final _passwordFocusNode = FocusNode();
+
+  bool _obscurePassword = true;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _passwordFocusNode.addListener(() {
+      setState(() {});
+    });
+  }
+
   @override
   void dispose() {
     _emailCtrl.dispose();
     _passwordCtrl.dispose();
+    _passwordFocusNode.dispose();
     super.dispose();
   }
 
@@ -43,8 +57,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     });
 
     final state = ref.watch(authControllerProvider);
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final colorScheme = theme.colorScheme;
 
     return AppScaffold(
+      currentTab: AppTab.rooms,
+      onTabSelected: (tab) => AppRoutes.handleTabSelection(context, tab),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
@@ -53,20 +72,20 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             child: Column(
               children: [
                 const SizedBox(height: 28),
-                const Text(
+                Text(
                   'Log In',
-                  style: TextStyle(
-                    fontSize: 34,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black,
+                  style: textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 36),
-
                 TextFormField(
                   controller: _emailCtrl,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: _inputDecoration('Student Mail'),
+                  decoration: const InputDecoration(
+                    hintText: 'Student Mail',
+                  ),
                   validator: (value) {
                     final email = value?.trim() ?? '';
                     if (email.isEmpty) {
@@ -78,13 +97,28 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     return null;
                   },
                 ),
-
                 const SizedBox(height: 18),
-
                 TextFormField(
                   controller: _passwordCtrl,
-                  obscureText: true,
-                  decoration: _inputDecoration('Password'),
+                  focusNode: _passwordFocusNode,
+                  obscureText: _obscurePassword,
+                  decoration: InputDecoration(
+                    hintText: 'Password',
+                    suffixIcon: _passwordFocusNode.hasFocus
+                        ? IconButton(
+                            icon: Icon(
+                              _obscurePassword
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _obscurePassword = !_obscurePassword;
+                              });
+                            },
+                          )
+                        : null,
+                  ),
                   validator: (value) {
                     final password = value?.trim() ?? '';
                     if (password.isEmpty) {
@@ -93,12 +127,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     return null;
                   },
                 ),
-
                 const SizedBox(height: 28),
-
                 SizedBox(
                   width: double.infinity,
-                  height: 56,
                   child: ElevatedButton(
                     onPressed: state.isLoading
                         ? null
@@ -114,46 +145,37 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                   password: _passwordCtrl.text.trim(),
                                 );
                           },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFFF200),
-                      foregroundColor: Colors.black,
-                      elevation: 3,
-                      shadowColor: Colors.black38,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
                     child: state.isLoading
                         ? const SizedBox(
                             width: 24,
                             height: 24,
                             child: CircularProgressIndicator(strokeWidth: 2.5),
                           )
-                        : const Text(
-                            'Continue',
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                        : const Text('Continue'),
                   ),
                 ),
                 const SizedBox(height: 30),
-                
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    const Text("If you don't have an account, "),
+                    Text(
+                      "If you don't have an account, ",
+                      textAlign: TextAlign.center,
+                      style: textTheme.bodyMedium,
+                    ),
                     TextButton(
+                      onPressed: () {
+                        Navigator.pushReplacementNamed(
+                          context,
+                          AppRoutes.signup,
+                        );
+                      },
                       style: TextButton.styleFrom(
-                        foregroundColor: const Color.fromARGB(255, 252, 189, 0),
                         padding: EdgeInsets.zero,
                         minimumSize: Size.zero,
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
-                      onPressed: () {
-                        Navigator.pushReplacementNamed(context, AppRoutes.signup);
-                      },
                       child: const Text(
                         'sign up',
                         style: TextStyle(fontWeight: FontWeight.w900),
@@ -162,21 +184,24 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   ],
                 ),
                 const SizedBox(height: 15),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    const Text("Enter as a "),
+                    Text(
+                      'Enter as a ',
+                      textAlign: TextAlign.center,
+                      style: textTheme.bodyMedium,
+                    ),
                     TextButton(
+                      onPressed: () {
+                        Navigator.pushReplacementNamed(context, AppRoutes.home);
+                      },
                       style: TextButton.styleFrom(
-                        foregroundColor: const Color.fromARGB(255, 252, 189, 0),
                         padding: EdgeInsets.zero,
                         minimumSize: Size.zero,
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
-                    
-                      onPressed: () {
-                        Navigator.pushReplacementNamed(context, AppRoutes.home);
-                      },
                       child: const Text(
                         'guest',
                         style: TextStyle(fontWeight: FontWeight.w900),
@@ -188,38 +213,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             ),
           ),
         ),
-      ), currentTab: AppTab.rooms, onTabSelected: (tab) => AppRoutes.handleTabSelection(context, tab),
-    );
-  }
-
-  InputDecoration _inputDecoration(String hint) {
-    return InputDecoration(
-      hintText: hint,
-      hintStyle: const TextStyle(
-        fontSize: 16,
-        color: Colors.black54,
-      ),
-      filled: true,
-      fillColor: Colors.white,
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: 20,
-        vertical: 18,
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide.none,
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: Colors.black12),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: Colors.redAccent),
-      ),
-      focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: Colors.redAccent),
       ),
     );
   }

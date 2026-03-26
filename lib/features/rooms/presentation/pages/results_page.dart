@@ -11,8 +11,9 @@ class ResultsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(homeSearchControllerProvider);
-    
+
     return AppScaffold(
+      title: 'Results',
       currentTab: AppTab.rooms,
       onTabSelected: (_) {},
       body: ResultsBody(state: state),
