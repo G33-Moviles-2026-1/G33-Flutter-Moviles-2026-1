@@ -60,6 +60,10 @@ abstract final class AppTheme {
       scaffoldBackgroundColor: const Color.fromARGB(255, 245, 245, 245),
       textTheme: textTheme,
 
+      progressIndicatorTheme: const ProgressIndicatorThemeData(
+        color: Color.fromRGBO(253, 242, 28, 1),
+      ),
+
       appBarTheme: const AppBarTheme(
         backgroundColor: Color(0xFFFFFBA9),
         foregroundColor: Color(0xFF000000),
@@ -80,10 +84,31 @@ abstract final class AppTheme {
         elevation: 0,
       ),
 
-      // NEW: makes default dialog/picker text buttons readable
       textButtonTheme: TextButtonThemeData(style: lightButtonTextStyle),
 
-      // NEW: date picker button/text readability
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: colorScheme.primary,
+          foregroundColor: Colors.black,
+          textStyle: const TextStyle(
+            fontWeight: FontWeight.w700,
+            color: Colors.black,
+          ),
+          disabledForegroundColor: Colors.black54,
+        ),
+      ),
+
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: Colors.black,
+          textStyle: const TextStyle(
+            fontWeight: FontWeight.w700,
+            color: Colors.black,
+          ),
+          side: const BorderSide(color: Colors.black),
+        ),
+      ),
+
       datePickerTheme: DatePickerThemeData(
         backgroundColor: colorScheme.surface,
         surfaceTintColor: Colors.transparent,
@@ -105,7 +130,7 @@ abstract final class AppTheme {
         }),
         dayBackgroundColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return colorScheme.secondary;
+            return Color.fromRGBO(253, 242, 28, 1);
           }
           return null;
         }),
@@ -116,7 +141,6 @@ abstract final class AppTheme {
         ),
       ),
 
-      // NEW: time picker button/text readability
       timePickerTheme: TimePickerThemeData(
         backgroundColor: colorScheme.surface,
         helpTextStyle: textTheme.titleMedium?.copyWith(
@@ -225,6 +249,18 @@ abstract final class AppTheme {
         showUnselectedLabels: false,
         type: BottomNavigationBarType.fixed,
         elevation: 0,
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          foregroundColor: Colors.black,
+          textStyle: const TextStyle(fontWeight: FontWeight.w700),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: Colors.black,
+          textStyle: const TextStyle(fontWeight: FontWeight.w700),
+        ),
       ),
       extensions: const [
         BrandColors(

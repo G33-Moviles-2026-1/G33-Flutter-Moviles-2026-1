@@ -7,6 +7,7 @@ import 'package:andespace/features/rooms/domain/entities/room_search.dart';
 import 'package:andespace/features/rooms/presentation/pages/home_page.dart';
 import 'package:andespace/features/rooms/presentation/pages/results_page.dart';
 import 'package:andespace/features/rooms/presentation/pages/room_detail_page.dart';
+import 'package:andespace/features/schedule/presentation/pages/schedule_entry_page.dart';
 import 'package:flutter/material.dart';
 
 class AppRoutes {
@@ -17,12 +18,16 @@ class AppRoutes {
   static const String roomDetail = '/room-detail';
   static const String createBooking = '/create-booking';
   static const String myBookings = '/my-bookings';
+  static const String schedule = '/schedule';
+
 
   static Map<String, WidgetBuilder> routes = {
     home: (context) => const HomePage(),
     login: (context) => const LoginPage(),
     signup: (context) => const SignUpPage(),
     results: (context) => const ResultsPage(),
+    schedule: (context) => const ScheduleEntryPage(),
+    
     roomDetail: (context) {
       final room = ModalRoute.of(context)!.settings.arguments as RoomSearchItem;
       return RoomDetailPage(room: room);
@@ -54,8 +59,15 @@ class AppRoutes {
         }
         break;
 
+      case AppTab.schedule:
+        if (currentRoute != schedule) {
+          Navigator.pushNamed(context, schedule);
+        }
+        break;
+
       default:
         break;
     }
   }
+
 }
