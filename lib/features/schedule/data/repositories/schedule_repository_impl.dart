@@ -240,7 +240,7 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
               if (fromPrevious != null) 'prev ${(fromPrevious / 60).round()} min',
               if (toNext != null) 'next ${(toNext / 60).round()} min',
             ],
-            distanceMeters: toNext ?? fromPrevious,
+            distanceSeconds: toNext ?? fromPrevious,
             matchingWindows: [
               MatchingWindow(start: slotStart, end: slotEnd),
             ],
