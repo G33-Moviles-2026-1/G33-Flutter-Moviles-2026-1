@@ -66,7 +66,7 @@ class RoomSearchItemDto {
     required this.capacity,
     required this.reliability,
     required this.utilities,
-    required this.distanceMeters,
+    required this.distanceSeconds,
     required this.matchingWindows,
     required this.weeklyAvailability,
   });
@@ -78,7 +78,7 @@ class RoomSearchItemDto {
   final int capacity;
   final double reliability;
   final List<String> utilities;
-  final double? distanceMeters;
+  final double? distanceSeconds;
   final List<MatchingWindowDto> matchingWindows;
   final List<WeeklyAvailabilityWindowDto> weeklyAvailability;
 
@@ -91,9 +91,9 @@ class RoomSearchItemDto {
       capacity: (json['capacity'] as num).toInt(),
       reliability: (json['reliability'] as num).toDouble(),
       utilities: List<String>.from(json['utilities'] ?? const <String>[]),
-      distanceMeters: json['distance_meters'] == null
+      distanceSeconds: json['distance_seconds'] == null
           ? null
-          : (json['distance_meters'] as num).toDouble(),
+          : (json['distance_seconds'] as num).toDouble(),
       matchingWindows: (json['matching_windows'] as List<dynamic>? ?? const [])
           .map(
             (e) => MatchingWindowDto.fromJson(
@@ -121,7 +121,7 @@ class RoomSearchItemDto {
       capacity: capacity,
       reliability: reliability,
       utilities: utilities,
-      distanceMeters: distanceMeters,
+      distanceSeconds: distanceSeconds,
       matchingWindows: matchingWindows.map((e) => e.toDomain()).toList(),
       weeklyAvailability: weeklyAvailability.map((e) => e.toDomain()).toList(),
     );

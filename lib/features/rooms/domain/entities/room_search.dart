@@ -122,7 +122,7 @@ class RoomSearchItem {
     required this.capacity,
     required this.reliability,
     required this.utilities,
-    required this.distanceMeters,
+    required this.distanceSeconds,
     required this.matchingWindows,
     required this.weeklyAvailability,
   });
@@ -134,7 +134,7 @@ class RoomSearchItem {
   final int capacity;
   final double reliability;
   final List<String> utilities;
-  final double? distanceMeters;
+  final double? distanceSeconds;
   final List<MatchingWindow> matchingWindows;
   final List<WeeklyAvailabilityWindow> weeklyAvailability;
 
@@ -146,7 +146,7 @@ class RoomSearchItem {
     'capacity': capacity,
     'reliability': reliability,
     'utilities': utilities,
-    'distance_meters': distanceMeters,
+    'distance_seconds': distanceSeconds,
     'matching_windows': matchingWindows.map((e) => e.toMap()).toList(),
     'weekly_availability': weeklyAvailability.map((e) => e.toMap()).toList(),
   };

@@ -68,6 +68,7 @@ class HomeSearchController extends StateNotifier<HomeSearchState> {
     }
 
     if (nearMe) {
+      state = HomeSearchState.loading(previousResponse: state.response);
       await _sessionController.refreshLocation();
     }
 

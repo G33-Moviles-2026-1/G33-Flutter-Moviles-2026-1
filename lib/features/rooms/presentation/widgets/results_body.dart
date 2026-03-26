@@ -179,9 +179,9 @@ class _RoomCard extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                if (room.distanceMeters != null)
+                if (room.distanceSeconds != null)
                   _Badge(
-                    label: '${room.distanceMeters!.toStringAsFixed(0)} Seconds',
+                    label: '${room.distanceSeconds!.toStringAsFixed(0)} Seconds',
                     color: Colors.white,
                   ),
               ],
