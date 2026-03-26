@@ -2,6 +2,7 @@ import 'package:andespace/features/rooms/domain/entities/room_search.dart';
 import 'package:andespace/features/schedule/domain/entities/schedule_class.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:andespace/core/analytics/analytics_service.dart';
 
 import '../../domain/entities/manual_class.dart';
 import '../../domain/usecases/delete_full_schedule.dart';
@@ -24,6 +25,7 @@ class ScheduleController extends StateNotifier<ScheduleState> {
   final DeleteScheduleOccurrence deleteScheduleOccurrence;
   final GetRecommendedRoomsForDay getRecommendedRoomsForDay;
   final Future<String> Function() resolveUserEmail;
+  final AnalyticsService analyticsService;
 
   ScheduleController({
     required this.getWeeklySchedule,
@@ -35,6 +37,7 @@ class ScheduleController extends StateNotifier<ScheduleState> {
     required this.deleteScheduleOccurrence,
     required this.getRecommendedRoomsForDay,
     required this.resolveUserEmail,
+    required this.analyticsService,
   }) : super(ScheduleState.initial());
 
   Future<String> _getUserEmail() async {
@@ -78,6 +81,30 @@ class ScheduleController extends StateNotifier<ScheduleState> {
     }
 
     return error.toString();
+  }
+
+  Future<void> _trackScheduleImportStep({
+    required String importSessionId,
+    required String method,
+    required String step,
+    required int stepNumber,
+    String? errorMessage,
+  }) async {
+    try {
+      final userEmail = await _getUserEmail();
+
+      await analyticsService.trackScheduleImportStep(
+        sessionId: importSessionId,
+        deviceId: 'mobile',
+        userEmail: userEmail,
+        method: method,
+        step: step,
+        stepNumber: stepNumber,
+        propsJson: {
+          if (errorMessage != null) 'error_message': errorMessage,
+        },
+      );
+    } catch (_) {}
   }
 
   Future<void> loadWeek({DateTime? date}) async {
@@ -134,8 +161,10 @@ class ScheduleController extends StateNotifier<ScheduleState> {
   }
 
   Future<void> refresh() async {
-    await loadWeek(date: state.selectedDate);
+    await loadWeek(date: DateTime.now());
   }
+
+  
 
   Future<void> goToPreviousWeek() async {
     final previousWeek = state.selectedDate.subtract(const Duration(days: 7));
@@ -149,6 +178,7 @@ class ScheduleController extends StateNotifier<ScheduleState> {
 
   Future<void> importIcs({
     required String filePath,
+    required String importSessionId,
   }) async {
     state = state.copyWith(
       status: ScheduleStatus.uploading,
@@ -163,6 +193,13 @@ class ScheduleController extends StateNotifier<ScheduleState> {
         filePath: filePath,
       );
 
+      await _trackScheduleImportStep(
+        importSessionId: importSessionId,
+        method: 'ics',
+        step: 'completed',
+        stepNumber: 5,
+      );
+
       await loadWeek(date: DateTime.now());
     } catch (e) {
       state = state.copyWith(
@@ -174,6 +211,7 @@ class ScheduleController extends StateNotifier<ScheduleState> {
 
   Future<void> saveManualClass({
     required ManualClass manualClass,
+    required String importSessionId,
   }) async {
     state = state.copyWith(
       status: ScheduleStatus.savingManualClass,
@@ -206,8 +244,16 @@ class ScheduleController extends StateNotifier<ScheduleState> {
         classes: allClasses,
       );
 
+      await _trackScheduleImportStep(
+        importSessionId: importSessionId,
+        method: 'manual',
+        step: 'completed',
+        stepNumber: 4,
+      );
+
       await loadWeek(date: state.selectedDate);
     } catch (e) {
+
       state = state.copyWith(
         status: ScheduleStatus.error,
         errorMessage: _extractBackendErrorMessage(e),

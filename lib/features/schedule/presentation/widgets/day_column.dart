@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import '../../domain/entities/schedule_occurrence.dart';
 import 'class_tile.dart';
 
@@ -25,32 +24,50 @@ class DayColumn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     final sortedOccurrences = [...occurrences]
       ..sort((a, b) => a.startTime.compareTo(b.startTime));
 
     return Container(
-      width: 260,
+      width: 280,
       margin: const EdgeInsets.only(right: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '${_weekdayLabel(day)} ${day.day}',
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: theme.cardColor,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: theme.dividerColor.withValues(alpha: .18),
+              ),
+            ),
+            child: Text(
+              '${_weekdayLabel(day)} ${day.day}',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
           const SizedBox(height: 10),
           if (sortedOccurrences.isEmpty)
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(16),
+                color: theme.cardColor,
+                border: Border.all(
+                  color: theme.dividerColor.withValues(alpha: .12),
+                ),
               ),
-              child: const Text('No classes'),
+              child: Text(
+                'No classes',
+                style: theme.textTheme.bodyMedium,
+              ),
             )
           else
             ...sortedOccurrences.map(
