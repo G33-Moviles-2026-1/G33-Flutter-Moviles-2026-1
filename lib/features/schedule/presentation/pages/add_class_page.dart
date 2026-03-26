@@ -1,17 +1,18 @@
-import 'package:andespace/core/navigation/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import 'package:andespace/core/navigation/app_tab.dart';
-import 'package:andespace/shared/widgets/app_scaffold.dart';
 
 import '../../domain/entities/manual_class.dart';
 import '../controllers/schedule_state.dart';
 import '../providers/schedule_providers.dart';
 
 class AddClassPage extends ConsumerStatefulWidget {
-  const AddClassPage({super.key});
+  const AddClassPage({
+    super.key,
+    required this.importSessionId,
+  });
+
+  final String importSessionId;
 
   @override
   ConsumerState<AddClassPage> createState() => _AddClassPageState();
@@ -21,7 +22,6 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
   final _formKey = GlobalKey<FormState>();
 
   final _titleController = TextEditingController();
-  final _locationController = TextEditingController();
   final _roomIdController = TextEditingController();
 
   TimeOfDay? _startTime;
@@ -78,13 +78,8 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
   @override
   void dispose() {
     _titleController.dispose();
-    _locationController.dispose();
     _roomIdController.dispose();
     super.dispose();
-  }
-
-  void _onTabSelected(BuildContext context, AppTab tab) {
-    AppRoutes.handleTabSelection(context, tab);
   }
 
   Future<void> _pickStartTime() async {
@@ -94,9 +89,7 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
     );
 
     if (picked != null) {
-      setState(() {
-        _startTime = picked;
-      });
+      setState(() => _startTime = picked);
     }
   }
 
@@ -107,9 +100,7 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
     );
 
     if (picked != null) {
-      setState(() {
-        _endTime = picked;
-      });
+      setState(() => _endTime = picked);
     }
   }
 
@@ -123,9 +114,7 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
     );
 
     if (picked != null) {
-      setState(() {
-        _startDate = picked;
-      });
+      setState(() => _startDate = picked);
     }
   }
 
@@ -139,9 +128,7 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
     );
 
     if (picked != null) {
-      setState(() {
-        _endDate = picked;
-      });
+      setState(() => _endDate = picked);
     }
   }
 
@@ -167,7 +154,7 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
         _endTime == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Select start/end dates and times.'),
+          content: Text('Select start and end dates and times.'),
         ),
       );
       return;
@@ -208,9 +195,23 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
       return;
     }
 
-    final existingClasses = await ref
-    .read(scheduleControllerProvider.notifier)
-    .getExistingClassesForValidation();
+    final controller = ref.read(scheduleControllerProvider.notifier);
+    final analytics = ref.read(analyticsServiceProvider);
+    final userEmail = await controller.resolveUserEmail();
+
+    await analytics.trackScheduleImportStep(
+      sessionId: widget.importSessionId,
+      deviceId: 'mobile',
+      userEmail: userEmail,
+      method: 'manual',
+      step: 'first_class_added',
+      stepNumber: 2,
+      propsJson: {
+        'source_screen': 'add_class',
+      },
+    );
+
+    final existingClasses = await controller.getExistingClassesForValidation();
 
     if (!mounted) return;
 
@@ -257,6 +258,18 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
       }
     }
 
+    await analytics.trackScheduleImportStep(
+      sessionId: widget.importSessionId,
+      deviceId: 'mobile',
+      userEmail: userEmail,
+      method: 'manual',
+      step: 'confirmed',
+      stepNumber: 3,
+      propsJson: {
+        'source_screen': 'add_class',
+      },
+    );
+
     final manualClass = ManualClass(
       title: _titleController.text.trim(),
       roomId: _roomIdController.text.trim().isEmpty
@@ -272,9 +285,10 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
       weekdays: selectedWeekdays,
     );
 
-    await ref.read(scheduleControllerProvider.notifier).saveManualClass(
-          manualClass: manualClass,
-        );
+    await controller.saveManualClass(
+      manualClass: manualClass,
+      importSessionId: widget.importSessionId,
+    );
 
     final state = ref.read(scheduleControllerProvider);
 
@@ -301,11 +315,14 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
 
     final state = ref.watch(scheduleControllerProvider);
     final isSaving = state.status == ScheduleStatus.savingManualClass;
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
 
-    return AppScaffold(
-      title: 'Add Class',
-      currentTab: AppTab.schedule,
-      onTabSelected: (tab) => _onTabSelected(context, tab),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Add Class'),
+        leading: const BackButton(),
+      ),
       resizeToAvoidBottomInset: true,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -316,132 +333,247 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.arrow_back),
-                ),
-                TextFormField(
-                  controller: _titleController,
-                  inputFormatters: [
-                    LengthLimitingTextInputFormatter(60),
-                  ],
-                  decoration: const InputDecoration(
-                    labelText: 'Class Title',
-                    border: OutlineInputBorder(),
-                    counterText: '',
-                  ),
-                  validator: (value) {
-                    final text = (value ?? '').trim();
-
-                    if (text.isEmpty) {
-                      return 'Enter a class title';
-                    }
-
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _roomIdController,
-                  inputFormatters: [
-                    LengthLimitingTextInputFormatter(30),
-                  ],
-                  decoration: const InputDecoration(
-                    labelText: 'Room (Optional)',
-                    border: OutlineInputBorder(),
+                Text(
+                  'Create a class block',
+                  style: textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: _pickStartDate,
-                        child: Text(
-                          _startDate == null
-                              ? 'Start Date'
-                              : _formatDate(_startDate!),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: _pickEndDate,
-                        child: Text(
-                          _endDate == null
-                              ? 'End Date'
-                              : _formatDate(_endDate!),
-                        ),
-                      ),
-                    ),
-                  ],
+                const SizedBox(height: 8),
+                Text(
+                  'Add the subject, date range, time range, and weekdays.',
+                  style: textTheme.bodyMedium,
                 ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: _pickStartTime,
-                        child: Text(
-                          _startTime == null
-                              ? 'Start Time'
-                              : _startTime!.format(context),
+                const SizedBox(height: 20),
+
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: theme.cardColor,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(
+                      color: theme.dividerColor.withValues(alpha: 0.18),
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      TextFormField(
+                        controller: _titleController,
+                        inputFormatters: [
+                          LengthLimitingTextInputFormatter(60),
+                        ],
+                        decoration: InputDecoration(
+                          hintText: 'Class Title',
+                          counterText: '',
+                            enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: BorderSide(
+                              color: theme.brightness == Brightness.light
+                                  ? Colors.black54
+                                  : Colors.transparent,
+                            ),
+                          ),
+                        ),
+                        validator: (value) {
+                          final text = (value ?? '').trim();
+                          if (text.isEmpty) {
+                            return 'Enter a class title';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _roomIdController,
+                        inputFormatters: [
+                          LengthLimitingTextInputFormatter(30),
+                        ],
+                        decoration: InputDecoration(
+                          hintText: 'Room (Optional)',
+                            enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: BorderSide(
+                              color: theme.brightness == Brightness.light
+                                  ? Colors.black54
+                                  : Colors.transparent,
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: _pickEndTime,
-                        child: Text(
-                          _endTime == null
-                              ? 'End Time'
-                              : _endTime!.format(context),
-                        ),
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
+
+                const SizedBox(height: 16),
+
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: theme.cardColor,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(
+                      color: theme.dividerColor.withValues(alpha: 0.18),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Dates',
+                        style: textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: SizedBox(
+                              height: 54,
+                              child: OutlinedButton.icon(
+                                onPressed: _pickStartDate,
+                                icon: const Icon(Icons.event_outlined),
+                                label: Text(
+                                  _startDate == null
+                                      ? 'Start Date'
+                                      : _formatDate(_startDate!),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: SizedBox(
+                              height: 54,
+                              child: OutlinedButton.icon(
+                                onPressed: _pickEndDate,
+                                icon: const Icon(Icons.event_available_outlined),
+                                label: Text(
+                                  _endDate == null
+                                      ? 'End Date'
+                                      : _formatDate(_endDate!),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 18),
+                      Text(
+                        'Time',
+                        style: textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: SizedBox(
+                              height: 54,
+                              child: OutlinedButton.icon(
+                                onPressed: _pickStartTime,
+                                icon: const Icon(Icons.schedule_outlined),
+                                label: Text(
+                                  _startTime == null
+                                      ? 'Start Time'
+                                      : _startTime!.format(context),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: SizedBox(
+                              height: 54,
+                              child: OutlinedButton.icon(
+                                onPressed: _pickEndTime,
+                                icon: const Icon(Icons.schedule),
+                                label: Text(
+                                  _endTime == null
+                                      ? 'End Time'
+                                      : _endTime!.format(context),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: theme.cardColor,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(
+                      color: theme.dividerColor.withValues(alpha: 0.18),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Days of the Week',
+                        style: textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: _weekdays.keys.map((day) {
+                          final selected = _weekdays[day] ?? false;
+
+                          return FilterChip(
+                            label: Text(
+                              _weekdayLabel(day),
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            selected: selected,
+                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            visualDensity: const VisualDensity(horizontal: -2, vertical: -2),
+                            labelPadding: const EdgeInsets.symmetric(horizontal: 6),
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                            onSelected: (value) {
+                              setState(() {
+                                _weekdays[day] = value;
+                              });
+                            },
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ),
+                ),
+
                 const SizedBox(height: 24),
-                const Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Days of the Week',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: _weekdays.keys.map((day) {
-                    final selected = _weekdays[day] ?? false;
 
-                    return FilterChip(
-                      label: Text(_weekdayLabel(day)),
-                      selected: selected,
-                      onSelected: (value) {
-                        setState(() {
-                          _weekdays[day] = value;
-                        });
-                      },
-                    );
-                  }).toList(),
-                ),
-                const SizedBox(height: 28),
                 SizedBox(
                   width: double.infinity,
-                  child: ElevatedButton(
+                  height: 56,
+                  child: ElevatedButton.icon(
                     onPressed: isSaving ? null : _submit,
-                    child: Text(
-                      isSaving ? 'Saving...' : 'Add',
-                    ),
+                    icon: isSaving
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2.2),
+                          )
+                        : const Icon(Icons.add_circle_outline),
+                    label: Text(isSaving ? 'Saving...' : 'Add Class'),
                   ),
                 ),
+
                 if (isSaving) ...[
                   const SizedBox(height: 16),
                   const LinearProgressIndicator(),

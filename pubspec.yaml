@@ -21,11 +21,30 @@ dependencies:
   go_router: ^14.2.0
 
   file_picker: ^8.0.0
+  uuid: ^4.5.3
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.14.3
+  flutter_native_splash: ^2.4.7
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/icons/Logo.png"
+
+flutter_native_splash:
+  android: true
+  ios: false
+  web: false
+  color: "#FFFFFF"
+  image: assets/icons/LogoCompleto.png
+
+  android_12:
+    color: "#FFFFFF"
+    image: assets/icons/LogoCompleto.png
 
 flutter:
   uses-material-design: true
