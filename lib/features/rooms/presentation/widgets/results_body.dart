@@ -143,8 +143,8 @@ class _ResultsBodyState extends ConsumerState<ResultsBody> {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 
-                    theme.brightness == Brightness.dark ? 0.25 : 0.08,
+                  color: Colors.black.withValues(
+                    alpha: theme.brightness == Brightness.dark ? 0.25 : 0.08,
                   ),
                   blurRadius: 10,
                   offset: const Offset(0, -2),
@@ -189,11 +189,7 @@ class _RoomCard extends StatelessWidget {
   final BrandColors brand;
   final String? searchTime;
 
-  const _RoomCard({
-    required this.room,
-    required this.brand,
-    this.searchTime,
-  });
+  const _RoomCard({required this.room, required this.brand, this.searchTime});
 
   @override
   Widget build(BuildContext context) {
@@ -227,11 +223,7 @@ class _RoomCard extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(18),
         onTap: () {
-          Navigator.pushNamed(
-            context,
-            AppRoutes.roomDetail,
-            arguments: room,
-          );
+          Navigator.pushNamed(context, AppRoutes.roomDetail, arguments: room);
         },
         child: Ink(
           padding: const EdgeInsets.all(16),
@@ -255,9 +247,9 @@ class _RoomCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  if (room.distanceMeters != null)
+                  if (room.distanceSeconds != null)
                     _Badge(
-                      label: '${room.distanceMeters!.toStringAsFixed(0)} sec',
+                      label: '${room.distanceSeconds!.toStringAsFixed(0)} sec',
                       backgroundColor: theme.brightness == Brightness.dark
                           ? const Color(0xFF2D220C)
                           : brand.softYellow,
@@ -277,10 +269,11 @@ class _RoomCard extends StatelessWidget {
                   horizontal: 12,
                   vertical: 10,
                 ),
-                if (room.distanceSeconds != null)
-                  _Badge(
-                    label: '${room.distanceSeconds!.toStringAsFixed(0)} Seconds',
-                    color: Colors.white,
+                decoration: BoxDecoration(
+                  color: statusBg,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: theme.dividerColor.withValues(alpha: .18),
                   ),
                 ),
                 child: Row(
@@ -319,6 +312,7 @@ class _RoomCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 14),
+
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
@@ -331,16 +325,20 @@ class _RoomCard extends StatelessWidget {
                     foregroundColor: colorScheme.onSurface,
                     borderColor: theme.dividerColor.withValues(alpha: .18),
                   ),
-                  ...room.utilities.take(2).map(
-                    (u) => _Badge(
-                      label: u.toTitleCase(),
-                      backgroundColor: theme.brightness == Brightness.dark
-                          ? theme.cardColor
-                          : colorScheme.surface,
-                      foregroundColor: colorScheme.onSurface,
-                      borderColor: theme.dividerColor.withValues(alpha: .18),
-                    ),
-                  ),
+                  ...room.utilities
+                      .take(2)
+                      .map(
+                        (u) => _Badge(
+                          label: u.toTitleCase(),
+                          backgroundColor: theme.brightness == Brightness.dark
+                              ? theme.cardColor
+                              : colorScheme.surface,
+                          foregroundColor: colorScheme.onSurface,
+                          borderColor: theme.dividerColor.withValues(
+                            alpha: .18,
+                          ),
+                        ),
+                      ),
                 ],
               ),
             ],
@@ -389,10 +387,7 @@ class _PageBtn extends StatelessWidget {
   final String label;
   final VoidCallback? onTap;
 
-  const _PageBtn({
-    required this.label,
-    this.onTap,
-  });
+  const _PageBtn({required this.label, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -409,9 +404,7 @@ class _PageBtn extends StatelessWidget {
               ? theme.colorScheme.secondary
               : theme.disabledColor.withValues(alpha: .12),
           borderRadius: BorderRadius.circular(999),
-          border: Border.all(
-            color: theme.dividerColor.withValues(alpha: .18),
-          ),
+          border: Border.all(color: theme.dividerColor.withValues(alpha: .18)),
         ),
         child: Text(
           label,
@@ -461,10 +454,11 @@ extension RoomAvailabilityX on RoomSearchItem {
       return 'From ${current.start} to ${current.end}';
     }
 
-    final nextWindows = matchingWindows
-        .where((w) => w.start.compareTo(referenceTime) > 0)
-        .toList()
-      ..sort((a, b) => a.start.compareTo(b.start));
+    final nextWindows =
+        matchingWindows
+            .where((w) => w.start.compareTo(referenceTime) > 0)
+            .toList()
+          ..sort((a, b) => a.start.compareTo(b.start));
 
     if (nextWindows.isNotEmpty) {
       final next = nextWindows.first;
