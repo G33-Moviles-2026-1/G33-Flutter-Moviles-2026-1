@@ -99,7 +99,7 @@ class _RecommendedRoomCard extends StatelessWidget {
 
     final subtitle = room.buildingName ?? room.buildingCode;
     final slotLabel = _buildSlotLabel(room);
-    final distanceLabel = _buildDistanceLabel(room.distanceMeters);
+    final distanceLabel = _buildDistanceLabel(room.distanceSeconds);
 
     return Material(
       color: Colors.transparent,
