@@ -300,6 +300,7 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
           const SizedBox(height: 14),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               SvgPicture.asset(
                 'assets/icons/location.svg',
@@ -311,10 +312,14 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
                 ),
               ),
               const SizedBox(width: 8),
-              Text(
-                'Close to me',
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  fontWeight: FontWeight.w500,
+              // FIX: Flexible lets the label wrap at extreme font sizes
+              // without affecting layout at normal sizes.
+              Flexible(
+                child: Text(
+                  'Close to me',
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
               const SizedBox(width: 10),
@@ -345,6 +350,8 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
     );
   }
 }
+
+// ─── Supporting widgets ──────────────────────────────────────────────────────
 
 class _CardField extends StatelessWidget {
   const _CardField({required this.child});
@@ -438,17 +445,36 @@ class _DateBox extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              // Left side: label — never shrinks, never grows.
               Text(
                 'Date',
                 style: theme.textTheme.bodyLarge?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              const Spacer(),
-              const Icon(Icons.calendar_today_outlined, size: 18),
-              const SizedBox(width: 8),
-              Text(value, style: theme.textTheme.bodyLarge),
+              // Right side: icon + value grouped together so they stay
+              // right-aligned as a unit and the value gets all remaining space.
+              Flexible(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    const Icon(Icons.calendar_today_outlined, size: 18),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        value,
+                        style: theme.textTheme.bodyLarge,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                        textAlign: TextAlign.right,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
@@ -484,31 +510,51 @@ class _TimeBox extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              // Left side: label — fixed, never pushed.
               Text(
                 label,
                 style: theme.textTheme.bodyLarge?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              const Spacer(),
-              if (onClear != null)
-                GestureDetector(
-                  onTap: onClear,
-                  child: const Icon(Icons.close, size: 18),
-                ),
-              if (onClear != null) const SizedBox(width: 8),
-              SvgPicture.asset(
-                'assets/icons/clock.svg',
-                width: 20,
-                height: 20,
-                colorFilter: ColorFilter.mode(
-                  theme.colorScheme.onSurface,
-                  BlendMode.srcIn,
+              // Right side: X + clock + time value, all grouped so they
+              // sit flush right and the time value gets maximum room.
+              Flexible(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    if (onClear != null) ...[
+                      GestureDetector(
+                        onTap: onClear,
+                        child: const Icon(Icons.close, size: 18),
+                      ),
+                      const SizedBox(width: 6),
+                    ],
+                    SvgPicture.asset(
+                      'assets/icons/clock.svg',
+                      width: 20,
+                      height: 20,
+                      colorFilter: ColorFilter.mode(
+                        theme.colorScheme.onSurface,
+                        BlendMode.srcIn,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        value,
+                        style: theme.textTheme.bodyLarge,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                        textAlign: TextAlign.right,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(width: 8),
-              Text(value, style: theme.textTheme.bodyLarge),
             ],
           ),
         ),

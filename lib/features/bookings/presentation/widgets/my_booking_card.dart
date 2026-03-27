@@ -39,13 +39,17 @@ class MyBookingCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              // Already had Expanded — safe at any font size.
               Expanded(
                 child: Text(
                   booking.roomId,
                   style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w900,
                   ),
+                  // FIX: allow wrapping if roomId is long and font is large.
+                  softWrap: true,
                 ),
               ),
               if (isDeleting)
@@ -64,9 +68,12 @@ class MyBookingCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 6),
+          // FIX: date and slot strings are standalone full-width Texts inside
+          // a Column — they wrap naturally. Explicitly allow it with softWrap.
           Text(
             'Date: ${_formatDate(booking.date)}',
             style: theme.textTheme.bodyMedium,
+            softWrap: true,
           ),
           const SizedBox(height: 4),
           Text(
@@ -74,8 +81,10 @@ class MyBookingCard extends StatelessWidget {
             style: theme.textTheme.bodyLarge?.copyWith(
               fontWeight: FontWeight.w700,
             ),
+            softWrap: true,
           ),
           const SizedBox(height: 10),
+          // Status pill: fixed short strings, always fits — no changes needed.
           Align(
             alignment: Alignment.centerLeft,
             child: Container(
