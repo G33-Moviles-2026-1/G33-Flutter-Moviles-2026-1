@@ -597,7 +597,9 @@ class _CtaButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 16),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: theme.colorScheme.onSurface, width: 1.4),
+          side: theme.brightness == Brightness.light
+              ? BorderSide(color: theme.colorScheme.onSurface, width: 1.4)
+              : BorderSide.none,
         ),
         textStyle: theme.textTheme.titleMedium?.copyWith(
           fontWeight: FontWeight.w700,

@@ -25,6 +25,15 @@ class _RoomDetailBodyState extends ConsumerState<RoomDetailBody> {
   bool _isLoadingAvailability = false;
   String? _availabilityError;
 
+  Color _fieldColor(BuildContext context) {
+    final theme = Theme.of(context);
+    return theme.inputDecorationTheme.fillColor ?? theme.colorScheme.surface;
+  }
+
+  bool _isDark(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -83,11 +92,31 @@ class _RoomDetailBodyState extends ConsumerState<RoomDetailBody> {
         return !nd.isBefore(today) && !nd.isAfter(last);
       },
       builder: (context, child) {
+        final isDark = theme.brightness == Brightness.dark;
+
         return Theme(
           data: theme.copyWith(
             colorScheme: theme.colorScheme.copyWith(
               primary: brand.accentYellow,
               onPrimary: Colors.black,
+              surface: isDark
+                  ? (_fieldColor(context))
+                  : theme.colorScheme.surface,
+              onSurface: theme.colorScheme.onSurface,
+            ),
+            dialogTheme: DialogThemeData(
+              backgroundColor: isDark ? _fieldColor(context) : null,
+            ),
+            datePickerTheme: DatePickerThemeData(
+              backgroundColor: isDark ? _fieldColor(context) : null,
+              headerBackgroundColor: brand.accentYellow,
+              headerForegroundColor: Colors.black,
+              dayForegroundColor: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.selected)) return Colors.black;
+                return theme.colorScheme.onSurface;
+              }),
+              todayForegroundColor: WidgetStatePropertyAll(brand.accentYellow),
+              todayBorder: BorderSide(color: brand.accentYellow),
             ),
           ),
           child: child!,
@@ -196,11 +225,24 @@ class _RoomDetailBodyState extends ConsumerState<RoomDetailBody> {
                         vertical: 12,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: _fieldColor(context),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.black, width: 1.4),
-                        boxShadow: const [
-                          BoxShadow(color: Colors.black, offset: Offset(3, 3)),
+                        border: Border.all(
+                          color: _isDark(context)
+                              ? t.colorScheme.onSurface.withValues(alpha: 0.16)
+                              : Colors.black,
+                          width: _isDark(context) ? 1 : 1.4,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: _isDark(context)
+                                ? Colors.black.withValues(alpha: 0.18)
+                                : Colors.black,
+                            blurRadius: _isDark(context) ? 12 : 0,
+                            offset: _isDark(context)
+                                ? const Offset(0, 4)
+                                : const Offset(3, 3),
+                          ),
                         ],
                       ),
                       child: Row(
@@ -210,10 +252,15 @@ class _RoomDetailBodyState extends ConsumerState<RoomDetailBody> {
                             _formatDate(selectedDate),
                             style: t.textTheme.bodyLarge?.copyWith(
                               fontWeight: FontWeight.bold,
+                              color: t.colorScheme.onSurface,
                             ),
                           ),
                           const SizedBox(width: 12),
-                          const Icon(Icons.calendar_today_outlined, size: 18),
+                          Icon(
+                            Icons.calendar_today_outlined,
+                            size: 18,
+                            color: t.colorScheme.onSurface,
+                          ),
                         ],
                       ),
                     ),
@@ -258,15 +305,16 @@ class _RoomDetailBodyState extends ConsumerState<RoomDetailBody> {
                 padding: const EdgeInsets.symmetric(vertical: 18),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
-                  side: const BorderSide(color: Colors.black, width: 2),
+                  side: t.brightness == Brightness.light
+                      ? const BorderSide(color: Colors.black, width: 2)
+                      : BorderSide.none,
                 ),
-              ).copyWith(
-                overlayColor: WidgetStateProperty.all(Colors.black12),
-              ),
+              ).copyWith(overlayColor: WidgetStateProperty.all(Colors.black12)),
               child: Text(
                 "Book Room",
                 style: t.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w900,
+                  color: Colors.black,
                 ),
               ),
             ),
@@ -278,6 +326,7 @@ class _RoomDetailBodyState extends ConsumerState<RoomDetailBody> {
 
   Widget _buildAvailabilityScroller() {
     final t = Theme.of(context);
+    final brand = t.extension<BrandColors>()!;
 
     if (_isLoadingAvailability) {
       return const Padding(
@@ -292,9 +341,7 @@ class _RoomDetailBodyState extends ConsumerState<RoomDetailBody> {
           padding: const EdgeInsets.symmetric(vertical: 20),
           child: Text(
             _availabilityError!,
-            style: t.textTheme.bodyMedium?.copyWith(
-              color: t.colorScheme.error,
-            ),
+            style: t.textTheme.bodyMedium?.copyWith(color: t.colorScheme.error),
             textAlign: TextAlign.center,
           ),
         ),
@@ -330,16 +377,20 @@ class _RoomDetailBodyState extends ConsumerState<RoomDetailBody> {
       children: [
         Text(
           _weekdayLabel(selectedDate.weekday),
-          style: t.textTheme.labelLarge?.copyWith(color: Colors.grey[600]),
+          style: t.textTheme.labelLarge?.copyWith(
+            color: t.colorScheme.onSurfaceVariant,
+          ),
         ),
         const SizedBox(height: 8),
         if (data.availableSlots.isNotEmpty)
           _buildSlotsSection(
             title: 'Available',
             slots: data.availableSlots,
-            cardColor: Colors.white,
-            borderColor: Colors.black,
-            textColor: Colors.black,
+            cardColor: _isDark(context) ? _fieldColor(context) : Colors.white,
+            borderColor: _isDark(context) ? brand.accentYellow : Colors.black,
+            textColor: _isDark(context)
+                ? t.colorScheme.onSurface
+                : Colors.black,
           ),
         if (data.availableSlots.isNotEmpty && data.blockedSlots.isNotEmpty)
           const SizedBox(height: 12),
@@ -347,9 +398,15 @@ class _RoomDetailBodyState extends ConsumerState<RoomDetailBody> {
           _buildSlotsSection(
             title: 'Taken',
             slots: data.blockedSlots,
-            cardColor: Colors.grey.shade300,
-            borderColor: Colors.grey.shade600,
-            textColor: Colors.grey.shade800,
+            cardColor: _isDark(context)
+                ? const Color(0xFF2B2B2B)
+                : Colors.grey.shade300,
+            borderColor: _isDark(context)
+                ? t.colorScheme.onSurface.withValues(alpha: 0.20)
+                : Colors.grey.shade600,
+            textColor: _isDark(context)
+                ? t.colorScheme.onSurface
+                : Colors.grey.shade800,
           ),
       ],
     );
@@ -375,10 +432,12 @@ class _RoomDetailBodyState extends ConsumerState<RoomDetailBody> {
         Container(
           height: 180,
           decoration: BoxDecoration(
-            color: Colors.grey[50],
+            color: _isDark(context) ? _fieldColor(context) : Colors.grey[50],
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: Colors.black.withOpacity(0.1),
+              color: _isDark(context)
+                  ? t.colorScheme.onSurface.withValues(alpha: 0.14)
+                  : Colors.black.withOpacity(0.1),
               width: 1,
             ),
           ),
@@ -417,10 +476,7 @@ class _RoomDetailBodyState extends ConsumerState<RoomDetailBody> {
 
     if (room.utilities.isEmpty) {
       return Center(
-        child: Text(
-          "No utilities listed",
-          style: t.textTheme.bodySmall,
-        ),
+        child: Text("No utilities listed", style: t.textTheme.bodySmall),
       );
     }
 
@@ -438,14 +494,26 @@ class _RoomDetailBodyState extends ConsumerState<RoomDetailBody> {
         return Container(
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: brand.softYellow.withOpacity(0.5),
+            color: _isDark(context)
+                ? _fieldColor(context)
+                : brand.softYellow.withOpacity(0.5),
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: Colors.black, width: 1),
+            border: Border.all(
+              color: _isDark(context) ? brand.accentYellow : Colors.black,
+              width: 1,
+            ),
           ),
-          child: Text(
-            room.utilities[index].toTitleCase(),
-            style: t.textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.bold,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Text(
+              room.utilities[index].toTitleCase(),
+              textAlign: TextAlign.center,
+              style: t.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: _isDark(context)
+                    ? t.colorScheme.onSurface
+                    : Colors.black,
+              ),
             ),
           ),
         );
