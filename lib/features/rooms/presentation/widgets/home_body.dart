@@ -14,6 +14,11 @@ class HomeBody extends ConsumerStatefulWidget {
   ConsumerState<HomeBody> createState() => _HomeBodyState();
 }
 
+Color _homeFieldColor(BuildContext context) {
+  final theme = Theme.of(context);
+  return theme.inputDecorationTheme.fillColor ?? theme.colorScheme.surface;
+}
+
 class _HomeBodyState extends ConsumerState<HomeBody> {
   final _roomInputCtrl = TextEditingController();
 
@@ -117,6 +122,7 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
     ref.read(homeSearchControllerProvider.notifier).onFiltersOpened();
 
     final theme = Theme.of(context);
+    final brand = theme.extension<BrandColors>()!;
 
     showModalBottomSheet(
       context: context,
@@ -147,8 +153,22 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
                     ..._utilityLabels.entries.map(
                       (entry) => CheckboxListTile(
                         value: _selectedUtilities.contains(entry.key),
-                        title: Text(entry.value),
+                        title: Text(
+                          entry.value,
+                          style: theme.textTheme.bodyLarge,
+                        ),
                         contentPadding: EdgeInsets.zero,
+                        fillColor: WidgetStateProperty.resolveWith((states) {
+                          if (states.contains(WidgetState.selected)) {
+                            return brand.accentYellow;
+                          }
+                          return Colors.transparent;
+                        }),
+                        checkColor: theme.colorScheme.onSecondary,
+                        side: BorderSide(
+                          color: theme.colorScheme.onSurface,
+                          width: 1.2,
+                        ),
                         onChanged: (checked) {
                           setState(() {
                             if (checked ?? false) {
@@ -364,7 +384,7 @@ class _CardField extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
+        color: _homeFieldColor(context),
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -398,7 +418,7 @@ class _SquareIconButton extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Material(
-      color: theme.colorScheme.surface,
+      color: _homeFieldColor(context),
       borderRadius: BorderRadius.circular(12),
       elevation: 2,
       child: InkWell(
@@ -436,7 +456,7 @@ class _DateBox extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Material(
-      color: theme.colorScheme.surface,
+      color: _homeFieldColor(context),
       borderRadius: BorderRadius.circular(12),
       elevation: 2,
       child: InkWell(
@@ -447,15 +467,12 @@ class _DateBox extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Left side: label — never shrinks, never grows.
               Text(
                 'Date',
                 style: theme.textTheme.bodyLarge?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              // Right side: icon + value grouped together so they stay
-              // right-aligned as a unit and the value gets all remaining space.
               Flexible(
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -501,7 +518,7 @@ class _TimeBox extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Material(
-      color: theme.colorScheme.surface,
+      color: _homeFieldColor(context),
       borderRadius: BorderRadius.circular(12),
       elevation: 2,
       child: InkWell(
@@ -512,15 +529,12 @@ class _TimeBox extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Left side: label — fixed, never pushed.
               Text(
                 label,
                 style: theme.textTheme.bodyLarge?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              // Right side: X + clock + time value, all grouped so they
-              // sit flush right and the time value gets maximum room.
               Flexible(
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
