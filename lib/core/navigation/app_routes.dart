@@ -20,14 +20,13 @@ class AppRoutes {
   static const String myBookings = '/my-bookings';
   static const String schedule = '/schedule';
 
-
   static Map<String, WidgetBuilder> routes = {
     home: (context) => const HomePage(),
     login: (context) => const LoginPage(),
     signup: (context) => const SignUpPage(),
     results: (context) => const ResultsPage(),
     schedule: (context) => const ScheduleEntryPage(),
-    
+
     roomDetail: (context) {
       final room = ModalRoute.of(context)!.settings.arguments as RoomSearchItem;
       return RoomDetailPage(room: room);
@@ -39,7 +38,7 @@ class AppRoutes {
     myBookings: (context) => const MyBookingsPage(),
   };
 
-    static void handleTabSelection(BuildContext context, AppTab tab) {
+  static void handleTabSelection(BuildContext context, AppTab tab) {
     final currentRoute = ModalRoute.of(context)?.settings.name;
 
     switch (tab) {
@@ -62,9 +61,12 @@ class AppRoutes {
         break;
 
       case AppTab.favorites:
-        // Not implemented yet.
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            const SnackBar(content: Text('Favorites screen coming soon.')),
+          );
         break;
     }
   }
-
 }
