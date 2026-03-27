@@ -39,33 +39,30 @@ class AppRoutes {
     myBookings: (context) => const MyBookingsPage(),
   };
 
-  static void handleTabSelection(BuildContext context, AppTab tab) {
+    static void handleTabSelection(BuildContext context, AppTab tab) {
     final currentRoute = ModalRoute.of(context)?.settings.name;
 
     switch (tab) {
       case AppTab.rooms:
         if (currentRoute != home) {
-          Navigator.pushNamedAndRemoveUntil(
-            context,
-            home,
-            (route) => false,
-          );
+          Navigator.pushReplacementNamed(context, home);
         }
         break;
 
       case AppTab.bookings:
         if (currentRoute != myBookings) {
-          Navigator.pushNamed(context, myBookings);
+          Navigator.pushReplacementNamed(context, myBookings);
         }
         break;
 
       case AppTab.schedule:
         if (currentRoute != schedule) {
-          Navigator.pushNamed(context, schedule);
+          Navigator.pushReplacementNamed(context, schedule);
         }
         break;
 
-      default:
+      case AppTab.favorites:
+        // Not implemented yet.
         break;
     }
   }

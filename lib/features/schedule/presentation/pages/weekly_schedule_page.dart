@@ -138,7 +138,7 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
     final textTheme = theme.textTheme;
 
     return AppScaffold(
-      title: 'My Schedule',
+      //title: 'My Schedule',
       currentTab: AppTab.schedule,
       onTabSelected: (tab) => _onTabSelected(context, tab),
       body: Builder(

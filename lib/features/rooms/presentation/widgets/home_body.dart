@@ -5,6 +5,7 @@ import 'package:andespace/shared/theme/app_theme_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter/services.dart';
 
 class HomeBody extends ConsumerStatefulWidget {
   const HomeBody({super.key});
@@ -135,12 +136,14 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
               child: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text('Filters', style: theme.textTheme.headlineSmall),
+                    Text(
+                      'Filter by utilities',
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.titleLarge,
+                    ),
                     const SizedBox(height: 12),
-                    Text('Utilities', style: theme.textTheme.titleMedium),
-                    const SizedBox(height: 8),
                     ..._utilityLabels.entries.map(
                       (entry) => CheckboxListTile(
                         value: _selectedUtilities.contains(entry.key),
@@ -240,9 +243,10 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
                 child: _CardField(
                   child: TextField(
                     controller: _roomInputCtrl,
+                    inputFormatters: [LengthLimitingTextInputFormatter(50)],
                     style: theme.textTheme.bodyLarge,
                     decoration: InputDecoration(
-                      hintText: 'Classroom e.g. ML 201, ML 5, ML',
+                      hintText: 'Rm./Fl./Bldg. (e.g.: C 201, C 5, C)',
                       hintStyle: TextStyle(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),

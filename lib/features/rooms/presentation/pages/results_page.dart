@@ -13,7 +13,7 @@ class ResultsPage extends ConsumerWidget {
     final state = ref.watch(homeSearchControllerProvider);
 
     return AppScaffold(
-      title: 'Results',
+      //title: 'Results',
       currentTab: AppTab.rooms,
       onTabSelected: (_) {},
       body: ResultsBody(state: state),

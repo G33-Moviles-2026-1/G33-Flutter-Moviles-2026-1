@@ -16,7 +16,7 @@ class AppScaffold extends ConsumerWidget {
     this.onTapHeaderSearch,
     this.onLogin,
     this.onSignUp,
-    this.title = 'AndeSpace',
+    //this.title = 'AndeSpace',
     this.extendBody = false,
     this.resizeToAvoidBottomInset = true,
   });
@@ -28,7 +28,7 @@ class AppScaffold extends ConsumerWidget {
   final VoidCallback? onTapHeaderSearch;
   final VoidCallback? onLogin;
   final VoidCallback? onSignUp;
-  final String title;
+  //final String title;
   final bool extendBody;
   final bool resizeToAvoidBottomInset;
 
@@ -43,7 +43,8 @@ class AppScaffold extends ConsumerWidget {
       resizeToAvoidBottomInset: resizeToAvoidBottomInset,
       extendBody: extendBody,
       appBar: AppHeader(
-        title: title,
+        //title: title,
+        title: 'AndeSpace',
         onTapSearch: onTapHeaderSearch,
         onLogin: () {
           Navigator.pushReplacementNamed(context, AppRoutes.login);
@@ -63,23 +64,7 @@ class AppScaffold extends ConsumerWidget {
       body: SafeArea(child: body),
       bottomNavigationBar: AppFooter(
         currentTab: currentTab,
-          onTabSelected: (tab) {
-          switch (tab) {
-            case AppTab.rooms:
-              if (ModalRoute.of(context)?.settings.name != AppRoutes.home) {
-                Navigator.pushReplacementNamed(context, AppRoutes.home);
-              }
-              break;
-
-            case AppTab.schedule:
-              Navigator.pushReplacementNamed(context, AppRoutes.schedule);
-              break;
-
-            case AppTab.favorites:
-            case AppTab.bookings:
-              break;
-          }
-        },
+        onTabSelected: onTabSelected,
       ),
     );
   }
