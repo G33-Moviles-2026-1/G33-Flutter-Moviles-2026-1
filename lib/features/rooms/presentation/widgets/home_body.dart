@@ -5,12 +5,18 @@ import 'package:andespace/shared/theme/app_theme_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter/services.dart';
 
 class HomeBody extends ConsumerStatefulWidget {
   const HomeBody({super.key});
 
   @override
   ConsumerState<HomeBody> createState() => _HomeBodyState();
+}
+
+Color _homeFieldColor(BuildContext context) {
+  final theme = Theme.of(context);
+  return theme.inputDecorationTheme.fillColor ?? theme.colorScheme.surface;
 }
 
 class _HomeBodyState extends ConsumerState<HomeBody> {
@@ -116,6 +122,7 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
     ref.read(homeSearchControllerProvider.notifier).onFiltersOpened();
 
     final theme = Theme.of(context);
+    final brand = theme.extension<BrandColors>()!;
 
     showModalBottomSheet(
       context: context,
@@ -135,17 +142,33 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
               child: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text('Filters', style: theme.textTheme.headlineSmall),
+                    Text(
+                      'Filter by utilities',
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.titleLarge,
+                    ),
                     const SizedBox(height: 12),
-                    Text('Utilities', style: theme.textTheme.titleMedium),
-                    const SizedBox(height: 8),
                     ..._utilityLabels.entries.map(
                       (entry) => CheckboxListTile(
                         value: _selectedUtilities.contains(entry.key),
-                        title: Text(entry.value),
+                        title: Text(
+                          entry.value,
+                          style: theme.textTheme.bodyLarge,
+                        ),
                         contentPadding: EdgeInsets.zero,
+                        fillColor: WidgetStateProperty.resolveWith((states) {
+                          if (states.contains(WidgetState.selected)) {
+                            return brand.accentYellow;
+                          }
+                          return Colors.transparent;
+                        }),
+                        checkColor: theme.colorScheme.onSecondary,
+                        side: BorderSide(
+                          color: theme.colorScheme.onSurface,
+                          width: 1.2,
+                        ),
                         onChanged: (checked) {
                           setState(() {
                             if (checked ?? false) {
@@ -240,9 +263,10 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
                 child: _CardField(
                   child: TextField(
                     controller: _roomInputCtrl,
+                    inputFormatters: [LengthLimitingTextInputFormatter(50)],
                     style: theme.textTheme.bodyLarge,
                     decoration: InputDecoration(
-                      hintText: 'Classroom e.g. ML 201, ML 5, ML',
+                      hintText: 'Rm./Fl./Bldg. (e.g.: C 201, C 5, C)',
                       hintStyle: TextStyle(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
@@ -296,6 +320,7 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
           const SizedBox(height: 14),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               SvgPicture.asset(
                 'assets/icons/location.svg',
@@ -307,10 +332,14 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
                 ),
               ),
               const SizedBox(width: 8),
-              Text(
-                'Close to me',
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  fontWeight: FontWeight.w500,
+              // FIX: Flexible lets the label wrap at extreme font sizes
+              // without affecting layout at normal sizes.
+              Flexible(
+                child: Text(
+                  'Close to me',
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
               const SizedBox(width: 10),
@@ -342,6 +371,8 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
   }
 }
 
+// ─── Supporting widgets ──────────────────────────────────────────────────────
+
 class _CardField extends StatelessWidget {
   const _CardField({required this.child});
 
@@ -353,7 +384,7 @@ class _CardField extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
+        color: _homeFieldColor(context),
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -387,7 +418,7 @@ class _SquareIconButton extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Material(
-      color: theme.colorScheme.surface,
+      color: _homeFieldColor(context),
       borderRadius: BorderRadius.circular(12),
       elevation: 2,
       child: InkWell(
@@ -425,7 +456,7 @@ class _DateBox extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Material(
-      color: theme.colorScheme.surface,
+      color: _homeFieldColor(context),
       borderRadius: BorderRadius.circular(12),
       elevation: 2,
       child: InkWell(
@@ -434,6 +465,7 @@ class _DateBox extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 'Date',
@@ -441,10 +473,25 @@ class _DateBox extends StatelessWidget {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              const Spacer(),
-              const Icon(Icons.calendar_today_outlined, size: 18),
-              const SizedBox(width: 8),
-              Text(value, style: theme.textTheme.bodyLarge),
+              Flexible(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    const Icon(Icons.calendar_today_outlined, size: 18),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        value,
+                        style: theme.textTheme.bodyLarge,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                        textAlign: TextAlign.right,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
@@ -471,7 +518,7 @@ class _TimeBox extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Material(
-      color: theme.colorScheme.surface,
+      color: _homeFieldColor(context),
       borderRadius: BorderRadius.circular(12),
       elevation: 2,
       child: InkWell(
@@ -480,6 +527,7 @@ class _TimeBox extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 label,
@@ -487,24 +535,40 @@ class _TimeBox extends StatelessWidget {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              const Spacer(),
-              if (onClear != null)
-                GestureDetector(
-                  onTap: onClear,
-                  child: const Icon(Icons.close, size: 18),
-                ),
-              if (onClear != null) const SizedBox(width: 8),
-              SvgPicture.asset(
-                'assets/icons/clock.svg',
-                width: 20,
-                height: 20,
-                colorFilter: ColorFilter.mode(
-                  theme.colorScheme.onSurface,
-                  BlendMode.srcIn,
+              Flexible(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    if (onClear != null) ...[
+                      GestureDetector(
+                        onTap: onClear,
+                        child: const Icon(Icons.close, size: 18),
+                      ),
+                      const SizedBox(width: 6),
+                    ],
+                    SvgPicture.asset(
+                      'assets/icons/clock.svg',
+                      width: 20,
+                      height: 20,
+                      colorFilter: ColorFilter.mode(
+                        theme.colorScheme.onSurface,
+                        BlendMode.srcIn,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        value,
+                        style: theme.textTheme.bodyLarge,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                        textAlign: TextAlign.right,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(width: 8),
-              Text(value, style: theme.textTheme.bodyLarge),
             ],
           ),
         ),
@@ -533,7 +597,9 @@ class _CtaButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 16),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: theme.colorScheme.onSurface, width: 1.4),
+          side: theme.brightness == Brightness.light
+              ? BorderSide(color: theme.colorScheme.onSurface, width: 1.4)
+              : BorderSide.none,
         ),
         textStyle: theme.textTheme.titleMedium?.copyWith(
           fontWeight: FontWeight.w700,

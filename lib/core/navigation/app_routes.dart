@@ -20,14 +20,13 @@ class AppRoutes {
   static const String myBookings = '/my-bookings';
   static const String schedule = '/schedule';
 
-
   static Map<String, WidgetBuilder> routes = {
     home: (context) => const HomePage(),
     login: (context) => const LoginPage(),
     signup: (context) => const SignUpPage(),
     results: (context) => const ResultsPage(),
     schedule: (context) => const ScheduleEntryPage(),
-    
+
     roomDetail: (context) {
       final room = ModalRoute.of(context)!.settings.arguments as RoomSearchItem;
       return RoomDetailPage(room: room);
@@ -45,29 +44,29 @@ class AppRoutes {
     switch (tab) {
       case AppTab.rooms:
         if (currentRoute != home) {
-          Navigator.pushNamedAndRemoveUntil(
-            context,
-            home,
-            (route) => false,
-          );
+          Navigator.pushReplacementNamed(context, home);
         }
         break;
 
       case AppTab.bookings:
         if (currentRoute != myBookings) {
-          Navigator.pushNamed(context, myBookings);
+          Navigator.pushReplacementNamed(context, myBookings);
         }
         break;
 
       case AppTab.schedule:
         if (currentRoute != schedule) {
-          Navigator.pushNamed(context, schedule);
+          Navigator.pushReplacementNamed(context, schedule);
         }
         break;
 
-      default:
+      case AppTab.favorites:
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            const SnackBar(content: Text('Favorites screen coming soon.')),
+          );
         break;
     }
   }
-
 }

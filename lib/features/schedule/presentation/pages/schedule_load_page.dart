@@ -121,7 +121,7 @@ class ScheduleLoadPage extends ConsumerWidget {
     final isUploading = state.status == ScheduleStatus.uploading;
 
     return AppScaffold(
-      title: 'My Schedule',
+      //title: 'My Schedule',
       currentTab: AppTab.schedule,
       onTabSelected: (tab) => _onTabSelected(context, tab),
       body: Center(

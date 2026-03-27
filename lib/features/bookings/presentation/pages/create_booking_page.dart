@@ -12,10 +12,7 @@ import '../widgets/booking_time_picker_row.dart';
 import '../widgets/purpose_selector.dart';
 
 class CreateBookingPage extends ConsumerWidget {
-  const CreateBookingPage({
-    super.key,
-    required this.room,
-  });
+  const CreateBookingPage({super.key, required this.room});
 
   final RoomSearchItem room;
 
@@ -31,9 +28,7 @@ class CreateBookingPage extends ConsumerWidget {
         }
       });
 
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     final state = ref.watch(createBookingControllerProvider(room));
@@ -63,23 +58,27 @@ class CreateBookingPage extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // FIX: room.roomId can be long; allow the headline to wrap
+                    // to a second line rather than overflow horizontally.
                     Text(
                       'Book ${room.roomId}',
                       style: theme.textTheme.headlineLarge?.copyWith(
                         fontSize: 32,
                         color: theme.colorScheme.onSurface,
                       ),
+                      // softWrap is true by default but maxLines was uncapped —
+                      // explicitly allow wrapping so large font sizes don't clip.
+                      softWrap: true,
                     ),
                     const SizedBox(height: 8),
+                    // FIX: building name can be arbitrarily long; wrap it too.
                     Text(
                       room.buildingName ?? room.buildingCode,
                       style: theme.textTheme.bodyLarge,
+                      softWrap: true,
                     ),
                     const SizedBox(height: 30),
-                    Text(
-                      'Pick a time',
-                      style: theme.textTheme.headlineSmall,
-                    ),
+                    Text('Pick a time', style: theme.textTheme.headlineSmall),
                     const SizedBox(height: 10),
                     if (state.isLoadingAvailability) ...[
                       const Padding(
@@ -92,21 +91,27 @@ class CreateBookingPage extends ConsumerWidget {
                       availabilities: state.availableTimeRanges,
                       selectedTimeRange: state.selectedTimeRange,
                       onPickDate: () async {
+                        // FIX: useRootNavigator: true + mounted guard, same
+                        // pattern established in home_body.dart.
                         final picked = await showDatePicker(
                           context: context,
                           initialDate: state.selectedDate,
                           firstDate: controller.firstBookableDate,
                           lastDate: controller.lastBookableDate,
+                          useRootNavigator: true,
                           selectableDayPredicate: (d) {
                             final normalized = DateTime(d.year, d.month, d.day);
-                            return !normalized.isBefore(controller.firstBookableDate) &&
-                                !normalized.isAfter(controller.lastBookableDate);
+                            return !normalized.isBefore(
+                                  controller.firstBookableDate,
+                                ) &&
+                                !normalized.isAfter(
+                                  controller.lastBookableDate,
+                                );
                           },
                         );
 
-                        if (picked != null) {
-                          await controller.setDate(picked);
-                        }
+                        if (picked == null) return;
+                        await controller.setDate(picked);
                       },
                       onSelectTimeRange: controller.setTimeRange,
                     ),
@@ -127,6 +132,7 @@ class CreateBookingPage extends ConsumerWidget {
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: theme.colorScheme.error,
                         ),
+                        softWrap: true,
                       ),
                       const SizedBox(height: 12),
                     ],
@@ -136,6 +142,7 @@ class CreateBookingPage extends ConsumerWidget {
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: theme.colorScheme.error,
                         ),
+                        softWrap: true,
                       ),
                       const SizedBox(height: 12),
                     ],
@@ -148,7 +155,8 @@ class CreateBookingPage extends ConsumerWidget {
               child: SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: state.isSubmitting ||
+                  onPressed:
+                      state.isSubmitting ||
                           state.isLoadingAvailability ||
                           state.selectedTimeRange == null
                       ? null
@@ -160,10 +168,12 @@ class CreateBookingPage extends ConsumerWidget {
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
-                      side: BorderSide(
-                        color: theme.colorScheme.onSurface,
-                        width: 1.4,
-                      ),
+                      side: theme.brightness == Brightness.light
+                          ? BorderSide(
+                              color: theme.colorScheme.onSurface,
+                              width: 1.4,
+                            )
+                          : BorderSide.none,
                     ),
                     textStyle: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w800,

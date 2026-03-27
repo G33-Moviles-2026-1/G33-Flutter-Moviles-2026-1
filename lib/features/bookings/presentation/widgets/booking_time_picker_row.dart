@@ -70,9 +70,20 @@ class _BoxButton extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
           child: Row(
+            // FIX: spaceBetween keeps label left and icon right.
+            // Flexible on the label lets it shrink/ellipsize before the icon
+            // gets pushed off screen at large font sizes.
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(label, style: theme.textTheme.bodyLarge),
-              const Spacer(),
+              Flexible(
+                child: Text(
+                  label,
+                  style: theme.textTheme.bodyLarge,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+              ),
+              const SizedBox(width: 8),
               Icon(
                 Icons.calendar_month,
                 color: theme.colorScheme.onSurface,
@@ -112,9 +123,15 @@ class _DropdownBox<T> extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
         child: DropdownButtonHideUnderline(
           child: DropdownButton<T>(
+            // isExpanded: true already handles overflow inside the dropdown —
+            // no changes needed here, it was already safe.
             isExpanded: true,
             value: value,
-            hint: Text(hint, style: theme.textTheme.bodyLarge),
+            hint: Text(
+              hint,
+              style: theme.textTheme.bodyLarge,
+              overflow: TextOverflow.ellipsis,
+            ),
             icon: Icon(
               Icons.keyboard_arrow_down,
               color: theme.colorScheme.onSurface,
@@ -126,6 +143,7 @@ class _DropdownBox<T> extends StatelessWidget {
                     child: Text(
                       itemLabel(e),
                       style: theme.textTheme.bodyLarge,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 )

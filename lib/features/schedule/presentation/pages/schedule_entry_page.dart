@@ -55,7 +55,7 @@ class _ScheduleEntryPageState extends ConsumerState<ScheduleEntryPage> {
 
     if (!authState.isAuthenticated) {
       return AppScaffold(
-        title: 'My Schedule',
+        //title: 'My Schedule',
         currentTab: AppTab.schedule,
         onTabSelected: (tab) => _onTabSelected(context, tab),
         body: SafeArea(
@@ -136,7 +136,7 @@ class _ScheduleEntryPageState extends ConsumerState<ScheduleEntryPage> {
         (state.status == ScheduleStatus.loading &&
             state.weeklySchedule == null)) {
       return AppScaffold(
-        title: 'My Schedule',
+        //title: 'My Schedule',
         currentTab: AppTab.schedule,
         onTabSelected: (tab) => _onTabSelected(context, tab),
         body: Center(
@@ -186,7 +186,7 @@ class _ScheduleEntryPageState extends ConsumerState<ScheduleEntryPage> {
 
     if (state.status == ScheduleStatus.error) {
       return AppScaffold(
-        title: 'My Schedule',
+        //title: 'My Schedule',
         currentTab: AppTab.schedule,
         onTabSelected: (tab) => _onTabSelected(context, tab),
         body: Center(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../shared/theme/app_theme_extension.dart';
 import '../../domain/entities/booking_purpose.dart';
 
 class PurposeSelector extends StatelessWidget {
@@ -14,6 +15,10 @@ class PurposeSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final purposes = BookingPurpose.values;
+    final theme = Theme.of(context);
+    final brand = theme.extension<BrandColors>();
+
+    final radioColor = brand?.accentYellow ?? theme.colorScheme.secondary;
 
     return ListTileTheme(
       dense: true,
@@ -28,16 +33,21 @@ class PurposeSelector extends StatelessWidget {
             onChanged: (v) {
               if (v != null) onChanged(v);
             },
-            activeColor: Colors.black,
+            activeColor: radioColor,
             fillColor: WidgetStateProperty.resolveWith<Color>((states) {
-              return Colors.black;
+              if (states.contains(WidgetState.selected)) {
+                return radioColor;
+              }
+              return theme.colorScheme.onSurface;
             }),
             dense: true,
             visualDensity: const VisualDensity(vertical: -3),
             contentPadding: EdgeInsets.zero,
             title: Text(
               p.label,
-              style: const TextStyle(color: Colors.black),
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: theme.colorScheme.onSurface,
+              ),
             ),
           );
         }).toList(),
