@@ -1,4 +1,5 @@
 import 'package:andespace/core/di/auth_providers.dart';
+import 'package:andespace/core/di/core_provider.dart';
 import 'package:andespace/core/navigation/app_routes.dart';
 import 'package:andespace/features/rooms/domain/entities/room_date_availability.dart';
 import 'package:andespace/features/rooms/presentation/providers/rooms_providers.dart';
@@ -37,8 +38,8 @@ class _RoomDetailBodyState extends ConsumerState<RoomDetailBody> {
   @override
   void initState() {
     super.initState();
-    final now = DateTime.now();
-    selectedDate = DateTime(now.year, now.month, now.day);
+    final session = ref.read(sessionControllerProvider);
+    selectedDate = session.currentSearch?.date ?? DateTime.now();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadDateAvailability();
@@ -78,7 +79,6 @@ class _RoomDetailBodyState extends ConsumerState<RoomDetailBody> {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final last = today.add(const Duration(days: 7));
-
     final theme = Theme.of(context);
     final brand = theme.extension<BrandColors>()!;
 
@@ -93,30 +93,31 @@ class _RoomDetailBodyState extends ConsumerState<RoomDetailBody> {
       },
       builder: (context, child) {
         final isDark = theme.brightness == Brightness.dark;
-
         return Theme(
           data: theme.copyWith(
             colorScheme: theme.colorScheme.copyWith(
               primary: brand.accentYellow,
-              onPrimary: Colors.black,
-              surface: isDark
-                  ? (_fieldColor(context))
-                  : theme.colorScheme.surface,
-              onSurface: theme.colorScheme.onSurface,
+              onPrimary: Colors.black, // Texto del círculo seleccionado
+              surface: isDark ? _fieldColor(context) : Colors.white,
+              onSurface: isDark ? Colors.white : Colors.black,
             ),
-            dialogTheme: DialogThemeData(
-              backgroundColor: isDark ? _fieldColor(context) : null,
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: isDark ? brand.accentYellow : Colors.black,
+                textStyle: const TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
             datePickerTheme: DatePickerThemeData(
-              backgroundColor: isDark ? _fieldColor(context) : null,
               headerBackgroundColor: brand.accentYellow,
               headerForegroundColor: Colors.black,
-              dayForegroundColor: WidgetStateProperty.resolveWith((states) {
-                if (states.contains(WidgetState.selected)) return Colors.black;
-                return theme.colorScheme.onSurface;
-              }),
-              todayForegroundColor: WidgetStatePropertyAll(brand.accentYellow),
-              todayBorder: BorderSide(color: brand.accentYellow),
+              backgroundColor: isDark ? _fieldColor(context) : Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(
+                  color: isDark ? Colors.white12 : Colors.black,
+                  width: 1.5,
+                ),
+              ),
             ),
           ),
           child: child!,
@@ -125,11 +126,35 @@ class _RoomDetailBodyState extends ConsumerState<RoomDetailBody> {
     );
 
     if (picked != null) {
-      setState(() {
-        selectedDate = DateTime(picked.year, picked.month, picked.day);
-      });
+    setState(() => selectedDate = picked);
+    final session = ref.read(sessionControllerProvider);
+    session.updateSearchSelection(
+      date: picked,
+      startTime: session.currentSearch?.startTime,
+      endTime: session.currentSearch?.endTime,
+    );
       await _loadDateAvailability();
     }
+  }
+
+  void _showInDevelopmentMessage(String feature) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          "$feature is currently in development",
+          style: TextStyle(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.black
+                : Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: Colors.black,
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+    );
   }
 
   Future<void> _onBookPressed() async {
@@ -208,10 +233,13 @@ class _RoomDetailBodyState extends ConsumerState<RoomDetailBody> {
                     ),
                     _HeaderIcon(
                       icon: Icons.report_gmailerrorred_outlined,
-                      onTap: () {},
+                      onTap: () => _showInDevelopmentMessage("Reporting"),
                     ),
                     const SizedBox(width: 10),
-                    _HeaderIcon(icon: Icons.favorite_border, onTap: () {}),
+                    _HeaderIcon(
+                      icon: Icons.favorite_border,
+                      onTap: () => _showInDevelopmentMessage("Favorites"),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 24),
@@ -545,23 +573,41 @@ class _RoomDetailBodyState extends ConsumerState<RoomDetailBody> {
 class _HeaderIcon extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
-
   const _HeaderIcon({required this.icon, required this.onTap});
-
   @override
   Widget build(BuildContext context) {
+    final t = Theme.of(context);
+    final isDark = t.brightness == Brightness.dark;
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(10),
       child: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDark ? _fieldColor(context) : Colors.white,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.black, width: 1.4),
+          border: Border.all(
+            color: isDark
+                ? t.colorScheme.onSurface.withValues(alpha: 0.16)
+                : Colors.black,
+            width: 1.4,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: isDark ? Colors.black26 : Colors.black,
+              offset: isDark ? const Offset(0, 2) : const Offset(2, 2),
+              blurRadius: isDark ? 4 : 0,
+            ),
+          ],
         ),
-        child: Icon(icon, size: 22, color: Colors.black),
+        child: Icon(icon, size: 22, color: t.colorScheme.onSurface),
       ),
     );
+  }
+
+  Color _fieldColor(BuildContext context) {
+    final theme = Theme.of(context);
+    return theme.inputDecorationTheme.fillColor ?? theme.colorScheme.surface;
   }
 }

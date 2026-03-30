@@ -25,7 +25,7 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
   DateTime? _selectedDate;
   TimeOfDay? _since;
   TimeOfDay? _until;
-  bool _closeToMe = true;
+  bool _closeToMe = false;
   final Set<String> _selectedUtilities = <String>{};
 
   static const Map<String, String> _utilityLabels = {
