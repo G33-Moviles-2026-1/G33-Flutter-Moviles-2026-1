@@ -221,6 +221,10 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
                 Expanded(
                   child: WeeklyCalendarView(
                     schedule: schedule,
+                    selectedDate: state.selectedDate,
+                    onDaySelected: (day) {
+                      controller.selectDay(day);
+                    },
                     onDeleteOccurrence: (occurrence) {
                       _confirmDeleteOccurrence(
                         classId: occurrence.classId,
