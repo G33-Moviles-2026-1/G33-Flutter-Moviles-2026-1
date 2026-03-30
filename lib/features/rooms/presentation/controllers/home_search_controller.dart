@@ -78,6 +78,11 @@ class HomeSearchController extends StateNotifier<HomeSearchState> {
       state = HomeSearchState.error('No se pudo obtener tu ubicación GPS.');
       return;
     }
+    _sessionController.updateSearchSelection(
+      date: selectedDate,
+      startTime: since == null ? null : _formatTime24(since),
+      endTime: until == null ? null : _formatTime24(until),
+    );
 
     final request = RoomSearchRequest(
       roomPrefixes: normalizedPrefixes,

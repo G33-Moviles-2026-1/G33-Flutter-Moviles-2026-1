@@ -3,26 +3,49 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 
 class SessionLocation {
-  const SessionLocation({
-    required this.latitude,
-    required this.longitude,
-  });
+  const SessionLocation({required this.latitude, required this.longitude});
 
   final double latitude;
   final double longitude;
 }
 
+class UserSearchSelection {
+  final DateTime date;
+  final String? startTime;
+  final String? endTime;
+
+  UserSearchSelection({required this.date, this.startTime, this.endTime});
+}
 
 class SessionController extends ChangeNotifier {
-  SessionController({
-    SessionLocation? debugLocation,
-  }) : _currentLocation = debugLocation;
+  SessionController({SessionLocation? debugLocation})
+    : _currentLocation = debugLocation {
+    final now = DateTime.now();
+    _currentSearch = UserSearchSelection(
+      date: DateTime(now.year, now.month, now.day),
+    );
+  }
+  UserSearchSelection? _currentSearch;
+  UserSearchSelection? get currentSearch => _currentSearch;
 
   final String sessionId = _generateUuidLike();
   final String deviceId = 'flutter-debug-device';
 
   SessionLocation? _currentLocation;
   SessionLocation? get currentLocation => _currentLocation;
+
+  void updateSearchSelection({
+    required DateTime date,
+    String? startTime,
+    String? endTime,
+  }) {
+    _currentSearch = UserSearchSelection(
+      date: date,
+      startTime: startTime,
+      endTime: endTime,
+    );
+    notifyListeners();
+  }
 
   Future<void> refreshLocation() async {
     bool serviceEnabled;
@@ -36,18 +59,18 @@ class SessionController extends ChangeNotifier {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) return;
     }
-    
+
     if (permission == LocationPermission.deniedForever) return;
 
     final position = await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.high
+      desiredAccuracy: LocationAccuracy.high,
     );
 
     _currentLocation = SessionLocation(
       latitude: position.latitude,
       longitude: position.longitude,
     );
-    
+
     notifyListeners();
   }
 
