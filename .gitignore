@@ -45,12 +45,8 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 *.lock
+/ios
+/linux
 /macos
+/web
 /windows
-/windows
-ios/Flutter/ephemeral/flutter_lldb_helper.py
-ios/Flutter/ephemeral/flutter_lldbinit
-ios/Flutter/flutter_export_environment.sh
-ios/Flutter/Generated.xcconfig
-ios/Runner/GeneratedPluginRegistrant.h
-ios/Runner/GeneratedPluginRegistrant.m
