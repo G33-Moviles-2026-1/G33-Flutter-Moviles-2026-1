@@ -124,9 +124,23 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
     ref.listen<ScheduleState>(
       scheduleControllerProvider,
       (_, next) {
-        if (next.status == ScheduleStatus.error && next.errorMessage != null) {
+        if (next.status == ScheduleStatus.error) {
+          final rawMessage = next.errorMessage ?? '';
+
+          String friendlyMessage;
+          if (rawMessage.toLowerCase().contains('no internet')) {
+            friendlyMessage =
+                'You are offline. Some schedule actions may not be available right now.';
+          } else {
+            friendlyMessage =
+                'We could not complete that action. Please try again.';
+          }
+
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(next.errorMessage!)),
+            SnackBar(
+              content: Text(friendlyMessage),
+              behavior: SnackBarBehavior.floating,
+            ),
           );
         }
       },
@@ -221,6 +235,10 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
                 Expanded(
                   child: WeeklyCalendarView(
                     schedule: schedule,
+                    selectedDate: state.selectedDate,
+                    onDaySelected: (day) {
+                      controller.selectDay(day);
+                    },
                     onDeleteOccurrence: (occurrence) {
                       _confirmDeleteOccurrence(
                         classId: occurrence.classId,

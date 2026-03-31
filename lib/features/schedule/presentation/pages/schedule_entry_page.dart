@@ -221,8 +221,7 @@ class _ScheduleEntryPageState extends ConsumerState<ScheduleEntryPage> {
                     ),
                     const SizedBox(height: 10),
                     Text(
-                      state.errorMessage ??
-                          'We could not load your schedule right now.',
+                      'We could not load your schedule right now. Please check your connection and try again.',
                       textAlign: TextAlign.center,
                       style: textTheme.bodyMedium,
                     ),

@@ -50,37 +50,47 @@ class ScheduleController extends StateNotifier<ScheduleState> {
 
   String _extractBackendErrorMessage(Object error) {
     if (error is DioException) {
-      final data = error.response?.data;
+      switch (error.type) {
+        case DioExceptionType.connectionTimeout:
+        case DioExceptionType.sendTimeout:
+        case DioExceptionType.receiveTimeout:
+          return 'The request is taking longer than expected. Please try again.';
 
-      if (data is Map<String, dynamic>) {
-        final detail = data['detail'];
+        case DioExceptionType.connectionError:
+          return 'No internet connection. Please check your network and try again.';
 
-        if (detail is String && detail.trim().isNotEmpty) {
-          return detail;
-        }
+        case DioExceptionType.badResponse:
+          final statusCode = error.response?.statusCode;
 
-        if (detail is List && detail.isNotEmpty) {
-          final first = detail.first;
-
-          if (first is Map<String, dynamic>) {
-            final msg = first['msg'];
-            if (msg is String && msg.trim().isNotEmpty) {
-              return msg;
-            }
+          if (statusCode == 404) {
+            return 'No schedule was found for this week.';
           }
 
-          return detail.join(', ');
+          if (statusCode != null && statusCode >= 500) {
+            return 'Our servers are having trouble right now. Please try again in a moment.';
+          }
+
+          return 'Something went wrong. Please try again.';
+
+        case DioExceptionType.badCertificate:
+          return 'A secure connection could not be established. Please try again later.';
+
+        case DioExceptionType.cancel:
+          return 'The request was cancelled. Please try again.';
+
+        case DioExceptionType.unknown:
+          final message = error.message?.toLowerCase() ?? '';
+          if (message.contains('socketexception') ||
+              message.contains('failed host lookup') ||
+              message.contains('network is unreachable')) {
+            return 'No internet connection. Please check your network and try again.';
+          }
+          return 'Something went wrong. Please try again.';
+
         }
-      }
-
-      if (data is String && data.trim().isNotEmpty) {
-        return data;
-      }
-
-      return error.message ?? 'Something went wrong. Please try again.';
     }
 
-    return error.toString();
+    return 'Something went wrong. Please try again.';
   }
 
   Future<void> _trackScheduleImportStep({
@@ -164,7 +174,14 @@ class ScheduleController extends StateNotifier<ScheduleState> {
     await loadWeek(date: DateTime.now());
   }
 
-  
+  Future<void> selectDay(DateTime date) async {
+    final normalizedDate = DateTime(date.year, date.month, date.day);
+
+    state = state.copyWith(
+      selectedDate: normalizedDate,
+      clearErrorMessage: true,
+    );
+  }
 
   Future<void> goToPreviousWeek() async {
     final previousWeek = state.selectedDate.subtract(const Duration(days: 7));

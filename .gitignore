@@ -45,6 +45,8 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 *.lock
+/ios
+/linux
 /macos
-/windows
+/web
 /windows
