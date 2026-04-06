@@ -18,11 +18,11 @@ class CreateBookingController extends StateNotifier<CreateBookingState> {
     required FetchRoomDateAvailability fetchRoomDateAvailability,
     required AnalyticsService analyticsService,
     required SessionController sessionController,
-  })  : _createBooking = createBooking,
-        _fetchRoomDateAvailability = fetchRoomDateAvailability,
-        _analyticsService = analyticsService,
-        _sessionController = sessionController,
-        super(CreateBookingState.initial(_today())) {
+  }) : _createBooking = createBooking,
+       _fetchRoomDateAvailability = fetchRoomDateAvailability,
+       _analyticsService = analyticsService,
+       _sessionController = sessionController,
+       super(CreateBookingState.initial(_today())) {
     _loadAvailabilityFor(state.selectedDate);
   }
 
@@ -115,10 +115,7 @@ class CreateBookingController extends StateNotifier<CreateBookingState> {
         timeRange: selectedTimeRange,
       );
 
-      state = state.copyWith(
-        isSubmitting: false,
-        created: booking,
-      );
+      state = state.copyWith(isSubmitting: false, created: booking);
     } catch (e) {
       state = state.copyWith(
         isSubmitting: false,
@@ -144,10 +141,11 @@ class CreateBookingController extends StateNotifier<CreateBookingState> {
         date: _formatDate(date),
       );
 
-      final ranges = availability.availableSlots
-          .map((slot) => TimeRange(start: slot.start, end: slot.end))
-          .toList()
-        ..sort((a, b) => a.start.compareTo(b.start));
+      final ranges =
+          availability.availableSlots
+              .map((slot) => TimeRange(start: slot.start, end: slot.end))
+              .toList()
+            ..sort((a, b) => a.start.compareTo(b.start));
 
       state = state.copyWith(
         isLoadingAvailability: false,
@@ -203,13 +201,65 @@ class CreateBookingController extends StateNotifier<CreateBookingState> {
 
   String _mapError(Object error) {
     if (error is DioException) {
-      final data = error.response?.data;
-      if (data is Map && data['detail'] is String) {
-        return data['detail'] as String;
+      switch (error.type) {
+        case DioExceptionType.connectionTimeout:
+        case DioExceptionType.sendTimeout:
+        case DioExceptionType.receiveTimeout:
+          return 'The server is not responding. Please try again later.';
+
+        case DioExceptionType.connectionError:
+          return 'No internet connection. Please check your connection and try again.';
+
+        case DioExceptionType.badCertificate:
+          return 'A secure connection could not be established. Please try again later.';
+
+        case DioExceptionType.cancel:
+          return 'The request was cancelled. Please try again.';
+
+        case DioExceptionType.badResponse:
+          final statusCode = error.response?.statusCode;
+          final data = error.response?.data;
+
+          if (data is Map && data['detail'] is String) {
+            return data['detail'] as String;
+          }
+
+          if (statusCode != null && statusCode >= 500) {
+            return 'The server is currently unavailable. Please try again later.';
+          }
+
+          if (statusCode != null && statusCode >= 400) {
+            return 'We could not complete your booking. Please try again.';
+          }
+
+          return 'Something went wrong. Please try again.';
+
+        case DioExceptionType.unknown:
+          final message = error.message?.toLowerCase() ?? '';
+          if (message.contains('socketexception') ||
+              message.contains('failed host lookup') ||
+              message.contains('network is unreachable')) {
+            return 'No internet connection. Please check your connection and try again.';
+          }
+          if (message.contains('timeout')) {
+            return 'The server is not responding. Please try again later.';
+          }
+          return 'Something went wrong. Please try again.';
       }
-      return error.message ?? 'Request failed.';
     }
 
-    return error.toString();
+    final raw = error.toString().toLowerCase();
+
+    if (raw.contains('failed host lookup') ||
+        raw.contains('socketexception') ||
+        raw.contains('network is unreachable')) {
+      return 'No internet connection. Please check your connection and try again.';
+    }
+
+    if (raw.contains('timeout')) {
+      return 'The server is not responding. Please try again later.';
+    }
+
+    return 'Something went wrong. Please try again.';
   }
 }

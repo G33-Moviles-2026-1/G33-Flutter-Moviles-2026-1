@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../shared/theme/app_theme_extension.dart';
 import '../../../../shared/widgets/app_scaffold.dart';
+import '../../../../shared/widgets/auth_required_scaffold.dart';
 import '../../../rooms/domain/entities/room_search.dart';
 import '../providers/bookings_providers.dart';
 import '../widgets/booking_time_picker_row.dart';
@@ -22,13 +23,12 @@ class CreateBookingPage extends ConsumerWidget {
     final isLoggedIn = authState.hasActiveSession;
 
     if (!isLoggedIn) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (context.mounted) {
-          Navigator.pushReplacementNamed(context, AppRoutes.login);
-        }
-      });
-
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return AuthRequiredScaffold(
+        currentTab: AppTab.bookings,
+        onTabSelected: (tab) => AppRoutes.handleTabSelection(context, tab),
+        title: 'Log in to book rooms',
+        message: 'Sign in to create and manage room bookings.',
+      );
     }
 
     final state = ref.watch(createBookingControllerProvider(room));
@@ -40,9 +40,43 @@ class CreateBookingPage extends ConsumerWidget {
       final createdNow = previous?.created == null && next.created != null;
       if (createdNow) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Booking created successfully.')),
+          const SnackBar(
+            content: Text('Booking created successfully.'),
+            duration: Duration(seconds: 4),
+          ),
         );
         Navigator.pop(context, next.created);
+        return;
+      }
+
+      final previousError = previous?.errorMessage;
+      final nextError = next.errorMessage;
+
+      if (nextError != null && nextError != previousError) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(nextError),
+              duration: const Duration(seconds: 4),
+            ),
+          );
+        return;
+      }
+
+      final previousAvailabilityError = previous?.availabilityErrorMessage;
+      final nextAvailabilityError = next.availabilityErrorMessage;
+
+      if (nextAvailabilityError != null &&
+          nextAvailabilityError != previousAvailabilityError) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(nextAvailabilityError),
+              duration: const Duration(seconds: 4),
+            ),
+          );
       }
     });
 
@@ -58,20 +92,15 @@ class CreateBookingPage extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // FIX: room.roomId can be long; allow the headline to wrap
-                    // to a second line rather than overflow horizontally.
                     Text(
                       'Book ${room.roomId}',
                       style: theme.textTheme.headlineLarge?.copyWith(
                         fontSize: 32,
                         color: theme.colorScheme.onSurface,
                       ),
-                      // softWrap is true by default but maxLines was uncapped —
-                      // explicitly allow wrapping so large font sizes don't clip.
                       softWrap: true,
                     ),
                     const SizedBox(height: 8),
-                    // FIX: building name can be arbitrarily long; wrap it too.
                     Text(
                       room.buildingName ?? room.buildingCode,
                       style: theme.textTheme.bodyLarge,
@@ -91,8 +120,6 @@ class CreateBookingPage extends ConsumerWidget {
                       availabilities: state.availableTimeRanges,
                       selectedTimeRange: state.selectedTimeRange,
                       onPickDate: () async {
-                        // FIX: useRootNavigator: true + mounted guard, same
-                        // pattern established in home_body.dart.
                         final picked = await showDatePicker(
                           context: context,
                           initialDate: state.selectedDate,
@@ -126,26 +153,6 @@ class CreateBookingPage extends ConsumerWidget {
                       onChanged: controller.setPurpose,
                     ),
                     const SizedBox(height: 22),
-                    if (state.availabilityErrorMessage != null) ...[
-                      Text(
-                        state.availabilityErrorMessage!,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.error,
-                        ),
-                        softWrap: true,
-                      ),
-                      const SizedBox(height: 12),
-                    ],
-                    if (state.errorMessage != null) ...[
-                      Text(
-                        state.errorMessage!,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.error,
-                        ),
-                        softWrap: true,
-                      ),
-                      const SizedBox(height: 12),
-                    ],
                   ],
                 ),
               ),
@@ -155,8 +162,7 @@ class CreateBookingPage extends ConsumerWidget {
               child: SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed:
-                      state.isSubmitting ||
+                  onPressed: state.isSubmitting ||
                           state.isLoadingAvailability ||
                           state.selectedTimeRange == null
                       ? null

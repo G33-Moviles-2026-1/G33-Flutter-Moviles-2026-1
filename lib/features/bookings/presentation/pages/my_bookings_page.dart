@@ -1,6 +1,7 @@
 import 'package:andespace/core/di/auth_providers.dart';
 import 'package:andespace/core/navigation/app_routes.dart';
 import 'package:andespace/core/navigation/app_tab.dart';
+import 'package:andespace/shared/widgets/auth_required_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -17,14 +18,11 @@ class MyBookingsPage extends ConsumerWidget {
     final authState = ref.watch(authControllerProvider);
 
     if (!authState.hasActiveSession) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (context.mounted) {
-          Navigator.pushReplacementNamed(context, AppRoutes.login);
-        }
-      });
-
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+      return AuthRequiredScaffold(
+        currentTab: AppTab.bookings,
+        onTabSelected: (tab) => AppRoutes.handleTabSelection(context, tab),
+        title: 'Log in to view your bookings',
+        message: 'Sign in to access your active and recent bookings.',
       );
     }
 
@@ -36,9 +34,9 @@ class MyBookingsPage extends ConsumerWidget {
       final previousError = previous?.errorMessage;
 
       if (nextError != null && nextError != previousError) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(nextError)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(nextError), duration: const Duration(seconds: 4),));
       }
     });
 
@@ -53,9 +51,9 @@ class MyBookingsPage extends ConsumerWidget {
             children: [
               Text(
                 'My Bookings',
-                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                      fontSize: 32,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.headlineLarge?.copyWith(fontSize: 32),
               ),
               const SizedBox(height: 8),
               Text(
@@ -67,9 +65,7 @@ class MyBookingsPage extends ConsumerWidget {
                 child: Builder(
                   builder: (context) {
                     if (state.isLoading) {
-                      return const Center(
-                        child: CircularProgressIndicator(),
-                      );
+                      return const Center(child: CircularProgressIndicator());
                     }
 
                     if (state.items.isEmpty) {
@@ -88,8 +84,9 @@ class MyBookingsPage extends ConsumerWidget {
                         itemCount: state.items.length,
                         itemBuilder: (context, index) {
                           final booking = state.items[index];
-                          final isDeleting =
-                              state.deletingIds.contains(booking.id);
+                          final isDeleting = state.deletingIds.contains(
+                            booking.id,
+                          );
 
                           return MyBookingCard(
                             booking: booking,

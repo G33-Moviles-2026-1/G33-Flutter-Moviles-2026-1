@@ -236,7 +236,7 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
       if (nextError != null && nextError != previousError) {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
-          ..showSnackBar(SnackBar(content: Text(nextError)));
+          ..showSnackBar(SnackBar(content: Text(nextError), duration: const Duration(seconds: 4),));
       }
     });
 
