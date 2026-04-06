@@ -278,9 +278,8 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
                         ),
                         floatingLabelBehavior: FloatingLabelBehavior.never,
                         border: InputBorder.none,
-                        isDense: true,
                         contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 14,
+                          horizontal: 14, vertical: 16,
                         ),
                       ),
                     ),
