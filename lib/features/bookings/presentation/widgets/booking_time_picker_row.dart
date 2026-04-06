@@ -17,6 +17,8 @@ class BookingTimePickerRow extends StatelessWidget {
   final VoidCallback onPickDate;
   final ValueChanged<TimeRange?> onSelectTimeRange;
 
+  static const double _controlHeight = 56;
+
   String _formatDate(DateTime d) {
     return '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
   }
@@ -30,19 +32,25 @@ class BookingTimePickerRow extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: _BoxButton(
-            label: _formatDate(selectedDate),
-            onTap: onPickDate,
+          child: SizedBox(
+            height: _controlHeight,
+            child: _BoxButton(
+              label: _formatDate(selectedDate),
+              onTap: onPickDate,
+            ),
           ),
         ),
         const SizedBox(width: 10),
         Expanded(
-          child: _DropdownBox<TimeRange>(
-            value: selectedTimeRange,
-            items: availabilities,
-            itemLabel: _formatRange,
-            hint: availabilities.isEmpty ? 'No availability' : 'Select time',
-            onChanged: availabilities.isEmpty ? null : onSelectTimeRange,
+          child: SizedBox(
+            height: _controlHeight,
+            child: _DropdownBox<TimeRange>(
+              value: selectedTimeRange,
+              items: availabilities,
+              itemLabel: _formatRange,
+              hint: availabilities.isEmpty ? 'No availability' : 'Select time',
+              onChanged: availabilities.isEmpty ? null : onSelectTimeRange,
+            ),
           ),
         ),
       ],
@@ -67,28 +75,27 @@ class _BoxButton extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-          child: Row(
-            // FIX: spaceBetween keeps label left and icon right.
-            // Flexible on the label lets it shrink/ellipsize before the icon
-            // gets pushed off screen at large font sizes.
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Flexible(
-                child: Text(
-                  label,
-                  style: theme.textTheme.bodyLarge,
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
+        child: SizedBox.expand(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    label,
+                    style: theme.textTheme.bodyLarge,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Icon(
-                Icons.calendar_month,
-                color: theme.colorScheme.onSurface,
-              ),
-            ],
+                const SizedBox(width: 8),
+                Icon(
+                  Icons.calendar_month,
+                  color: theme.colorScheme.onSurface,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -119,36 +126,41 @@ class _DropdownBox<T> extends StatelessWidget {
       color: theme.colorScheme.surface,
       borderRadius: BorderRadius.circular(12),
       elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-        child: DropdownButtonHideUnderline(
-          child: DropdownButton<T>(
-            // isExpanded: true already handles overflow inside the dropdown —
-            // no changes needed here, it was already safe.
-            isExpanded: true,
-            value: value,
-            hint: Text(
-              hint,
-              style: theme.textTheme.bodyLarge,
-              overflow: TextOverflow.ellipsis,
+      child: SizedBox.expand(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Center(
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<T>(
+                isExpanded: true,
+                isDense: true,
+                value: value,
+                hint: Text(
+                  hint,
+                  style: theme.textTheme.bodyLarge,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+                icon: Icon(
+                  Icons.keyboard_arrow_down,
+                  color: theme.colorScheme.onSurface,
+                ),
+                items: items
+                    .map(
+                      (e) => DropdownMenuItem<T>(
+                        value: e,
+                        child: Text(
+                          itemLabel(e),
+                          style: theme.textTheme.bodyLarge,
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
+                      ),
+                    )
+                    .toList(),
+                onChanged: onChanged,
+              ),
             ),
-            icon: Icon(
-              Icons.keyboard_arrow_down,
-              color: theme.colorScheme.onSurface,
-            ),
-            items: items
-                .map(
-                  (e) => DropdownMenuItem<T>(
-                    value: e,
-                    child: Text(
-                      itemLabel(e),
-                      style: theme.textTheme.bodyLarge,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                )
-                .toList(),
-            onChanged: onChanged,
           ),
         ),
       ),

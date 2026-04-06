@@ -126,13 +126,13 @@ class _RoomDetailBodyState extends ConsumerState<RoomDetailBody> {
     );
 
     if (picked != null) {
-    setState(() => selectedDate = picked);
-    final session = ref.read(sessionControllerProvider);
-    session.updateSearchSelection(
-      date: picked,
-      startTime: session.currentSearch?.startTime,
-      endTime: session.currentSearch?.endTime,
-    );
+      setState(() => selectedDate = picked);
+      final session = ref.read(sessionControllerProvider);
+      session.updateSearchSelection(
+        date: picked,
+        startTime: session.currentSearch?.startTime,
+        endTime: session.currentSearch?.endTime,
+      );
       await _loadDateAvailability();
     }
   }
@@ -158,14 +158,6 @@ class _RoomDetailBodyState extends ConsumerState<RoomDetailBody> {
   }
 
   Future<void> _onBookPressed() async {
-    final authState = ref.read(authControllerProvider);
-
-    if (!authState.hasActiveSession) {
-      if (!mounted) return;
-      Navigator.pushNamed(context, AppRoutes.login);
-      return;
-    }
-
     final result = await Navigator.pushNamed(
       context,
       AppRoutes.createBooking,

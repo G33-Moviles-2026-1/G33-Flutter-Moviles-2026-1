@@ -38,6 +38,8 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
     'videobeam': 'Videobeam',
   };
 
+  static const double _topControlHeight = 56;
+
   @override
   void initState() {
     super.initState();
@@ -234,7 +236,7 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
       if (nextError != null && nextError != previousError) {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
-          ..showSnackBar(SnackBar(content: Text(nextError)));
+          ..showSnackBar(SnackBar(content: Text(nextError), duration: const Duration(seconds: 4),));
       }
     });
 
@@ -260,32 +262,39 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
           Row(
             children: [
               Expanded(
-                child: _CardField(
-                  child: TextField(
-                    controller: _roomInputCtrl,
-                    inputFormatters: [LengthLimitingTextInputFormatter(50)],
-                    style: theme.textTheme.bodyLarge,
-                    decoration: InputDecoration(
-                      hintText: 'Rm./Fl./Bldg. (e.g.: C 201, C 5, C)',
-                      hintStyle: TextStyle(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                      floatingLabelBehavior: FloatingLabelBehavior.never,
-                      border: InputBorder.none,
-                      isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 12,
+                child: SizedBox(
+                  height: _topControlHeight,
+                  child: _CardField(
+                    child: TextField(
+                      controller: _roomInputCtrl,
+                      inputFormatters: [LengthLimitingTextInputFormatter(50)],
+                      style: theme.textTheme.bodyLarge,
+                      maxLines: 1,
+                      textAlignVertical: TextAlignVertical.center,
+                      decoration: InputDecoration(
+                        hintText: 'e.g.: "B 201, C 5, ML"',
+                        hintStyle: TextStyle(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                        floatingLabelBehavior: FloatingLabelBehavior.never,
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 16,
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
               const SizedBox(width: 10),
-              _SquareIconButton(
-                tooltip: 'Filters',
-                svgAsset: 'assets/icons/filters.svg',
-                onPressed: _openFiltersSheet,
+              SizedBox(
+                width: _topControlHeight,
+                height: _topControlHeight,
+                child: _SquareIconButton(
+                  tooltip: 'Filters',
+                  svgAsset: 'assets/icons/filters.svg',
+                  onPressed: _openFiltersSheet,
+                ),
               ),
             ],
           ),
@@ -397,7 +406,7 @@ class _CardField extends StatelessWidget {
           ),
         ],
       ),
-      child: child,
+      child: SizedBox.expand(child: child),
     );
   }
 }
@@ -424,9 +433,7 @@ class _SquareIconButton extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: onPressed,
-        child: SizedBox(
-          width: 48,
-          height: 48,
+        child: SizedBox.expand(
           child: Center(
             child: SvgPicture.asset(
               svgAsset,
