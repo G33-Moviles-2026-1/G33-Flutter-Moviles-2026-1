@@ -47,32 +47,9 @@ class _RoomDetailBodyState extends ConsumerState<RoomDetailBody> {
   }
 
   Future<void> _loadDateAvailability() async {
-    setState(() {
-      _isLoadingAvailability = true;
-      _availabilityError = null;
-    });
-
-    try {
-      final useCase = ref.read(fetchRoomDateAvailabilityUseCaseProvider);
-      final result = await useCase(
-        roomId: widget.room.roomId,
-        date: _formatApiDate(selectedDate),
-      );
-
-      if (!mounted) return;
-
-      setState(() {
-        _liveAvailability = result;
-        _isLoadingAvailability = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-
-      setState(() {
-        _isLoadingAvailability = false;
-        _availabilityError = _mapError(e);
-      });
-    }
+    await ref
+        .read(roomDetailControllerProvider.notifier)
+        .loadAvailability(widget.room.roomId, _formatApiDate(selectedDate));
   }
 
   Future<void> _pickDate() async {
@@ -178,10 +155,6 @@ class _RoomDetailBodyState extends ConsumerState<RoomDetailBody> {
     final month = value.month.toString().padLeft(2, '0');
     final day = value.day.toString().padLeft(2, '0');
     return '$year-$month-$day';
-  }
-
-  String _mapError(Object error) {
-    return error.toString();
   }
 
   @override
@@ -347,28 +320,34 @@ class _RoomDetailBodyState extends ConsumerState<RoomDetailBody> {
   Widget _buildAvailabilityScroller() {
     final t = Theme.of(context);
     final brand = t.extension<BrandColors>()!;
-
-    if (_isLoadingAvailability) {
+    final state = ref.watch(roomDetailControllerProvider);
+    if (state.isLoading) {
       return const Padding(
         padding: EdgeInsets.symmetric(vertical: 24),
         child: Center(child: CircularProgressIndicator()),
       );
     }
-
-    if (_availabilityError != null) {
+    if (state.error != null) {
       return Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 20),
-          child: Text(
-            _availabilityError!,
-            style: t.textTheme.bodyMedium?.copyWith(color: t.colorScheme.error),
-            textAlign: TextAlign.center,
-          ),
+        child: Column(
+          children: [
+            Text(
+              state.error!,
+              style: t.textTheme.bodyMedium?.copyWith(
+                color: t.colorScheme.error,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            TextButton(
+              onPressed: _loadDateAvailability,
+              child: const Text("Retry"),
+            ),
+          ],
         ),
       );
     }
 
-    final data = _liveAvailability;
+    final data = state.availability;
     if (data == null) {
       return Center(
         child: Padding(

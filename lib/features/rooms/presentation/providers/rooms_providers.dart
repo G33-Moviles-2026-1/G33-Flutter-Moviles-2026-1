@@ -6,6 +6,7 @@ import 'package:andespace/features/rooms/domain/usecases/fetch_room_date_availab
 import 'package:andespace/features/rooms/domain/usecases/search_rooms.dart';
 import 'package:andespace/features/rooms/presentation/controllers/home_search_controller.dart';
 import 'package:andespace/features/rooms/presentation/controllers/home_search_state.dart';
+import 'package:andespace/features/rooms/presentation/controllers/room_detail_controller.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final roomsApiProvider = Provider<RoomsApi>((ref) {
@@ -27,6 +28,12 @@ final fetchRoomDateAvailabilityUseCaseProvider =
     Provider<FetchRoomDateAvailability>((ref) {
       return FetchRoomDateAvailability(ref.read(roomRepositoryProvider));
     });
+
+final roomDetailControllerProvider = StateNotifierProvider.autoDispose<RoomDetailController, RoomDetailState>((ref) {
+  return RoomDetailController(
+    fetchRoomDateAvailability: ref.read(fetchRoomDateAvailabilityUseCaseProvider),
+  );
+});
 
 final homeSearchControllerProvider =
     StateNotifierProvider.autoDispose<HomeSearchController, HomeSearchState>(
