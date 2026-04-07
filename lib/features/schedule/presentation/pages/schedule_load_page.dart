@@ -1,3 +1,4 @@
+import 'package:andespace/core/di/core_provider.dart';
 import 'package:andespace/core/navigation/app_routes.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -107,24 +108,17 @@ class ScheduleLoadPage extends ConsumerWidget {
     ref.listen<ScheduleState>(
       scheduleControllerProvider,
       (_, next) {
-        if (next.status == ScheduleStatus.error) {
-          final rawMessage = next.errorMessage ?? '';
-
-          String friendlyMessage;
-          if (rawMessage.toLowerCase().contains('no internet')) {
-            friendlyMessage =
-                'You are offline. We could not upload your schedule right now.';
-          } else {
-            friendlyMessage =
-                'We could not load your schedule. Please try again.';
-          }
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(friendlyMessage),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
+        if (next.status == ScheduleStatus.error &&
+            next.errorMessage != null &&
+            next.errorMessage!.trim().isNotEmpty) {
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              SnackBar(
+                content: Text(next.errorMessage!),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
         }
       },
     );

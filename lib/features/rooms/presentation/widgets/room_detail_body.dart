@@ -1,4 +1,3 @@
-import 'package:andespace/core/di/auth_providers.dart';
 import 'package:andespace/core/di/core_provider.dart';
 import 'package:andespace/core/navigation/app_routes.dart';
 import 'package:andespace/features/rooms/domain/entities/room_date_availability.dart';
@@ -21,10 +20,6 @@ class RoomDetailBody extends ConsumerStatefulWidget {
 
 class _RoomDetailBodyState extends ConsumerState<RoomDetailBody> {
   late DateTime selectedDate;
-
-  RoomDateAvailability? _liveAvailability;
-  bool _isLoadingAvailability = false;
-  String? _availabilityError;
 
   Color _fieldColor(BuildContext context) {
     final theme = Theme.of(context);

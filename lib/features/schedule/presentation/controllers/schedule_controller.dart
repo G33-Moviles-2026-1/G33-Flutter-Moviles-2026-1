@@ -61,9 +61,31 @@ class ScheduleController extends StateNotifier<ScheduleState> {
 
         case DioExceptionType.badResponse:
           final statusCode = error.response?.statusCode;
+          final responseData = error.response?.data;
+
+          String? backendDetail;
+          if (responseData is Map<String, dynamic>) {
+            final detail = responseData['detail'];
+            if (detail is String) {
+              backendDetail = detail;
+            }
+          }
 
           if (statusCode == 404) {
             return 'No schedule was found for this week.';
+          }
+
+          if (statusCode == 422) {
+            final detail = backendDetail?.toLowerCase() ?? '';
+
+            final isInvalidTimeRange =
+                detail.contains('class start_time must be between 05:30 and 22:00') ||
+                detail.contains('class end_time must be at or before 22:00') ||
+                detail.contains('class end_time must be later than start_time');
+
+            if (isInvalidTimeRange) {
+              return 'The class hours must be between 05:30 and 22:00.';
+            }
           }
 
           if (statusCode != null && statusCode >= 500) {
@@ -86,8 +108,7 @@ class ScheduleController extends StateNotifier<ScheduleState> {
             return 'No internet connection. Please check your network and try again.';
           }
           return 'Something went wrong. Please try again.';
-
-        }
+      }
     }
 
     return 'Something went wrong. Please try again.';

@@ -48,7 +48,6 @@ abstract class ScheduleRemoteDataSource {
   });
 
   Future<Map<String, dynamic>> getRecommendedRoomsForDay({
-    required String userEmail,
     required DateTime date,
   });
 }
@@ -226,13 +225,11 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
 
   @override
   Future<Map<String, dynamic>> getRecommendedRoomsForDay({
-    required String userEmail,
     required DateTime date,
   }) async {
     final response = await dio.get(
       '/schedule/recommendations/day',
       queryParameters: {
-        'user_email': userEmail,
         'date': _formatYyyyMmDd(date),
       },
     );
