@@ -84,7 +84,7 @@ class ScheduleController extends StateNotifier<ScheduleState> {
                 detail.contains('class end_time must be later than start_time');
 
             if (isInvalidTimeRange) {
-              return 'The class hours must be between 05:30 and 22:00, and the end time must be later than the start time.';
+              return 'The class hours must be between 05:30 and 22:00.';
             }
           }
 

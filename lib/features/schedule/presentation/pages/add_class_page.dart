@@ -306,24 +306,17 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
     ref.listen<ScheduleState>(
       scheduleControllerProvider,
       (_, next) {
-        if (next.status == ScheduleStatus.error) {
-          final rawMessage = next.errorMessage ?? '';
-
-          String friendlyMessage;
-          if (rawMessage.toLowerCase().contains('no internet')) {
-            friendlyMessage =
-                'You are offline. We could not save your class right now.';
-          } else {
-            friendlyMessage =
-                'We could not save this class. Please review the information and try again.';
-          }
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(friendlyMessage),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
+        if (next.status == ScheduleStatus.error &&
+            next.errorMessage != null &&
+            next.errorMessage!.trim().isNotEmpty) {
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              SnackBar(
+                content: Text(next.errorMessage!),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
         }
       },
     );

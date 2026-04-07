@@ -125,24 +125,17 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
     ref.listen<ScheduleState>(
       scheduleControllerProvider,
       (_, next) {
-        if (next.status == ScheduleStatus.error) {
-          final rawMessage = next.errorMessage ?? '';
-
-          String friendlyMessage;
-          if (rawMessage.toLowerCase().contains('no internet')) {
-            friendlyMessage =
-                'You are offline. Some schedule actions may not be available right now.';
-          } else {
-            friendlyMessage =
-                'We could not complete that action. Please try again.';
-          }
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(friendlyMessage),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
+        if (next.status == ScheduleStatus.error &&
+            next.errorMessage != null &&
+            next.errorMessage!.trim().isNotEmpty) {
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              SnackBar(
+                content: Text(next.errorMessage!),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
         }
       },
     );
