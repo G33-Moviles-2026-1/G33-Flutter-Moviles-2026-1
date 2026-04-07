@@ -72,11 +72,6 @@ final getRecommendedRoomsForDayProvider = Provider<GetRecommendedRoomsForDay>((r
   return GetRecommendedRoomsForDay(repository);
 });
 
-final analyticsServiceProvider = Provider<AnalyticsService>((ref) {
-  final dio = ref.watch(dioProvider);
-  return AnalyticsService(dio);
-});
-
 final scheduleControllerProvider =
     StateNotifierProvider<ScheduleController, ScheduleState>((ref) {
   return ScheduleController(

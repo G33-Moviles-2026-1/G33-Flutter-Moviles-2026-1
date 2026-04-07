@@ -1,3 +1,4 @@
+import 'package:andespace/core/di/core_provider.dart';
 import 'package:andespace/core/navigation/app_routes.dart';
 import 'package:andespace/features/schedule/presentation/pages/recommended_rooms_page.dart';
 import 'package:flutter/material.dart';
@@ -39,24 +40,24 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
 
   String _monthName(int month) {
     const months = [
-      'Enero',
-      'Febrero',
-      'Marzo',
-      'Abril',
-      'Mayo',
-      'Junio',
-      'Julio',
-      'Agosto',
-      'Septiembre',
-      'Octubre',
-      'Noviembre',
-      'Diciembre',
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
     ];
     return months[month - 1];
   }
 
   String _formatWeekRange(DateTime start, DateTime end) {
-    return '${start.day} de ${_monthName(start.month)} - ${end.day} de ${_monthName(end.month)}';
+    return '${start.day} of ${_monthName(start.month)} - ${end.day} of ${_monthName(end.month)}';
   }
 
   Future<void> _confirmDeleteOccurrence({
@@ -255,12 +256,20 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
                         height: 56,
                         child: ElevatedButton.icon(
                           onPressed: () async {
+                            final session = ref.read(sessionControllerProvider);
+                            final currentSearch = session.currentSearch;
+
+                            session.updateSearchSelection(
+                              date: state.selectedDate,
+                              startTime: currentSearch?.startTime,
+                              endTime: currentSearch?.endTime,
+                            );
+
                             final items = await controller.loadRecommendedRoomsForSelectedDay();
 
                             if (!mounted) return;
 
                             Navigator.push(
-                              // ignore: use_build_context_synchronously
                               context,
                               MaterialPageRoute(
                                 builder: (_) => RecommendedRoomsPage(items: items),
