@@ -2,6 +2,7 @@ import 'package:andespace/core/di/auth_providers.dart';
 import 'package:andespace/core/navigation/app_routes.dart';
 import 'package:andespace/core/navigation/app_tab.dart';
 import 'package:andespace/shared/widgets/app_scaffold.dart';
+import 'package:andespace/shared/widgets/auth_required_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -53,79 +54,13 @@ class _ScheduleEntryPageState extends ConsumerState<ScheduleEntryPage> {
       _tryInitialLoad();
     }
 
-    if (!authState.isAuthenticated) {
-      return AppScaffold(
-        //title: 'My Schedule',
+    if (!authState.hasActiveSession) {
+      return AuthRequiredScaffold(
         currentTab: AppTab.schedule,
         onTabSelected: (tab) => _onTabSelected(context, tab),
-        body: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight - 48,
-                  ),
-                  child: Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 430),
-                      child: Container(
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          color: theme.cardColor,
-                          borderRadius: BorderRadius.circular(22),
-                          border: Border.all(
-                            color: theme.dividerColor.withValues(alpha: 0.18),
-                          ),
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.lock_outline_rounded,
-                              size: 56,
-                              color: theme.colorScheme.secondary,
-                            ),
-                            const SizedBox(height: 18),
-                            Text(
-                              'Log in to view your schedule',
-                              textAlign: TextAlign.center,
-                              style: textTheme.headlineSmall?.copyWith(
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            Text(
-                              'Sign in to load, manage, and use your weekly schedule for recommendations.',
-                              textAlign: TextAlign.center,
-                              style: textTheme.bodyMedium,
-                            ),
-                            const SizedBox(height: 22),
-                            SizedBox(
-                              width: double.infinity,
-                              height: 56,
-                              child: ElevatedButton.icon(
-                                onPressed: () {
-                                  Navigator.pushReplacementNamed(
-                                    context,
-                                    AppRoutes.login,
-                                  );
-                                },
-                                icon: const Icon(Icons.login),
-                                label: const Text('Log In'),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
+        title: 'Log in to view your schedule',
+        message:
+            'Sign in to load, manage, and use your weekly schedule for recommendations.',
       );
     }
 
@@ -221,8 +156,7 @@ class _ScheduleEntryPageState extends ConsumerState<ScheduleEntryPage> {
                     ),
                     const SizedBox(height: 10),
                     Text(
-                      state.errorMessage ??
-                          'We could not load your schedule right now.',
+                      'We could not load your schedule right now. Please check your connection and try again.',
                       textAlign: TextAlign.center,
                       style: textTheme.bodyMedium,
                     ),
@@ -232,7 +166,9 @@ class _ScheduleEntryPageState extends ConsumerState<ScheduleEntryPage> {
                       height: 56,
                       child: ElevatedButton.icon(
                         onPressed: () {
-                          ref.read(scheduleControllerProvider.notifier).loadWeek();
+                          ref
+                              .read(scheduleControllerProvider.notifier)
+                              .loadWeek();
                         },
                         icon: const Icon(Icons.refresh),
                         label: const Text('Retry'),

@@ -1,4 +1,3 @@
-import 'package:andespace/core/di/auth_providers.dart';
 import 'package:andespace/core/di/core_provider.dart';
 import 'package:andespace/core/navigation/app_routes.dart';
 import 'package:andespace/features/rooms/domain/entities/room_date_availability.dart';
@@ -22,10 +21,6 @@ class RoomDetailBody extends ConsumerStatefulWidget {
 class _RoomDetailBodyState extends ConsumerState<RoomDetailBody> {
   late DateTime selectedDate;
 
-  RoomDateAvailability? _liveAvailability;
-  bool _isLoadingAvailability = false;
-  String? _availabilityError;
-
   Color _fieldColor(BuildContext context) {
     final theme = Theme.of(context);
     return theme.inputDecorationTheme.fillColor ?? theme.colorScheme.surface;
@@ -47,32 +42,9 @@ class _RoomDetailBodyState extends ConsumerState<RoomDetailBody> {
   }
 
   Future<void> _loadDateAvailability() async {
-    setState(() {
-      _isLoadingAvailability = true;
-      _availabilityError = null;
-    });
-
-    try {
-      final useCase = ref.read(fetchRoomDateAvailabilityUseCaseProvider);
-      final result = await useCase(
-        roomId: widget.room.roomId,
-        date: _formatApiDate(selectedDate),
-      );
-
-      if (!mounted) return;
-
-      setState(() {
-        _liveAvailability = result;
-        _isLoadingAvailability = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-
-      setState(() {
-        _isLoadingAvailability = false;
-        _availabilityError = _mapError(e);
-      });
-    }
+    await ref
+        .read(roomDetailControllerProvider.notifier)
+        .loadAvailability(widget.room.roomId, _formatApiDate(selectedDate));
   }
 
   Future<void> _pickDate() async {
@@ -126,13 +98,13 @@ class _RoomDetailBodyState extends ConsumerState<RoomDetailBody> {
     );
 
     if (picked != null) {
-    setState(() => selectedDate = picked);
-    final session = ref.read(sessionControllerProvider);
-    session.updateSearchSelection(
-      date: picked,
-      startTime: session.currentSearch?.startTime,
-      endTime: session.currentSearch?.endTime,
-    );
+      setState(() => selectedDate = picked);
+      final session = ref.read(sessionControllerProvider);
+      session.updateSearchSelection(
+        date: picked,
+        startTime: session.currentSearch?.startTime,
+        endTime: session.currentSearch?.endTime,
+      );
       await _loadDateAvailability();
     }
   }
@@ -158,14 +130,6 @@ class _RoomDetailBodyState extends ConsumerState<RoomDetailBody> {
   }
 
   Future<void> _onBookPressed() async {
-    final authState = ref.read(authControllerProvider);
-
-    if (!authState.hasActiveSession) {
-      if (!mounted) return;
-      Navigator.pushNamed(context, AppRoutes.login);
-      return;
-    }
-
     final result = await Navigator.pushNamed(
       context,
       AppRoutes.createBooking,
@@ -186,10 +150,6 @@ class _RoomDetailBodyState extends ConsumerState<RoomDetailBody> {
     final month = value.month.toString().padLeft(2, '0');
     final day = value.day.toString().padLeft(2, '0');
     return '$year-$month-$day';
-  }
-
-  String _mapError(Object error) {
-    return error.toString();
   }
 
   @override
@@ -355,28 +315,34 @@ class _RoomDetailBodyState extends ConsumerState<RoomDetailBody> {
   Widget _buildAvailabilityScroller() {
     final t = Theme.of(context);
     final brand = t.extension<BrandColors>()!;
-
-    if (_isLoadingAvailability) {
+    final state = ref.watch(roomDetailControllerProvider);
+    if (state.isLoading) {
       return const Padding(
         padding: EdgeInsets.symmetric(vertical: 24),
         child: Center(child: CircularProgressIndicator()),
       );
     }
-
-    if (_availabilityError != null) {
+    if (state.error != null) {
       return Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 20),
-          child: Text(
-            _availabilityError!,
-            style: t.textTheme.bodyMedium?.copyWith(color: t.colorScheme.error),
-            textAlign: TextAlign.center,
-          ),
+        child: Column(
+          children: [
+            Text(
+              state.error!,
+              style: t.textTheme.bodyMedium?.copyWith(
+                color: t.colorScheme.error,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            TextButton(
+              onPressed: _loadDateAvailability,
+              child: const Text("Retry"),
+            ),
+          ],
         ),
       );
     }
 
-    final data = _liveAvailability;
+    final data = state.availability;
     if (data == null) {
       return Center(
         child: Padding(

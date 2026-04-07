@@ -1,6 +1,5 @@
 import 'package:andespace/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/usecases/get_current_user_usecase.dart';
@@ -20,6 +19,64 @@ class AuthController extends StateNotifier<AuthState> {
     required this.getCurrentUserUseCase,
     required this.logoutUseCase,
   }) : super(const AuthState());
+
+  String _extractAuthErrorMessage(
+    Object error, {
+    required String fallbackMessage,
+  }) {
+    if (error is DioException) {
+      switch (error.type) {
+        case DioExceptionType.connectionTimeout:
+        case DioExceptionType.sendTimeout:
+        case DioExceptionType.receiveTimeout:
+          return 'The request is taking longer than expected. Please try again.';
+
+        case DioExceptionType.connectionError:
+          return 'No internet connection. Please check your network and try again.';
+
+        case DioExceptionType.badResponse:
+          final statusCode = error.response?.statusCode;
+          final data = error.response?.data;
+          final detail = data is Map<String, dynamic> ? data['detail'] : null;
+
+          if (statusCode == 400 && detail == 'User already registered') {
+            return 'This user already exists.';
+          }
+
+          if (statusCode == 401) {
+            return 'Incorrect email or password.';
+          }
+
+          if (statusCode == 403) {
+            return 'You do not have permission to perform this action.';
+          }
+
+          if (statusCode != null && statusCode >= 500) {
+            return 'Our servers are having trouble right now. Please try again in a moment.';
+          }
+
+          return fallbackMessage;
+
+        case DioExceptionType.badCertificate:
+          return 'A secure connection could not be established. Please try again later.';
+
+        case DioExceptionType.cancel:
+          return 'The request was cancelled. Please try again.';
+
+        case DioExceptionType.unknown:
+          final message = error.message?.toLowerCase() ?? '';
+          if (message.contains('socketexception') ||
+              message.contains('failed host lookup') ||
+              message.contains('network is unreachable')) {
+            return 'No internet connection. Please check your network and try again.';
+          }
+          return fallbackMessage;
+
+        }
+    }
+
+    return fallbackMessage;
+  }
 
   Future<void> loadCurrentUser() async {
     state = state.copyWith(isLoading: true, error: null, isSuccess: false);
@@ -57,10 +114,13 @@ class AuthController extends StateNotifier<AuthState> {
         isSuccess: true,
       );
     } catch (e) {
-      state = const AuthState(
+      state = AuthState(
         isLoading: false,
         isAuthenticated: false,
-        error: 'Could not log in',
+        error: _extractAuthErrorMessage(
+          e,
+          fallbackMessage: 'Could not log in. Please try again.',
+        ),
       );
     }
   }
@@ -88,28 +148,13 @@ class AuthController extends StateNotifier<AuthState> {
         isSuccess: true,
       );
     } catch (e) {
-      debugPrint('SIGNUP ERROR: $e');
-
-      if (e is DioException) {
-        debugPrint('STATUS CODE: ${e.response?.statusCode}');
-        debugPrint('RESPONSE DATA: ${e.response?.data}');
-
-        final data = e.response?.data;
-        final detail = data is Map<String, dynamic> ? data['detail'] : null;
-
-        if (e.response?.statusCode == 400 &&
-            detail == 'User already registered') {
-          state = const AuthState(
-            isLoading: false,
-            error: 'This user already exists.',
-          );
-          return;
-        }
-      }
-
-      state = const AuthState(
+      state = AuthState(
         isLoading: false,
-        error: 'The account could not be created.',
+        isAuthenticated: false,
+        error: _extractAuthErrorMessage(
+          e,
+          fallbackMessage: 'The account could not be created. Please try again.',
+        ),
       );
     }
   }
@@ -126,10 +171,13 @@ class AuthController extends StateNotifier<AuthState> {
         user: null,
         isSuccess: false,
       );
-    } catch (_) {
+    } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: 'Could not log out',
+        error: _extractAuthErrorMessage(
+          e,
+          fallbackMessage: 'Could not log out. Please try again.',
+        ),
       );
     }
   }

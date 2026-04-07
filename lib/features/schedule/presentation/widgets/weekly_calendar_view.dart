@@ -7,11 +7,15 @@ import 'day_column.dart';
 class WeeklyCalendarView extends StatelessWidget {
   final WeeklySchedule schedule;
   final void Function(ScheduleOccurrence occurrence)? onDeleteOccurrence;
+  final DateTime selectedDate;
+  final ValueChanged<DateTime>? onDaySelected;
 
   const WeeklyCalendarView({
     super.key,
     required this.schedule,
     this.onDeleteOccurrence,
+    required this.selectedDate,
+    this.onDaySelected,
   });
 
   Map<DateTime, List<ScheduleOccurrence>> _groupByDay(
@@ -30,6 +34,12 @@ class WeeklyCalendarView extends StatelessWidget {
     }
 
     return grouped;
+  }
+
+  bool _isSameDay(DateTime a, DateTime b) {
+    return a.year == b.year &&
+        a.month == b.month &&
+        a.day == b.day;
   }
 
   @override
@@ -51,10 +61,15 @@ class WeeklyCalendarView extends StatelessWidget {
             final key = DateTime(day.year, day.month, day.day);
             final occurrences = grouped[key] ?? [];
 
-            return DayColumn(
-              day: day,
-              occurrences: occurrences,
-              onDeleteOccurrence: onDeleteOccurrence,
+            return Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: DayColumn(
+                day: day,
+                occurrences: occurrences,
+                onDeleteOccurrence: onDeleteOccurrence,
+                isSelected: _isSameDay(day, selectedDate),
+                onTap: () => onDaySelected?.call(day),
+              ),
             );
           }).toList(),
         ),

@@ -1,3 +1,4 @@
+import 'package:andespace/core/di/core_provider.dart';
 import 'package:andespace/core/navigation/app_routes.dart';
 import 'package:andespace/features/schedule/presentation/pages/recommended_rooms_page.dart';
 import 'package:flutter/material.dart';
@@ -39,24 +40,24 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
 
   String _monthName(int month) {
     const months = [
-      'Enero',
-      'Febrero',
-      'Marzo',
-      'Abril',
-      'Mayo',
-      'Junio',
-      'Julio',
-      'Agosto',
-      'Septiembre',
-      'Octubre',
-      'Noviembre',
-      'Diciembre',
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
     ];
     return months[month - 1];
   }
 
   String _formatWeekRange(DateTime start, DateTime end) {
-    return '${start.day} de ${_monthName(start.month)} - ${end.day} de ${_monthName(end.month)}';
+    return '${start.day} of ${_monthName(start.month)} - ${end.day} of ${_monthName(end.month)}';
   }
 
   Future<void> _confirmDeleteOccurrence({
@@ -124,10 +125,17 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
     ref.listen<ScheduleState>(
       scheduleControllerProvider,
       (_, next) {
-        if (next.status == ScheduleStatus.error && next.errorMessage != null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(next.errorMessage!)),
-          );
+        if (next.status == ScheduleStatus.error &&
+            next.errorMessage != null &&
+            next.errorMessage!.trim().isNotEmpty) {
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              SnackBar(
+                content: Text(next.errorMessage!),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
         }
       },
     );
@@ -221,6 +229,10 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
                 Expanded(
                   child: WeeklyCalendarView(
                     schedule: schedule,
+                    selectedDate: state.selectedDate,
+                    onDaySelected: (day) {
+                      controller.selectDay(day);
+                    },
                     onDeleteOccurrence: (occurrence) {
                       _confirmDeleteOccurrence(
                         classId: occurrence.classId,
@@ -237,12 +249,45 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
                         height: 56,
                         child: ElevatedButton.icon(
                           onPressed: () async {
+                            final now = DateTime.now();
+                            final today = DateTime(now.year, now.month, now.day);
+                            final maxDate = today.add(const Duration(days: 7));
+
+                            final selected = DateTime(
+                              state.selectedDate.year,
+                              state.selectedDate.month,
+                              state.selectedDate.day,
+                            );
+
+                            final isBeforeToday = selected.isBefore(today);
+                            final isAfterMaxDate = selected.isAfter(maxDate);
+
+                            if (isBeforeToday || isAfterMaxDate) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'You can only filter schedule from today up to 7 days ahead.',
+                                  ),
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                              return;
+                            }
+
+                            final session = ref.read(sessionControllerProvider);
+                            final currentSearch = session.currentSearch;
+
+                            session.updateSearchSelection(
+                              date: state.selectedDate,
+                              startTime: currentSearch?.startTime,
+                              endTime: currentSearch?.endTime,
+                            );
+
                             final items = await controller.loadRecommendedRoomsForSelectedDay();
 
                             if (!mounted) return;
 
                             Navigator.push(
-                              // ignore: use_build_context_synchronously
                               context,
                               MaterialPageRoute(
                                 builder: (_) => RecommendedRoomsPage(items: items),

@@ -147,6 +147,12 @@ abstract final class AppTheme {
         dialHandColor: Color(0xFFFDF21C),
         entryModeIconColor: Colors.white70,
       ),
+
+      textSelectionTheme: const TextSelectionThemeData(
+        cursorColor: Color(0xFFFCBD00),
+        selectionColor: Color(0x33FCBD00),
+        selectionHandleColor: Color(0xFFFCBD00),
+      ),
     );
   }
 
@@ -307,6 +313,12 @@ abstract final class AppTheme {
       timePickerTheme: const TimePickerThemeData(
         dialHandColor: Color(0xFFFFA500),
         entryModeIconColor: Colors.white70,
+      ),
+
+      textSelectionTheme: const TextSelectionThemeData(
+        cursorColor: Color(0xFFFFA500),
+        selectionColor: Color(0x33FFA500),
+        selectionHandleColor: Color(0xFFFFA500),
       ),
 
     );

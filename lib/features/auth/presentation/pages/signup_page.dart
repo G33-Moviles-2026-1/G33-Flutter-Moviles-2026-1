@@ -2,6 +2,7 @@ import 'package:andespace/core/navigation/app_routes.dart';
 import 'package:andespace/core/navigation/app_tab.dart';
 import 'package:andespace/shared/widgets/app_scaffold.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/di/auth_providers.dart';
 
@@ -99,6 +100,9 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                 const SizedBox(height: 36),
                 TextFormField(
                   controller: _emailCtrl,
+                  inputFormatters: [
+                    LengthLimitingTextInputFormatter(35),
+                  ],
                   keyboardType: TextInputType.emailAddress,
                   decoration: const InputDecoration(
                     hintText: 'Uniandes Mail',
@@ -119,6 +123,9 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                 const SizedBox(height: 18),
                 TextFormField(
                   controller: _passwordCtrl,
+                  inputFormatters: [
+                    LengthLimitingTextInputFormatter(20),
+                  ],
                   focusNode: _passwordFocusNode,
                   obscureText: _obscurePassword,
                   decoration: InputDecoration(
@@ -152,6 +159,9 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                 const SizedBox(height: 18),
                 TextFormField(
                   controller: _confirmPasswordCtrl,
+                  inputFormatters: [
+                    LengthLimitingTextInputFormatter(20),
+                  ],
                   focusNode: _confirmPasswordFocusNode,
                   obscureText: _obscureConfirmPassword,
                   decoration: InputDecoration(
@@ -186,6 +196,10 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                 const SizedBox(height: 18),
                 TextFormField(
                   controller: _carnetCtrl,
+                  inputFormatters: [
+                    LengthLimitingTextInputFormatter(9),
+                    FilteringTextInputFormatter.digitsOnly,
+                  ],
                   keyboardType: TextInputType.number,
                   decoration: const InputDecoration(
                     hintText: 'Student Code',

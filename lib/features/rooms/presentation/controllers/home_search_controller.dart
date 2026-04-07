@@ -170,14 +170,53 @@ class HomeSearchController extends StateNotifier<HomeSearchState> {
 
   String _mapError(Object error) {
     if (error is DioException) {
-      final data = error.response?.data;
-      if (data is Map && data['detail'] is String) {
-        return data['detail'] as String;
+      switch (error.type) {
+        case DioExceptionType.connectionTimeout:
+        case DioExceptionType.sendTimeout:
+        case DioExceptionType.receiveTimeout:
+          return 'The server is not responding. Please try again later.';
+
+        case DioExceptionType.connectionError:
+          return 'No internet connection. Please check your connection and try again.';
+
+        case DioExceptionType.badCertificate:
+          return 'A secure connection could not be established. Please try again later.';
+
+        case DioExceptionType.cancel:
+          return 'The request was cancelled. Please try again.';
+
+        case DioExceptionType.badResponse:
+          final statusCode = error.response?.statusCode;
+          if (statusCode != null && statusCode >= 500) {
+            return 'The server is currently unavailable. Please try again later.';
+          }
+          if (statusCode != null && statusCode >= 400) {
+            return 'We could not complete your search. Please try again.';
+          }
+          return 'Something went wrong. Please try again.';
+
+        case DioExceptionType.unknown:
+          final message = error.message?.toLowerCase() ?? '';
+          if (message.contains('socketexception') ||
+              message.contains('failed host lookup') ||
+              message.contains('network is unreachable')) {
+            return 'No internet connection. Please check your connection and try again.';
+          }
+          return 'Something went wrong. Please try again.';
       }
-      return error.message ?? 'Request failed.';
     }
 
-    return error.toString();
+    final raw = error.toString().toLowerCase();
+    if (raw.contains('failed host lookup') ||
+        raw.contains('socketexception') ||
+        raw.contains('network is unreachable')) {
+      return 'No internet connection. Please check your connection and try again.';
+    }
+    if (raw.contains('timeout')) {
+      return 'The server is not responding. Please try again later.';
+    }
+
+    return 'Something went wrong. Please try again.';
   }
 
   Future<void> goToPage(int page) async {

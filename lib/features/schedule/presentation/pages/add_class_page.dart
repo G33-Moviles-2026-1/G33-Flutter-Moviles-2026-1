@@ -1,3 +1,4 @@
+import 'package:andespace/core/di/core_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -305,10 +306,17 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
     ref.listen<ScheduleState>(
       scheduleControllerProvider,
       (_, next) {
-        if (next.status == ScheduleStatus.error && next.errorMessage != null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(next.errorMessage!)),
-          );
+        if (next.status == ScheduleStatus.error &&
+            next.errorMessage != null &&
+            next.errorMessage!.trim().isNotEmpty) {
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              SnackBar(
+                content: Text(next.errorMessage!),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
         }
       },
     );

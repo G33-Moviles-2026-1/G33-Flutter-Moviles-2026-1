@@ -193,7 +193,6 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
     required DateTime date,
   }) async {
     final raw = await remoteDataSource.getRecommendedRoomsForDay(
-      userEmail: userEmail,
       date: date,
     );
 
