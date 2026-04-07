@@ -256,6 +256,31 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
                         height: 56,
                         child: ElevatedButton.icon(
                           onPressed: () async {
+                            final now = DateTime.now();
+                            final today = DateTime(now.year, now.month, now.day);
+                            final maxDate = today.add(const Duration(days: 7));
+
+                            final selected = DateTime(
+                              state.selectedDate.year,
+                              state.selectedDate.month,
+                              state.selectedDate.day,
+                            );
+
+                            final isBeforeToday = selected.isBefore(today);
+                            final isAfterMaxDate = selected.isAfter(maxDate);
+
+                            if (isBeforeToday || isAfterMaxDate) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'You can only filter schedule from today up to 7 days ahead.',
+                                  ),
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                              return;
+                            }
+
                             final session = ref.read(sessionControllerProvider);
                             final currentSearch = session.currentSearch;
 
