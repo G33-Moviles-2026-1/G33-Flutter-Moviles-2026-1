@@ -8,25 +8,22 @@ on:
     branches:
       - main
       - developer
-
 jobs:
   sonar:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
-          fetch-depth: 0  # Necesario para el análisis de blame/history
+          fetch-depth: 0
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: 'stable'
+          channel: 'stable'
 
-      # (Opcional) Generar cobertura
       - name: Instalar dependencias
         run: flutter pub get
 
-      # Análisis con SonarQube Cloud
       - name: SonarQube Cloud Scan
         uses: SonarSource/sonarqube-scan-action@master
         env:
