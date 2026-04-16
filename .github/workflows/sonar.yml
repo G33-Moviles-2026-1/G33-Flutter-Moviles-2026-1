@@ -1,7 +1,7 @@
 name: SonarCloud - Flutter
 on:
   push:
-    branches: [main, developer]
+    branches: [main, developer, SonarQube]
   pull_request:
 
 jobs:
@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # necesario para blame info
+          fetch-depth: 0
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.x'
