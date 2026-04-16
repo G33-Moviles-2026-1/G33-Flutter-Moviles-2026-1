@@ -1,24 +1,30 @@
-name: SonarCloud - Flutter
+name: SonarQube Cloud Analysis
 on:
   push:
-    branches: [main, develop]
+    branches:
+      - main
+      - developer
   pull_request:
-
+    branches:
+      - main
+      - developer
 jobs:
   sonar:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
-          fetch-depth: 0  # necesario para blame info
+          fetch-depth: 0
+
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.x'
-      - name: Install dependencies
+          channel: 'stable'
+
+      - name: Instalar dependencias
         run: flutter pub get
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
-        continue-on-error: true
+
+      - name: SonarQube Cloud Scan
+        uses: SonarSource/sonarqube-scan-action@master
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
