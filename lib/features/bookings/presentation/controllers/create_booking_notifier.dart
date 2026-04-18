@@ -2,7 +2,6 @@ import 'package:andespace/core/analytics/analytics_events.dart';
 import 'package:andespace/core/analytics/analytics_service.dart';
 import 'package:andespace/core/di/core_provider.dart';
 import 'package:andespace/core/error/dio_error_mapper.dart';
-import 'package:andespace/core/utils/date_time_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../rooms/domain/entities/room_search.dart';
@@ -124,7 +123,7 @@ class CreateBookingNotifier
     try {
       final availability = await fetchRoomDateAvailability(
         roomId: _room.roomId,
-        date: DateTimeUtils.toApiDate(date),
+        date: date,
       );
       final ranges = availability.availableSlots
           .map((slot) => TimeRange(start: slot.start, end: slot.end))
