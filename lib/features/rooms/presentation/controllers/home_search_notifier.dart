@@ -43,23 +43,8 @@ class HomeSearchNotifier extends AutoDisposeNotifier<HomeSearchState> {
     required bool nearMe,
     required int offset,
   }) async {
-    final normalizedPrefixes = _normalizeCommaSeparated(rawRoomInput);
-
     if (selectedDate == null) {
       state = HomeSearchState.error('Please select a date.', previousResponse: state.response);
-      return;
-    }
-
-    if (since == null && until == null) {
-      state = HomeSearchState.error(
-        'Please provide at least one of Since or Until.',
-        previousResponse: state.response,
-      );
-      return;
-    }
-
-    if (since != null && until != null && !_isStrictlyEarlier(since, until)) {
-      state = HomeSearchState.error('Since must be earlier than Until.', previousResponse: state.response);
       return;
     }
 
@@ -75,24 +60,25 @@ class HomeSearchNotifier extends AutoDisposeNotifier<HomeSearchState> {
       return;
     }
 
+    final sinceStr = since == null ? null : DateTimeUtils.toApiTime(since);
+    final untilStr = until == null ? null : DateTimeUtils.toApiTime(until);
+
     _sessionNotifier.updateSearchSelection(
       date: selectedDate,
-      startTime: since == null ? null : DateTimeUtils.toApiTime(since),
-      endTime: until == null ? null : DateTimeUtils.toApiTime(until),
+      startTime: sinceStr,
+      endTime: untilStr,
     );
 
-    final request = RoomSearchRequest(
-      roomPrefixes: normalizedPrefixes,
+    final input = SearchRoomsInput(
+      rawRoomInput: rawRoomInput,
       date: DateTimeUtils.toApiDate(selectedDate),
-      since: since == null ? null : DateTimeUtils.toApiTime(since),
-      until: until == null ? null : DateTimeUtils.toApiTime(until),
-      buildingCodes: const [],
-      utilities: selectedUtilities.toList()..sort(),
+      since: sinceStr,
+      until: untilStr,
+      utilities: selectedUtilities,
       nearMe: nearMe,
       userLocation: sessionLocation == null
           ? null
           : SearchLocation(latitude: sessionLocation.latitude, longitude: sessionLocation.longitude),
-      limit: 20,
       offset: offset,
     );
 
@@ -105,48 +91,21 @@ class HomeSearchNotifier extends AutoDisposeNotifier<HomeSearchState> {
         eventName: AnalyticsEvents.homeSearchSubmitted,
         screen: 'home',
         propsJson: {
-          'room_prefixes_count': request.roomPrefixes.length,
-          'building_codes_count': request.buildingCodes.length,
-          'utilities_count': request.utilities.length,
-          'near_me': request.nearMe,
-          'has_since': request.since != null,
-          'has_until': request.until != null,
+          'utilities_count': selectedUtilities.length,
+          'near_me': nearMe,
+          'has_since': since != null,
+          'has_until': until != null,
         },
       );
 
-      final response = await _searchRooms(request);
+      final response = await _searchRooms(input);
       state = HomeSearchState.success(response);
+    } on SearchRoomsValidationException catch (e) {
+      state = HomeSearchState.error(e.message, previousResponse: state.response);
     } catch (e) {
       state = HomeSearchState.error(_mapError(e), previousResponse: state.response);
     }
   }
-
-  List<String> _normalizeCommaSeparated(String raw) {
-    return raw
-        .split(',')
-        .map(_normalizeToken)
-        .where((value) => value.isNotEmpty)
-        .toSet()
-        .toList()
-      ..sort();
-  }
-
-  String _normalizeToken(String value) {
-    return value.replaceAll('-', ' ').trim().toUpperCase().split(RegExp(r'\s+')).join(' ');
-  }
-
-  bool _isStrictlyEarlier(TimeOfDay a, TimeOfDay b) {
-    return (a.hour * 60 + a.minute) < (b.hour * 60 + b.minute);
-  }
-
-
-  String _mapError(Object error) => DioErrorMapper.map(
-        error,
-        onBadResponse: (statusCode, detail) {
-          if (statusCode >= 400) return 'We could not complete your search. Please try again.';
-          return 'Something went wrong. Please try again.';
-        },
-      );
 
   Future<void> goToPage(int page) async {
     final lastResponse = state.response;
@@ -172,12 +131,20 @@ class HomeSearchNotifier extends AutoDisposeNotifier<HomeSearchState> {
   Future<void> _performSearch(RoomSearchRequest request) async {
     state = HomeSearchState.loading(previousResponse: state.response);
     try {
-      final response = await _searchRooms(request);
+      final response = await _searchRooms.callWithRequest(request);
       state = HomeSearchState.success(response);
     } catch (e) {
       state = HomeSearchState.error(_mapError(e), previousResponse: state.response);
     }
   }
+
+  String _mapError(Object error) => DioErrorMapper.map(
+        error,
+        onBadResponse: (statusCode, detail) {
+          if (statusCode >= 400) return 'We could not complete your search. Please try again.';
+          return 'Something went wrong. Please try again.';
+        },
+      );
 }
 
 final homeSearchControllerProvider =

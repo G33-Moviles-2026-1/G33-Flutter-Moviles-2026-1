@@ -44,7 +44,7 @@ class _RoomDetailBodyState extends ConsumerState<RoomDetailBody> {
   Future<void> _loadDateAvailability() async {
     await ref
         .read(roomDetailControllerProvider.notifier)
-        .loadAvailability(widget.room.roomId, _formatApiDate(selectedDate));
+        .loadAvailability(widget.room.roomId, selectedDate);
   }
 
   Future<void> _pickDate() async {
@@ -143,13 +143,6 @@ class _RoomDetailBodyState extends ConsumerState<RoomDetailBody> {
 
   String _formatDate(DateTime date) {
     return "${date.day}/${date.month}/${date.year}";
-  }
-
-  String _formatApiDate(DateTime value) {
-    final year = value.year.toString().padLeft(4, '0');
-    final month = value.month.toString().padLeft(2, '0');
-    final day = value.day.toString().padLeft(2, '0');
-    return '$year-$month-$day';
   }
 
   @override
