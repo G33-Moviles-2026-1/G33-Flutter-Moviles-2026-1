@@ -9,7 +9,7 @@ import 'package:andespace/shared/widgets/app_scaffold.dart';
 import 'package:uuid/uuid.dart';
 
 import '../controllers/schedule_state.dart';
-import '../providers/schedule_providers.dart';
+import '../controllers/schedule_notifier.dart';
 import '../widgets/weekly_calendar_view.dart';
 import 'add_class_page.dart';
 import 'schedule_load_page.dart';
@@ -315,7 +315,7 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
                         child: OutlinedButton.icon(
                           onPressed: () async {
                             final analytics = ref.read(analyticsServiceProvider);
-                            final userEmail = await controller.resolveUserEmail();
+                            final userEmail = await controller.getUserEmail();
                             final importSessionId = const Uuid().v4();
 
                             await analytics.trackScheduleImportStep(

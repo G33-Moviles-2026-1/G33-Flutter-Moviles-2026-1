@@ -1,4 +1,6 @@
 import 'package:andespace/core/analytics/analytics_service.dart';
+import 'package:andespace/core/di/auth_providers.dart';
+import 'package:andespace/core/di/core_provider.dart';
 import 'package:andespace/core/error/dio_error_mapper.dart';
 import 'package:andespace/features/rooms/domain/entities/room_search.dart';
 import 'package:andespace/features/schedule/domain/entities/schedule_class.dart';
@@ -14,38 +16,41 @@ import '../../domain/usecases/get_schedule_classes.dart';
 import '../../domain/usecases/get_weekly_schedule.dart';
 import '../../domain/usecases/upload_ics_schedule.dart';
 import '../../domain/usecases/upload_manual_schedule.dart';
+import '../providers/schedule_providers.dart';
 import 'schedule_state.dart';
 
-class ScheduleController extends StateNotifier<ScheduleState> {
-  final GetWeeklySchedule getWeeklySchedule;
-  final UploadIcsSchedule uploadIcsSchedule;
-  final UploadManualSchedule uploadManualSchedule;
-  final GetScheduleClasses getScheduleClasses;
-  final DeleteFullSchedule deleteFullSchedule;
-  final DeleteScheduleClass deleteScheduleClass;
-  final DeleteScheduleOccurrence deleteScheduleOccurrence;
-  final GetRecommendedRoomsForDay getRecommendedRoomsForDay;
-  final Future<String> Function() resolveUserEmail;
-  final AnalyticsService analyticsService;
+class ScheduleNotifier extends Notifier<ScheduleState> {
+  late final GetWeeklySchedule _getWeeklySchedule;
+  late final UploadIcsSchedule _uploadIcsSchedule;
+  late final UploadManualSchedule _uploadManualSchedule;
+  late final GetScheduleClasses _getScheduleClasses;
+  late final DeleteFullSchedule _deleteFullSchedule;
+  late final DeleteScheduleClass _deleteScheduleClass;
+  late final DeleteScheduleOccurrence _deleteScheduleOccurrence;
+  late final GetRecommendedRoomsForDay _getRecommendedRoomsForDay;
+  late final AnalyticsService _analyticsService;
 
-  ScheduleController({
-    required this.getWeeklySchedule,
-    required this.uploadIcsSchedule,
-    required this.uploadManualSchedule,
-    required this.getScheduleClasses,
-    required this.deleteFullSchedule,
-    required this.deleteScheduleClass,
-    required this.deleteScheduleOccurrence,
-    required this.getRecommendedRoomsForDay,
-    required this.resolveUserEmail,
-    required this.analyticsService,
-  }) : super(ScheduleState.initial());
+  @override
+  ScheduleState build() {
+    _getWeeklySchedule = ref.read(getWeeklyScheduleProvider);
+    _uploadIcsSchedule = ref.read(uploadIcsScheduleProvider);
+    _uploadManualSchedule = ref.read(uploadManualScheduleProvider);
+    _getScheduleClasses = ref.read(getScheduleClassesProvider);
+    _deleteFullSchedule = ref.read(deleteFullScheduleProvider);
+    _deleteScheduleClass = ref.read(deleteScheduleClassProvider);
+    _deleteScheduleOccurrence = ref.read(deleteScheduleOccurrenceProvider);
+    _getRecommendedRoomsForDay = ref.read(getRecommendedRoomsForDayProvider);
+    _analyticsService = ref.read(analyticsServiceProvider);
+    return ScheduleState.initial();
+  }
+
+  Future<String> getUserEmail() => _getUserEmail();
 
   Future<String> _getUserEmail() async {
-    final email = await resolveUserEmail();
-    if (email.trim().isEmpty) {
-      throw Exception('No authenticated user email found.');
-    }
+    final getCurrentUser = ref.read(getCurrentUserUseCaseProvider);
+    final currentUser = await getCurrentUser();
+    final email = currentUser?.email ?? '';
+    if (email.trim().isEmpty) throw Exception('No authenticated user email found.');
     return email;
   }
 
@@ -73,17 +78,14 @@ class ScheduleController extends StateNotifier<ScheduleState> {
   }) async {
     try {
       final userEmail = await _getUserEmail();
-
-      await analyticsService.trackScheduleImportStep(
+      await _analyticsService.trackScheduleImportStep(
         sessionId: importSessionId,
         deviceId: 'mobile',
         userEmail: userEmail,
         method: method,
         step: step,
         stepNumber: stepNumber,
-        propsJson: {
-          if (errorMessage != null) 'error_message': errorMessage,
-        },
+        propsJson: {if (errorMessage != null) 'error_message': errorMessage},
       );
     } catch (_) {}
   }
@@ -99,28 +101,16 @@ class ScheduleController extends StateNotifier<ScheduleState> {
 
     try {
       final userEmail = await _getUserEmail();
-
-      final schedule = await getWeeklySchedule(
-        userEmail: userEmail,
-        date: targetDate,
-      );
+      final schedule = await _getWeeklySchedule(userEmail: userEmail, date: targetDate);
 
       if (schedule.occurrences.isEmpty) {
-        state = state.copyWith(
-          status: ScheduleStatus.empty,
-          weeklySchedule: schedule,
-        );
+        state = state.copyWith(status: ScheduleStatus.empty, weeklySchedule: schedule);
         return;
       }
 
-      state = state.copyWith(
-        status: ScheduleStatus.loaded,
-        weeklySchedule: schedule,
-      );
+      state = state.copyWith(status: ScheduleStatus.loaded, weeklySchedule: schedule);
     } on DioException catch (e) {
-      final statusCode = e.response?.statusCode;
-
-      if (statusCode == 404) {
+      if (e.response?.statusCode == 404) {
         state = state.copyWith(
           status: ScheduleStatus.empty,
           clearWeeklySchedule: true,
@@ -128,7 +118,6 @@ class ScheduleController extends StateNotifier<ScheduleState> {
         );
         return;
       }
-
       state = state.copyWith(
         status: ScheduleStatus.error,
         errorMessage: _extractBackendErrorMessage(e),
@@ -141,53 +130,35 @@ class ScheduleController extends StateNotifier<ScheduleState> {
     }
   }
 
-  Future<void> refresh() async {
-    await loadWeek(date: DateTime.now());
-  }
+  Future<void> refresh() async => loadWeek(date: DateTime.now());
 
   Future<void> selectDay(DateTime date) async {
-    final normalizedDate = DateTime(date.year, date.month, date.day);
-
     state = state.copyWith(
-      selectedDate: normalizedDate,
+      selectedDate: DateTime(date.year, date.month, date.day),
       clearErrorMessage: true,
     );
   }
 
-  Future<void> goToPreviousWeek() async {
-    final previousWeek = state.selectedDate.subtract(const Duration(days: 7));
-    await loadWeek(date: previousWeek);
-  }
+  Future<void> goToPreviousWeek() async =>
+      loadWeek(date: state.selectedDate.subtract(const Duration(days: 7)));
 
-  Future<void> goToNextWeek() async {
-    final nextWeek = state.selectedDate.add(const Duration(days: 7));
-    await loadWeek(date: nextWeek);
-  }
+  Future<void> goToNextWeek() async =>
+      loadWeek(date: state.selectedDate.add(const Duration(days: 7)));
 
   Future<void> importIcs({
     required String filePath,
     required String importSessionId,
   }) async {
-    state = state.copyWith(
-      status: ScheduleStatus.uploading,
-      clearErrorMessage: true,
-    );
-
+    state = state.copyWith(status: ScheduleStatus.uploading, clearErrorMessage: true);
     try {
       final userEmail = await _getUserEmail();
-
-      await uploadIcsSchedule(
-        userEmail: userEmail,
-        filePath: filePath,
-      );
-
+      await _uploadIcsSchedule(userEmail: userEmail, filePath: filePath);
       await _trackScheduleImportStep(
         importSessionId: importSessionId,
         method: 'ics',
         step: 'completed',
         stepNumber: 5,
       );
-
       await loadWeek(date: DateTime.now());
     } catch (e) {
       state = state.copyWith(
@@ -201,15 +172,10 @@ class ScheduleController extends StateNotifier<ScheduleState> {
     required ManualClass manualClass,
     required String importSessionId,
   }) async {
-    state = state.copyWith(
-      status: ScheduleStatus.savingManualClass,
-      clearErrorMessage: true,
-    );
-
+    state = state.copyWith(status: ScheduleStatus.savingManualClass, clearErrorMessage: true);
     try {
       final userEmail = await _getUserEmail();
-
-      final existingClasses = await getScheduleClasses(userEmail: userEmail);
+      final existingClasses = await _getScheduleClasses(userEmail: userEmail);
 
       final allClasses = [
         ...existingClasses.map(
@@ -227,21 +193,15 @@ class ScheduleController extends StateNotifier<ScheduleState> {
         manualClass,
       ];
 
-      await uploadManualSchedule(
-        userEmail: userEmail,
-        classes: allClasses,
-      );
-
+      await _uploadManualSchedule(userEmail: userEmail, classes: allClasses);
       await _trackScheduleImportStep(
         importSessionId: importSessionId,
         method: 'manual',
         step: 'completed',
         stepNumber: 4,
       );
-
       await loadWeek(date: state.selectedDate);
     } catch (e) {
-
       state = state.copyWith(
         status: ScheduleStatus.error,
         errorMessage: _extractBackendErrorMessage(e),
@@ -250,20 +210,11 @@ class ScheduleController extends StateNotifier<ScheduleState> {
   }
 
   Future<void> removeFullSchedule() async {
-    state = state.copyWith(
-      status: ScheduleStatus.deleting,
-      clearErrorMessage: true,
-    );
-
+    state = state.copyWith(status: ScheduleStatus.deleting, clearErrorMessage: true);
     try {
       final userEmail = await _getUserEmail();
-
-      await deleteFullSchedule(userEmail: userEmail);
-
-      state = state.copyWith(
-        status: ScheduleStatus.empty,
-        clearWeeklySchedule: true,
-      );
+      await _deleteFullSchedule(userEmail: userEmail);
+      state = state.copyWith(status: ScheduleStatus.empty, clearWeeklySchedule: true);
     } catch (e) {
       state = state.copyWith(
         status: ScheduleStatus.error,
@@ -272,22 +223,11 @@ class ScheduleController extends StateNotifier<ScheduleState> {
     }
   }
 
-  Future<void> removeClass({
-    required String classId,
-  }) async {
-    state = state.copyWith(
-      status: ScheduleStatus.deleting,
-      clearErrorMessage: true,
-    );
-
+  Future<void> removeClass({required String classId}) async {
+    state = state.copyWith(status: ScheduleStatus.deleting, clearErrorMessage: true);
     try {
       final userEmail = await _getUserEmail();
-
-      await deleteScheduleClass(
-        userEmail: userEmail,
-        classId: classId,
-      );
-
+      await _deleteScheduleClass(userEmail: userEmail, classId: classId);
       await loadWeek(date: state.selectedDate);
     } catch (e) {
       state = state.copyWith(
@@ -297,24 +237,11 @@ class ScheduleController extends StateNotifier<ScheduleState> {
     }
   }
 
-  Future<void> removeOccurrence({
-    required String classId,
-    required DateTime date,
-  }) async {
-    state = state.copyWith(
-      status: ScheduleStatus.deleting,
-      clearErrorMessage: true,
-    );
-
+  Future<void> removeOccurrence({required String classId, required DateTime date}) async {
+    state = state.copyWith(status: ScheduleStatus.deleting, clearErrorMessage: true);
     try {
       final userEmail = await _getUserEmail();
-
-      await deleteScheduleOccurrence(
-        userEmail: userEmail,
-        classId: classId,
-        date: date,
-      );
-
+      await _deleteScheduleOccurrence(userEmail: userEmail, classId: classId, date: date);
       await loadWeek(date: state.selectedDate);
     } catch (e) {
       state = state.copyWith(
@@ -326,19 +253,13 @@ class ScheduleController extends StateNotifier<ScheduleState> {
 
   Future<List<ScheduleClass>> getExistingClassesForValidation() async {
     final userEmail = await _getUserEmail();
-    return getScheduleClasses(userEmail: userEmail);
+    return _getScheduleClasses(userEmail: userEmail);
   }
 
   Future<List<RoomSearchItem>> loadRecommendedRoomsForSelectedDay() async {
     try {
       final userEmail = await _getUserEmail();
-
-      final items = await getRecommendedRoomsForDay(
-        userEmail: userEmail,
-        date: state.selectedDate,
-      );
-
-      return items;
+      return await _getRecommendedRoomsForDay(userEmail: userEmail, date: state.selectedDate);
     } catch (e) {
       state = state.copyWith(
         status: ScheduleStatus.error,
@@ -348,3 +269,6 @@ class ScheduleController extends StateNotifier<ScheduleState> {
     }
   }
 }
+
+final scheduleControllerProvider =
+    NotifierProvider<ScheduleNotifier, ScheduleState>(ScheduleNotifier.new);

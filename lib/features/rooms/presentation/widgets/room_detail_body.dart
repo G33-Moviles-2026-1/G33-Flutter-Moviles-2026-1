@@ -1,7 +1,7 @@
 import 'package:andespace/core/di/core_provider.dart';
 import 'package:andespace/core/navigation/app_routes.dart';
 import 'package:andespace/features/rooms/domain/entities/room_date_availability.dart';
-import 'package:andespace/features/rooms/presentation/providers/rooms_providers.dart';
+import 'package:andespace/features/rooms/presentation/controllers/room_detail_notifier.dart';
 import 'package:andespace/shared/widgets/utilities_string.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -576,4 +576,4 @@ class _HeaderIcon extends StatelessWidget {
     final theme = Theme.of(context);
     return theme.inputDecorationTheme.fillColor ?? theme.colorScheme.surface;
   }
-}
+  }

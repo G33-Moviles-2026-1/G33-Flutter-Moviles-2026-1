@@ -1,43 +1,41 @@
 import 'package:andespace/core/analytics/analytics_events.dart';
 import 'package:andespace/core/analytics/analytics_service.dart';
+import 'package:andespace/core/di/core_provider.dart';
 import 'package:andespace/core/error/dio_error_mapper.dart';
 import 'package:andespace/core/session/session_controller.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../rooms/domain/entities/time_range.dart';
 import '../../../rooms/domain/entities/room_search.dart';
-import '../../../rooms/domain/usecases/fetch_room_date_availability.dart';
+import '../../../rooms/domain/entities/time_range.dart';
+import '../../../rooms/presentation/providers/rooms_providers.dart';
 import '../../domain/entities/booking_purpose.dart';
 import '../../domain/usecases/create_booking.dart';
+import '../providers/bookings_providers.dart';
 import 'create_booking_state.dart';
 
-class CreateBookingController extends StateNotifier<CreateBookingState> {
-  CreateBookingController({
-    required this.room,
-    required CreateBooking createBooking,
-    required FetchRoomDateAvailability fetchRoomDateAvailability,
-    required AnalyticsService analyticsService,
-    required SessionController sessionController,
-  })  : _createBooking = createBooking,
-        _fetchRoomDateAvailability = fetchRoomDateAvailability,
-        _analyticsService = analyticsService,
-        _sessionController = sessionController,
-        super(
-          CreateBookingState.initial(
-            _resolveInitialDate(sessionController),
-          ),
-        ) {
-    _loadAvailabilityFor(
-      state.selectedDate,
-      preferredTimeRange: _resolveInitialPreferredTimeRange(sessionController),
+class CreateBookingNotifier
+    extends AutoDisposeFamilyNotifier<CreateBookingState, RoomSearchItem> {
+  late final CreateBooking _createBooking;
+  late final AnalyticsService _analyticsService;
+  late final SessionController _sessionController;
+
+  @override
+  CreateBookingState build(RoomSearchItem arg) {
+    _createBooking = ref.read(createBookingUseCaseProvider);
+    _analyticsService = ref.read(analyticsServiceProvider);
+    _sessionController = ref.read(sessionControllerProvider);
+
+    final initialDate = _resolveInitialDate(_sessionController);
+    final preferredRange = _resolveInitialPreferredTimeRange(_sessionController);
+
+    Future.microtask(
+      () => _loadAvailabilityFor(initialDate, preferredTimeRange: preferredRange),
     );
+
+    return CreateBookingState.initial(initialDate);
   }
 
-  final RoomSearchItem room;
-  final CreateBooking _createBooking;
-  final FetchRoomDateAvailability _fetchRoomDateAvailability;
-  final AnalyticsService _analyticsService;
-  final SessionController _sessionController;
+  RoomSearchItem get _room => arg;
 
   static DateTime _today() {
     final now = DateTime.now();
@@ -47,17 +45,13 @@ class CreateBookingController extends StateNotifier<CreateBookingState> {
   static DateTime _resolveInitialDate(SessionController sessionController) {
     final searchDate = sessionController.currentSearch?.date;
     if (searchDate == null) return _today();
-
     return DateTime(searchDate.year, searchDate.month, searchDate.day);
   }
 
-  static TimeRange? _resolveInitialPreferredTimeRange(
-    SessionController sessionController,
-  ) {
+  static TimeRange? _resolveInitialPreferredTimeRange(SessionController sessionController) {
     final search = sessionController.currentSearch;
     final start = search?.startTime;
     final end = search?.endTime;
-
     if (start == null || end == null) return null;
     return TimeRange(start: start, end: end);
   }
@@ -67,52 +61,32 @@ class CreateBookingController extends StateNotifier<CreateBookingState> {
 
   Future<void> setDate(DateTime date) async {
     final normalized = DateTime(date.year, date.month, date.day);
-
-    if (normalized.isBefore(firstBookableDate) ||
-        normalized.isAfter(lastBookableDate)) {
+    if (normalized.isBefore(firstBookableDate) || normalized.isAfter(lastBookableDate)) {
       state = state.copyWith(
         errorMessage: 'You can only book for today and the next 7 days.',
         clearCreated: true,
       );
       return;
     }
-
-    state = state.copyWith(
-      selectedDate: normalized,
-      clearErrorMessage: true,
-      clearCreated: true,
-    );
-
+    state = state.copyWith(selectedDate: normalized, clearErrorMessage: true, clearCreated: true);
     await _loadAvailabilityFor(normalized);
   }
 
   void setTimeRange(TimeRange? range) {
-    state = state.copyWith(
-      selectedTimeRange: range,
-      clearErrorMessage: true,
-      clearCreated: true,
-    );
+    state = state.copyWith(selectedTimeRange: range, clearErrorMessage: true, clearCreated: true);
   }
 
   void setPurpose(BookingPurpose purpose) {
-    state = state.copyWith(
-      selectedPurpose: purpose,
-      clearErrorMessage: true,
-      clearCreated: true,
-    );
+    state = state.copyWith(selectedPurpose: purpose, clearErrorMessage: true, clearCreated: true);
   }
 
   Future<void> submit() async {
     final selectedTimeRange = state.selectedTimeRange;
 
     if (state.isLoadingAvailability) {
-      state = state.copyWith(
-        errorMessage: 'Availability is still loading.',
-        clearCreated: true,
-      );
+      state = state.copyWith(errorMessage: 'Availability is still loading.', clearCreated: true);
       return;
     }
-
     if (selectedTimeRange == null) {
       state = state.copyWith(
         errorMessage: 'Please select a valid available time slot.',
@@ -121,42 +95,24 @@ class CreateBookingController extends StateNotifier<CreateBookingState> {
       return;
     }
 
-    state = state.copyWith(
-      isSubmitting: true,
-      clearErrorMessage: true,
-      clearCreated: true,
-    );
-
+    state = state.copyWith(isSubmitting: true, clearErrorMessage: true, clearCreated: true);
     try {
       final booking = await _createBooking(
-        roomId: room.roomId,
+        roomId: _room.roomId,
         date: state.selectedDate,
         timeRange: selectedTimeRange,
         purpose: state.selectedPurpose,
       );
-
-      await _trackBookingCreated(
-        purpose: state.selectedPurpose,
-        timeRange: selectedTimeRange,
-      );
-
-      state = state.copyWith(
-        isSubmitting: false,
-        created: booking,
-      );
+      await _trackBookingCreated(purpose: state.selectedPurpose, timeRange: selectedTimeRange);
+      state = state.copyWith(isSubmitting: false, created: booking);
     } catch (e) {
-      state = state.copyWith(
-        isSubmitting: false,
-        errorMessage: _mapError(e),
-        clearCreated: true,
-      );
+      state = state.copyWith(isSubmitting: false, errorMessage: _mapError(e), clearCreated: true);
     }
   }
 
-  Future<void> _loadAvailabilityFor(
-    DateTime date, {
-    TimeRange? preferredTimeRange,
-  }) async {
+  Future<void> _loadAvailabilityFor(DateTime date, {TimeRange? preferredTimeRange}) async {
+    final fetchRoomDateAvailability = ref.read(fetchRoomDateAvailabilityUseCaseProvider);
+
     state = state.copyWith(
       isLoadingAvailability: true,
       availableTimeRanges: const [],
@@ -165,13 +121,11 @@ class CreateBookingController extends StateNotifier<CreateBookingState> {
       clearErrorMessage: true,
       clearCreated: true,
     );
-
     try {
-      final availability = await _fetchRoomDateAvailability(
-        roomId: room.roomId,
+      final availability = await fetchRoomDateAvailability(
+        roomId: _room.roomId,
         date: _formatDate(date),
       );
-
       final ranges = availability.availableSlots
           .map((slot) => TimeRange(start: slot.start, end: slot.end))
           .toList()
@@ -186,7 +140,6 @@ class CreateBookingController extends StateNotifier<CreateBookingState> {
           }
         }
       }
-
       selectedRange ??= ranges.isNotEmpty ? ranges.first : null;
 
       state = state.copyWith(
@@ -205,9 +158,7 @@ class CreateBookingController extends StateNotifier<CreateBookingState> {
     }
   }
 
-  bool _sameRange(TimeRange a, TimeRange b) {
-    return a.start == b.start && a.end == b.end;
-  }
+  bool _sameRange(TimeRange a, TimeRange b) => a.start == b.start && a.end == b.end;
 
   Future<void> _trackBookingCreated({
     required BookingPurpose purpose,
@@ -222,10 +173,10 @@ class CreateBookingController extends StateNotifier<CreateBookingState> {
         propsJson: {
           'feature': 'bookings',
           'source_screen': 'create_booking',
-          'room_id': room.roomId,
-          'room_number': room.roomNumber,
-          'building_code': room.buildingCode,
-          'building_name': room.buildingName ?? room.buildingCode,
+          'room_id': _room.roomId,
+          'room_number': _room.roomNumber,
+          'building_code': _room.buildingCode,
+          'building_name': _room.buildingName ?? _room.buildingCode,
           'purpose': purpose.backendKey,
           'start_time': timeRange.start,
           'end_time': timeRange.end,
@@ -252,3 +203,8 @@ class CreateBookingController extends StateNotifier<CreateBookingState> {
         },
       );
 }
+
+final createBookingControllerProvider = NotifierProvider.autoDispose
+    .family<CreateBookingNotifier, CreateBookingState, RoomSearchItem>(
+  CreateBookingNotifier.new,
+);

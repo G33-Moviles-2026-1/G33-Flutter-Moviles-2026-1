@@ -4,9 +4,6 @@ import 'package:andespace/features/rooms/data/repositories/rooms_repository_impl
 import 'package:andespace/features/rooms/domain/repositories/rooms_repository.dart';
 import 'package:andespace/features/rooms/domain/usecases/fetch_room_date_availability.dart';
 import 'package:andespace/features/rooms/domain/usecases/search_rooms.dart';
-import 'package:andespace/features/rooms/presentation/controllers/home_search_controller.dart';
-import 'package:andespace/features/rooms/presentation/controllers/home_search_state.dart';
-import 'package:andespace/features/rooms/presentation/controllers/room_detail_controller.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final roomsApiProvider = Provider<RoomsApi>((ref) {
@@ -26,23 +23,3 @@ final fetchRoomDateAvailabilityUseCaseProvider =
       return FetchRoomDateAvailability(ref.watch(roomRepositoryProvider));
     });
 
-final roomDetailControllerProvider = StateNotifierProvider.autoDispose<RoomDetailController, RoomDetailState>((ref) {
-  return RoomDetailController(
-    fetchRoomDateAvailability: ref.read(fetchRoomDateAvailabilityUseCaseProvider),
-  );
-});
-
-final homeSearchControllerProvider =
-    StateNotifierProvider.autoDispose<HomeSearchController, HomeSearchState>(
-      (ref) {
-        final searchRooms = ref.read(searchRoomsUseCaseProvider);
-        final analyticsService = ref.read(analyticsServiceProvider);
-        final sessionController = ref.read(sessionControllerProvider);
-
-        return HomeSearchController(
-          searchRooms: searchRooms,
-          analyticsService: analyticsService,
-          sessionController: sessionController,
-        );
-      },
-    );

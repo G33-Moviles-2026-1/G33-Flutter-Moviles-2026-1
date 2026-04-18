@@ -1,26 +1,28 @@
 import 'package:andespace/core/analytics/analytics_events.dart';
 import 'package:andespace/core/analytics/analytics_service.dart';
+import 'package:andespace/core/di/core_provider.dart';
 import 'package:andespace/core/error/dio_error_mapper.dart';
 import 'package:andespace/core/session/session_controller.dart';
 import 'package:andespace/features/rooms/domain/entities/room_search.dart';
 import 'package:andespace/features/rooms/domain/usecases/search_rooms.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../providers/rooms_providers.dart';
 import 'home_search_state.dart';
 
-class HomeSearchController extends StateNotifier<HomeSearchState> {
-  HomeSearchController({
-    required SearchRooms searchRooms,
-    required AnalyticsService analyticsService,
-    required SessionController sessionController,
-  }) : _searchRooms = searchRooms,
-       _analyticsService = analyticsService,
-       _sessionController = sessionController,
-       super(const HomeSearchState.initial());
+class HomeSearchNotifier extends AutoDisposeNotifier<HomeSearchState> {
+  late final SearchRooms _searchRooms;
+  late final AnalyticsService _analyticsService;
+  late final SessionController _sessionController;
 
-  final SearchRooms _searchRooms;
-  final AnalyticsService _analyticsService;
-  final SessionController _sessionController;
+  @override
+  HomeSearchState build() {
+    _searchRooms = ref.read(searchRoomsUseCaseProvider);
+    _analyticsService = ref.read(analyticsServiceProvider);
+    _sessionController = ref.read(sessionControllerProvider);
+    return const HomeSearchState.initial();
+  }
 
   Future<void> onFiltersOpened() async {
     await _analyticsService.track(
@@ -44,10 +46,7 @@ class HomeSearchController extends StateNotifier<HomeSearchState> {
     final normalizedPrefixes = _normalizeCommaSeparated(rawRoomInput);
 
     if (selectedDate == null) {
-      state = HomeSearchState.error(
-        'Please select a date.',
-        previousResponse: state.response,
-      );
+      state = HomeSearchState.error('Please select a date.', previousResponse: state.response);
       return;
     }
 
@@ -60,10 +59,7 @@ class HomeSearchController extends StateNotifier<HomeSearchState> {
     }
 
     if (since != null && until != null && !_isStrictlyEarlier(since, until)) {
-      state = HomeSearchState.error(
-        'Since must be earlier than Until.',
-        previousResponse: state.response,
-      );
+      state = HomeSearchState.error('Since must be earlier than Until.', previousResponse: state.response);
       return;
     }
 
@@ -78,6 +74,7 @@ class HomeSearchController extends StateNotifier<HomeSearchState> {
       state = HomeSearchState.error('No se pudo obtener tu ubicación GPS.');
       return;
     }
+
     _sessionController.updateSearchSelection(
       date: selectedDate,
       startTime: since == null ? null : _formatTime24(since),
@@ -94,10 +91,7 @@ class HomeSearchController extends StateNotifier<HomeSearchState> {
       nearMe: nearMe,
       userLocation: sessionLocation == null
           ? null
-          : SearchLocation(
-              latitude: sessionLocation.latitude,
-              longitude: sessionLocation.longitude,
-            ),
+          : SearchLocation(latitude: sessionLocation.latitude, longitude: sessionLocation.longitude),
       limit: 20,
       offset: offset,
     );
@@ -123,10 +117,7 @@ class HomeSearchController extends StateNotifier<HomeSearchState> {
       final response = await _searchRooms(request);
       state = HomeSearchState.success(response);
     } catch (e) {
-      state = HomeSearchState.error(
-        _mapError(e),
-        previousResponse: state.response,
-      );
+      state = HomeSearchState.error(_mapError(e), previousResponse: state.response);
     }
   }
 
@@ -141,18 +132,11 @@ class HomeSearchController extends StateNotifier<HomeSearchState> {
   }
 
   String _normalizeToken(String value) {
-    return value
-        .replaceAll('-', ' ')
-        .trim()
-        .toUpperCase()
-        .split(RegExp(r'\s+'))
-        .join(' ');
+    return value.replaceAll('-', ' ').trim().toUpperCase().split(RegExp(r'\s+')).join(' ');
   }
 
   bool _isStrictlyEarlier(TimeOfDay a, TimeOfDay b) {
-    final aMinutes = a.hour * 60 + a.minute;
-    final bMinutes = b.hour * 60 + b.minute;
-    return aMinutes < bMinutes;
+    return (a.hour * 60 + a.minute) < (b.hour * 60 + b.minute);
   }
 
   String _formatDate(DateTime value) {
@@ -193,11 +177,7 @@ class HomeSearchController extends StateNotifier<HomeSearchState> {
       }
     }
 
-    final updatedRequest = lastQuery.copyWith(
-      offset: newOffset,
-      userLocation: recoveredLocation,
-    );
-
+    final updatedRequest = lastQuery.copyWith(offset: newOffset, userLocation: recoveredLocation);
     await _performSearch(updatedRequest);
   }
 
@@ -207,10 +187,10 @@ class HomeSearchController extends StateNotifier<HomeSearchState> {
       final response = await _searchRooms(request);
       state = HomeSearchState.success(response);
     } catch (e) {
-      state = HomeSearchState.error(
-        _mapError(e),
-        previousResponse: state.response,
-      );
+      state = HomeSearchState.error(_mapError(e), previousResponse: state.response);
     }
   }
 }
+
+final homeSearchControllerProvider =
+    NotifierProvider.autoDispose<HomeSearchNotifier, HomeSearchState>(HomeSearchNotifier.new);
