@@ -9,6 +9,7 @@ import '../../../../shared/theme/app_theme_extension.dart';
 import '../../../../shared/widgets/app_scaffold.dart';
 import '../../../../shared/widgets/auth_required_scaffold.dart';
 import '../../../rooms/domain/entities/room_search.dart';
+import '../providers/bookings_providers.dart';
 import '../widgets/booking_time_picker_row.dart';
 import '../widgets/purpose_selector.dart';
 
@@ -33,6 +34,7 @@ class CreateBookingPage extends ConsumerWidget {
 
     final state = ref.watch(createBookingControllerProvider(room));
     final controller = ref.read(createBookingControllerProvider(room).notifier);
+    final bookingDateBounds = ref.read(getBookingDateBoundsUseCaseProvider)();
     final theme = Theme.of(context);
     final brand = theme.extension<BrandColors>();
 
@@ -123,16 +125,16 @@ class CreateBookingPage extends ConsumerWidget {
                         final picked = await showDatePicker(
                           context: context,
                           initialDate: state.selectedDate,
-                          firstDate: controller.firstBookableDate,
-                          lastDate: controller.lastBookableDate,
+                          firstDate: bookingDateBounds.firstBookableDate,
+                          lastDate: bookingDateBounds.lastBookableDate,
                           useRootNavigator: true,
                           selectableDayPredicate: (d) {
                             final normalized = DateTime(d.year, d.month, d.day);
                             return !normalized.isBefore(
-                                  controller.firstBookableDate,
+                                  bookingDateBounds.firstBookableDate,
                                 ) &&
                                 !normalized.isAfter(
-                                  controller.lastBookableDate,
+                                  bookingDateBounds.lastBookableDate,
                                 );
                           },
                         );
