@@ -31,7 +31,7 @@ class ThemeControllerState {
   }
 }
 
-final themeControllerProvider =
+final themeModeProvider =
     StateNotifierProvider<ThemeControllerNotifier, ThemeControllerState>((ref) {
       final notifier = ThemeControllerNotifier();
       ref.onDispose(notifier.dispose);
