@@ -206,13 +206,14 @@ class _RoomCard extends StatelessWidget {
         ? const Color(0xFF2E7D32)
         : const Color(0xFFE68A00);
 
-    final Color statusBg = isAvailableInQuery
-        ? (theme.brightness == Brightness.dark
-              ? const Color(0xFF132218)
-              : const Color(0xFFE8F5E9))
-        : (theme.brightness == Brightness.dark
-              ? const Color(0xFF2A1D0B)
-              : const Color(0xFFFFF3E0));
+    final bool isDark = theme.brightness == Brightness.dark;
+
+    final Color statusBg;
+    if (isAvailableInQuery) {
+      statusBg = isDark ? const Color(0xFF132218) : const Color(0xFFE8F5E9);
+    } else {
+      statusBg = isDark ? const Color(0xFF2A1D0B) : const Color(0xFFFFF3E0);
+    }
 
     final String statusLabel = isAvailableInQuery
         ? 'FREE IN YOUR TIME'

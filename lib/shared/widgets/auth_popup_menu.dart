@@ -49,7 +49,7 @@ class AuthPopupMenu extends StatelessWidget {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(isDark ? 0.35 : 0.18),
+                          color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.18),
                           blurRadius: 14,
                           offset: const Offset(0, 8),
                         ),
