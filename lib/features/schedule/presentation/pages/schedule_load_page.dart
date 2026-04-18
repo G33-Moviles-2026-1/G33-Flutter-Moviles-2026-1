@@ -9,7 +9,7 @@ import 'package:andespace/shared/widgets/app_scaffold.dart';
 import 'package:uuid/uuid.dart';
 
 import '../controllers/schedule_state.dart';
-import '../providers/schedule_providers.dart';
+import '../controllers/schedule_notifier.dart';
 import '../widgets/schedule_import_option_card.dart';
 import 'add_class_page.dart';
 import 'weekly_schedule_page.dart';
@@ -25,7 +25,7 @@ class ScheduleLoadPage extends ConsumerWidget {
     final controller = ref.read(scheduleControllerProvider.notifier);
     final importSessionId = const Uuid().v4();
 
-    final userEmail = await controller.resolveUserEmail();
+    final userEmail = await controller.getUserEmail();
 
     await analytics.trackScheduleImportStep(
       sessionId: importSessionId,
@@ -199,7 +199,7 @@ class ScheduleLoadPage extends ConsumerWidget {
                   onTap: () async {
                     final analytics = ref.read(analyticsServiceProvider);
                     final controller = ref.read(scheduleControllerProvider.notifier);
-                    final userEmail = await controller.resolveUserEmail();
+                    final userEmail = await controller.getUserEmail();
                     final importSessionId = const Uuid().v4();
 
                     await analytics.trackScheduleImportStep(

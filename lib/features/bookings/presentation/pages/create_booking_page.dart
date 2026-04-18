@@ -1,4 +1,5 @@
-import 'package:andespace/core/di/auth_providers.dart';
+import 'package:andespace/features/auth/presentation/controllers/auth_notifier.dart';
+import '../controllers/create_booking_notifier.dart';
 import 'package:andespace/core/navigation/app_routes.dart';
 import 'package:andespace/core/navigation/app_tab.dart';
 import 'package:flutter/material.dart';
@@ -8,7 +9,6 @@ import '../../../../shared/theme/app_theme_extension.dart';
 import '../../../../shared/widgets/app_scaffold.dart';
 import '../../../../shared/widgets/auth_required_scaffold.dart';
 import '../../../rooms/domain/entities/room_search.dart';
-import '../providers/bookings_providers.dart';
 import '../widgets/booking_time_picker_row.dart';
 import '../widgets/purpose_selector.dart';
 

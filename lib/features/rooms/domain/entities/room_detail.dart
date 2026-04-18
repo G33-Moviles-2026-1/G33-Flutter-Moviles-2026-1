@@ -1,5 +1,4 @@
 import 'time_range.dart';
-
 enum Weekday {
   monday,
   tuesday,

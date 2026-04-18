@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/manual_class.dart';
 import '../controllers/schedule_state.dart';
-import '../providers/schedule_providers.dart';
+import '../controllers/schedule_notifier.dart';
 
 class AddClassPage extends ConsumerStatefulWidget {
   const AddClassPage({
@@ -198,7 +198,7 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
 
     final controller = ref.read(scheduleControllerProvider.notifier);
     final analytics = ref.read(analyticsServiceProvider);
-    final userEmail = await controller.resolveUserEmail();
+    final userEmail = await controller.getUserEmail();
 
     await analytics.trackScheduleImportStep(
       sessionId: widget.importSessionId,

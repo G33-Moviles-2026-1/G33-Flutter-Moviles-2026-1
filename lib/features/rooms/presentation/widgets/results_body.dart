@@ -1,7 +1,7 @@
 import 'package:andespace/core/navigation/app_routes.dart';
 import 'package:andespace/features/rooms/domain/entities/room_search.dart';
 import 'package:andespace/features/rooms/presentation/controllers/home_search_state.dart';
-import 'package:andespace/features/rooms/presentation/providers/rooms_providers.dart';
+import 'package:andespace/features/rooms/presentation/controllers/home_search_notifier.dart';
 import 'package:andespace/shared/theme/app_theme_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

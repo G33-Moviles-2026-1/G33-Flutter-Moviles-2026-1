@@ -1,4 +1,5 @@
-import 'package:andespace/core/di/auth_providers.dart';
+import 'package:andespace/features/auth/presentation/controllers/auth_notifier.dart';
+import '../controllers/my_bookings_notifier.dart';
 import 'package:andespace/core/navigation/app_routes.dart';
 import 'package:andespace/core/navigation/app_tab.dart';
 import 'package:andespace/shared/widgets/auth_required_scaffold.dart';
@@ -7,7 +8,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../shared/widgets/app_scaffold.dart';
 import '../controllers/my_bookings_state.dart';
-import '../providers/bookings_providers.dart';
 import '../widgets/my_booking_card.dart';
 
 class MyBookingsPage extends ConsumerWidget {

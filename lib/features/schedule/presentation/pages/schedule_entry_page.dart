@@ -1,4 +1,4 @@
-import 'package:andespace/core/di/auth_providers.dart';
+import 'package:andespace/features/auth/presentation/controllers/auth_notifier.dart';
 import 'package:andespace/core/navigation/app_routes.dart';
 import 'package:andespace/core/navigation/app_tab.dart';
 import 'package:andespace/shared/widgets/app_scaffold.dart';
@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../controllers/schedule_state.dart';
-import '../providers/schedule_providers.dart';
+import '../controllers/schedule_notifier.dart';
 import 'schedule_load_page.dart';
 import 'weekly_schedule_page.dart';
 

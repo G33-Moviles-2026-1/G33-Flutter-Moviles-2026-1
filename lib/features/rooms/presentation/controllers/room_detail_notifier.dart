@@ -1,6 +1,9 @@
+import 'package:andespace/core/error/dio_error_mapper.dart';
 import 'package:andespace/features/rooms/domain/entities/room_date_availability.dart';
 import 'package:andespace/features/rooms/domain/usecases/fetch_room_date_availability.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../providers/rooms_providers.dart';
 
 class RoomDetailState {
   final RoomDateAvailability? availability;
@@ -22,27 +25,25 @@ class RoomDetailState {
   }
 }
 
-class RoomDetailController extends StateNotifier<RoomDetailState> {
-  final FetchRoomDateAvailability fetchRoomDateAvailability;
+class RoomDetailNotifier extends AutoDisposeNotifier<RoomDetailState> {
+  late final FetchRoomDateAvailability _fetchRoomDateAvailability;
 
-  RoomDetailController({required this.fetchRoomDateAvailability}) 
-      : super(RoomDetailState());
+  @override
+  RoomDetailState build() {
+    _fetchRoomDateAvailability = ref.read(fetchRoomDateAvailabilityUseCaseProvider);
+    return RoomDetailState();
+  }
 
   Future<void> loadAvailability(String roomId, String date) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final result = await fetchRoomDateAvailability(roomId: roomId, date: date);
+      final result = await _fetchRoomDateAvailability(roomId: roomId, date: date);
       state = state.copyWith(availability: result, isLoading: false);
     } catch (e) {
-      // Aquí mapeamos el error de internet o API
-      String errorMessage = "Sucedió un error inesperado";
-      if (e.toString().contains('SocketException') || e.toString().contains('Connection failed')) {
-        errorMessage = "No internet connection. Please check your network.";
-      } else {
-        errorMessage = e.toString();
-      }
-      
-      state = state.copyWith(isLoading: false, error: errorMessage);
+      state = state.copyWith(isLoading: false, error: DioErrorMapper.map(e));
     }
   }
 }
+
+final roomDetailControllerProvider =
+    NotifierProvider.autoDispose<RoomDetailNotifier, RoomDetailState>(RoomDetailNotifier.new);

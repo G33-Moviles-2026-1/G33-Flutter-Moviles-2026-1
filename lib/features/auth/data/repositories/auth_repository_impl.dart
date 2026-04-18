@@ -2,7 +2,7 @@ import '../../domain/entities/auth_user.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_api.dart';
 import '../models/auth_request_dto.dart';
-import '../models/auth_user_model.dart';
+import '../models/auth_user_dto.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final AuthApi api;

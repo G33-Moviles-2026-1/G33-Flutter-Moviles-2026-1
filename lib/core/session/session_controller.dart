@@ -1,5 +1,5 @@
 import 'dart:math';
-import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 
 class SessionLocation {
@@ -17,34 +17,50 @@ class UserSearchSelection {
   UserSearchSelection({required this.date, this.startTime, this.endTime});
 }
 
-class SessionController extends ChangeNotifier {
-  SessionController({SessionLocation? debugLocation})
-    : _currentLocation = debugLocation {
-    final now = DateTime.now();
-    _currentSearch = UserSearchSelection(
-      date: DateTime(now.year, now.month, now.day),
-    );
-  }
-  UserSearchSelection? _currentSearch;
-  UserSearchSelection? get currentSearch => _currentSearch;
+class SessionState {
+  final UserSearchSelection? currentSearch;
+  final SessionLocation? currentLocation;
 
+  const SessionState({this.currentSearch, this.currentLocation});
+
+  SessionState copyWith({
+    UserSearchSelection? currentSearch,
+    SessionLocation? currentLocation,
+  }) => SessionState(
+    currentSearch: currentSearch ?? this.currentSearch,
+    currentLocation: currentLocation ?? this.currentLocation,
+  );
+}
+
+class SessionNotifier extends Notifier<SessionState> {
   final String sessionId = _generateUuidLike();
   final String deviceId = 'flutter-debug-device';
 
-  SessionLocation? _currentLocation;
-  SessionLocation? get currentLocation => _currentLocation;
+  @override
+  SessionState build() {
+    final now = DateTime.now();
+    return SessionState(
+      currentSearch: UserSearchSelection(
+        date: DateTime(now.year, now.month, now.day),
+      ),
+    );
+  }
+
+  UserSearchSelection? get currentSearch => state.currentSearch;
+  SessionLocation? get currentLocation => state.currentLocation;
 
   void updateSearchSelection({
     required DateTime date,
     String? startTime,
     String? endTime,
   }) {
-    _currentSearch = UserSearchSelection(
-      date: date,
-      startTime: startTime,
-      endTime: endTime,
+    state = state.copyWith(
+      currentSearch: UserSearchSelection(
+        date: date,
+        startTime: startTime,
+        endTime: endTime,
+      ),
     );
-    notifyListeners();
   }
 
   Future<void> refreshLocation() async {
@@ -63,15 +79,15 @@ class SessionController extends ChangeNotifier {
     if (permission == LocationPermission.deniedForever) return;
 
     final position = await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.high,
+      locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
     );
 
-    _currentLocation = SessionLocation(
-      latitude: position.latitude,
-      longitude: position.longitude,
+    state = state.copyWith(
+      currentLocation: SessionLocation(
+        latitude: position.latitude,
+        longitude: position.longitude,
+      ),
     );
-
-    notifyListeners();
   }
 
   static String _generateUuidLike() {
