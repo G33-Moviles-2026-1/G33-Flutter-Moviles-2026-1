@@ -68,7 +68,6 @@ class RoomSearchItemDto {
     required this.utilities,
     required this.distanceSeconds,
     required this.matchingWindows,
-    required this.weeklyAvailability,
   });
 
   final String roomId;
@@ -80,7 +79,6 @@ class RoomSearchItemDto {
   final List<String> utilities;
   final double? distanceSeconds;
   final List<MatchingWindowDto> matchingWindows;
-  final List<WeeklyAvailabilityWindowDto> weeklyAvailability;
 
   factory RoomSearchItemDto.fromJson(Map<String, dynamic> json) {
     return RoomSearchItemDto(
@@ -101,14 +99,6 @@ class RoomSearchItemDto {
             ),
           )
           .toList(),
-      weeklyAvailability:
-          (json['weekly_availability'] as List<dynamic>? ?? const [])
-              .map(
-                (e) => WeeklyAvailabilityWindowDto.fromJson(
-                  Map<String, dynamic>.from(e as Map),
-                ),
-              )
-              .toList(),
     );
   }
 
@@ -123,7 +113,6 @@ class RoomSearchItemDto {
       utilities: utilities,
       distanceSeconds: distanceSeconds,
       matchingWindows: matchingWindows.map((e) => e.toDomain()).toList(),
-      weeklyAvailability: weeklyAvailability.map((e) => e.toDomain()).toList(),
     );
   }
 }
@@ -150,36 +139,3 @@ class MatchingWindowDto {
       );
 }
 
-class WeeklyAvailabilityWindowDto {
-  const WeeklyAvailabilityWindowDto({
-    required this.day,
-    required this.start,
-    required this.end,
-    required this.validFrom,
-    required this.validTo,
-  });
-
-  final String day;
-  final String start;
-  final String end;
-  final String validFrom;
-  final String validTo;
-
-  factory WeeklyAvailabilityWindowDto.fromJson(Map<String, dynamic> json) {
-    return WeeklyAvailabilityWindowDto(
-      day: json['day'] as String,
-      start: json['start'] as String,
-      end: json['end'] as String,
-      validFrom: json['valid_from'] as String,
-      validTo: json['valid_to'] as String,
-    );
-  }
-
-  WeeklyAvailabilityWindow toDomain() => WeeklyAvailabilityWindow(
-        day: day,
-        start: start,
-        end: end,
-        validFrom: validFrom,
-        validTo: validTo,
-      );
-}

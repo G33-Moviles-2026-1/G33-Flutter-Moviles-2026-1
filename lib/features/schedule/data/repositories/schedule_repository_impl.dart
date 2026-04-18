@@ -243,7 +243,6 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
             matchingWindows: [
               MatchingWindow(start: slotStart, end: slotEnd),
             ],
-            weeklyAvailability: const [],
           ),
         );
       }

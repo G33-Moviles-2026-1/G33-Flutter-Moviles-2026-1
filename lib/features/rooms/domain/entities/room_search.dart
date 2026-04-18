@@ -89,30 +89,6 @@ class MatchingWindow {
   Map<String, dynamic> toMap() => {'start': start, 'end': end};
 }
 
-class WeeklyAvailabilityWindow {
-  const WeeklyAvailabilityWindow({
-    required this.day,
-    required this.start,
-    required this.end,
-    required this.validFrom,
-    required this.validTo,
-  });
-
-  final String day;
-  final String start;
-  final String end;
-  final String validFrom;
-  final String validTo;
-
-  Map<String, dynamic> toMap() => {
-    'day': day,
-    'start': start,
-    'end': end,
-    'valid_from': validFrom,
-    'valid_to': validTo,
-  };
-}
-
 class RoomSearchItem {
   const RoomSearchItem({
     required this.roomId,
@@ -124,7 +100,6 @@ class RoomSearchItem {
     required this.utilities,
     required this.distanceSeconds,
     required this.matchingWindows,
-    required this.weeklyAvailability,
   });
 
   final String roomId;
@@ -136,7 +111,6 @@ class RoomSearchItem {
   final List<String> utilities;
   final double? distanceSeconds;
   final List<MatchingWindow> matchingWindows;
-  final List<WeeklyAvailabilityWindow> weeklyAvailability;
 
   Map<String, dynamic> toMap() => {
     'room_id': roomId,
@@ -148,7 +122,6 @@ class RoomSearchItem {
     'utilities': utilities,
     'distance_seconds': distanceSeconds,
     'matching_windows': matchingWindows.map((e) => e.toMap()).toList(),
-    'weekly_availability': weeklyAvailability.map((e) => e.toMap()).toList(),
   };
 }
 
