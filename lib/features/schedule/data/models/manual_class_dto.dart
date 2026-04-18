@@ -1,3 +1,5 @@
+import 'package:andespace/core/utils/date_time_utils.dart';
+
 class ManualClassModel {
   final String title;
   final String? locationText;
@@ -32,10 +34,5 @@ class ManualClassModel {
     };
   }
 
-  static String _formatDateOnly(DateTime date) {
-    final yyyy = date.year.toString().padLeft(4, '0');
-    final mm = date.month.toString().padLeft(2, '0');
-    final dd = date.day.toString().padLeft(2, '0');
-    return '$yyyy-$mm-$dd';
-  }
+  static String _formatDateOnly(DateTime date) => DateTimeUtils.toApiDate(date);
 }

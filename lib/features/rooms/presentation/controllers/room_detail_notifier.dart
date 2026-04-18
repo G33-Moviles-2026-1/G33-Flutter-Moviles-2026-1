@@ -1,5 +1,6 @@
 import 'package:andespace/core/error/dio_error_mapper.dart';
 import 'package:andespace/features/rooms/domain/entities/room_date_availability.dart';
+import 'package:andespace/features/rooms/domain/usecases/fetch_room_date_availability.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/rooms_providers.dart';
@@ -25,14 +26,18 @@ class RoomDetailState {
 }
 
 class RoomDetailNotifier extends AutoDisposeNotifier<RoomDetailState> {
+  late final FetchRoomDateAvailability _fetchRoomDateAvailability;
+
   @override
-  RoomDetailState build() => RoomDetailState();
+  RoomDetailState build() {
+    _fetchRoomDateAvailability = ref.read(fetchRoomDateAvailabilityUseCaseProvider);
+    return RoomDetailState();
+  }
 
   Future<void> loadAvailability(String roomId, String date) async {
-    final fetchRoomDateAvailability = ref.read(fetchRoomDateAvailabilityUseCaseProvider);
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final result = await fetchRoomDateAvailability(roomId: roomId, date: date);
+      final result = await _fetchRoomDateAvailability(roomId: roomId, date: date);
       state = state.copyWith(availability: result, isLoading: false);
     } catch (e) {
       state = state.copyWith(isLoading: false, error: DioErrorMapper.map(e));

@@ -1,3 +1,4 @@
+import 'package:andespace/core/utils/date_time_utils.dart';
 import 'package:flutter/material.dart';
 import '../../../rooms/domain/entities/time_range.dart';
 
@@ -19,9 +20,7 @@ class BookingTimePickerRow extends StatelessWidget {
 
   static const double _controlHeight = 56;
 
-  String _formatDate(DateTime d) {
-    return '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
-  }
+  String _formatDate(DateTime d) => DateTimeUtils.toApiDate(d);
 
   String _formatRange(TimeRange r) {
     return '${r.start} - ${r.end}';

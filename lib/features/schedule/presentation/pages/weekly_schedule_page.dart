@@ -274,7 +274,7 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
                               return;
                             }
 
-                            final session = ref.read(sessionControllerProvider);
+                            final session = ref.read(sessionControllerProvider.notifier);
                             final currentSearch = session.currentSearch;
 
                             session.updateSearchSelection(

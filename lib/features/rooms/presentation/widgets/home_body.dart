@@ -1,5 +1,6 @@
 import 'package:andespace/core/navigation/app_routes.dart';
 import 'package:andespace/features/rooms/presentation/controllers/home_search_state.dart';
+import 'package:andespace/core/utils/date_time_utils.dart';
 import 'package:andespace/features/rooms/presentation/controllers/home_search_notifier.dart';
 import 'package:andespace/shared/theme/app_theme_extension.dart';
 import 'package:flutter/material.dart';
@@ -114,10 +115,7 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
 
   String _formatDate(DateTime? date) {
     if (date == null) return 'Select date';
-    final year = date.year.toString().padLeft(4, '0');
-    final month = date.month.toString().padLeft(2, '0');
-    final day = date.day.toString().padLeft(2, '0');
-    return '$year-$month-$day';
+    return DateTimeUtils.toApiDate(date);
   }
 
   void _openFiltersSheet() {

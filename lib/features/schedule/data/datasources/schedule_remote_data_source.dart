@@ -1,3 +1,4 @@
+import 'package:andespace/core/utils/date_time_utils.dart';
 import 'package:dio/dio.dart';
 
 import '../models/free_rooms_for_day_dto.dart';
@@ -216,12 +217,6 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
     return '$dd-$mm-$yyyy';
   }
 
-  String _formatYyyyMmDd(DateTime date) {
-    final dd = date.day.toString().padLeft(2, '0');
-    final mm = date.month.toString().padLeft(2, '0');
-    final yyyy = date.year.toString();
-    return '$yyyy-$mm-$dd';
-  }
 
   @override
   Future<Map<String, dynamic>> getRecommendedRoomsForDay({
@@ -230,7 +225,7 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
     final response = await dio.get(
       '/schedule/recommendations/day',
       queryParameters: {
-        'date': _formatYyyyMmDd(date),
+        'date': DateTimeUtils.toApiDate(date),
       },
     );
 

@@ -2,7 +2,7 @@ import 'package:andespace/core/analytics/analytics_events.dart';
 import 'package:andespace/core/analytics/analytics_service.dart';
 import 'package:andespace/core/di/core_provider.dart';
 import 'package:andespace/core/error/dio_error_mapper.dart';
-import 'package:andespace/core/session/session_controller.dart';
+import 'package:andespace/core/utils/date_time_utils.dart';
 import 'package:andespace/features/rooms/domain/entities/room_search.dart';
 import 'package:andespace/features/rooms/domain/usecases/search_rooms.dart';
 import 'package:flutter/material.dart';
@@ -14,20 +14,20 @@ import 'home_search_state.dart';
 class HomeSearchNotifier extends AutoDisposeNotifier<HomeSearchState> {
   late final SearchRooms _searchRooms;
   late final AnalyticsService _analyticsService;
-  late final SessionController _sessionController;
+  late final SessionNotifier _sessionNotifier;
 
   @override
   HomeSearchState build() {
     _searchRooms = ref.read(searchRoomsUseCaseProvider);
     _analyticsService = ref.read(analyticsServiceProvider);
-    _sessionController = ref.read(sessionControllerProvider);
+    _sessionNotifier = ref.read(sessionControllerProvider.notifier);
     return const HomeSearchState.initial();
   }
 
   Future<void> onFiltersOpened() async {
     await _analyticsService.track(
-      sessionId: _sessionController.sessionId,
-      deviceId: _sessionController.deviceId,
+      sessionId: _sessionNotifier.sessionId,
+      deviceId: _sessionNotifier.deviceId,
       eventName: AnalyticsEvents.homeFiltersOpened,
       screen: 'home',
       propsJson: const {},
@@ -65,27 +65,27 @@ class HomeSearchNotifier extends AutoDisposeNotifier<HomeSearchState> {
 
     if (nearMe) {
       state = HomeSearchState.loading(previousResponse: state.response);
-      await _sessionController.refreshLocation();
+      await _sessionNotifier.refreshLocation();
     }
 
-    final sessionLocation = nearMe ? _sessionController.currentLocation : null;
+    final sessionLocation = nearMe ? _sessionNotifier.currentLocation : null;
 
     if (nearMe && sessionLocation == null) {
       state = HomeSearchState.error('No se pudo obtener tu ubicación GPS.');
       return;
     }
 
-    _sessionController.updateSearchSelection(
+    _sessionNotifier.updateSearchSelection(
       date: selectedDate,
-      startTime: since == null ? null : _formatTime24(since),
-      endTime: until == null ? null : _formatTime24(until),
+      startTime: since == null ? null : DateTimeUtils.toApiTime(since),
+      endTime: until == null ? null : DateTimeUtils.toApiTime(until),
     );
 
     final request = RoomSearchRequest(
       roomPrefixes: normalizedPrefixes,
-      date: _formatDate(selectedDate),
-      since: since == null ? null : _formatTime24(since),
-      until: until == null ? null : _formatTime24(until),
+      date: DateTimeUtils.toApiDate(selectedDate),
+      since: since == null ? null : DateTimeUtils.toApiTime(since),
+      until: until == null ? null : DateTimeUtils.toApiTime(until),
       buildingCodes: const [],
       utilities: selectedUtilities.toList()..sort(),
       nearMe: nearMe,
@@ -100,8 +100,8 @@ class HomeSearchNotifier extends AutoDisposeNotifier<HomeSearchState> {
 
     try {
       await _analyticsService.track(
-        sessionId: _sessionController.sessionId,
-        deviceId: _sessionController.deviceId,
+        sessionId: _sessionNotifier.sessionId,
+        deviceId: _sessionNotifier.deviceId,
         eventName: AnalyticsEvents.homeSearchSubmitted,
         screen: 'home',
         propsJson: {
@@ -139,18 +139,6 @@ class HomeSearchNotifier extends AutoDisposeNotifier<HomeSearchState> {
     return (a.hour * 60 + a.minute) < (b.hour * 60 + b.minute);
   }
 
-  String _formatDate(DateTime value) {
-    final year = value.year.toString().padLeft(4, '0');
-    final month = value.month.toString().padLeft(2, '0');
-    final day = value.day.toString().padLeft(2, '0');
-    return '$year-$month-$day';
-  }
-
-  String _formatTime24(TimeOfDay value) {
-    final hour = value.hour.toString().padLeft(2, '0');
-    final minute = value.minute.toString().padLeft(2, '0');
-    return '$hour:$minute';
-  }
 
   String _mapError(Object error) => DioErrorMapper.map(
         error,
@@ -168,7 +156,7 @@ class HomeSearchNotifier extends AutoDisposeNotifier<HomeSearchState> {
     SearchLocation? recoveredLocation = lastQuery.userLocation;
 
     if (lastQuery.nearMe && recoveredLocation == null) {
-      final currentSessionLoc = _sessionController.currentLocation;
+      final currentSessionLoc = _sessionNotifier.currentLocation;
       if (currentSessionLoc != null) {
         recoveredLocation = SearchLocation(
           latitude: currentSessionLoc.latitude,

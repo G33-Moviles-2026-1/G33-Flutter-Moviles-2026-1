@@ -2,7 +2,7 @@ import 'package:andespace/core/analytics/analytics_events.dart';
 import 'package:andespace/core/analytics/analytics_service.dart';
 import 'package:andespace/core/di/core_provider.dart';
 import 'package:andespace/core/error/dio_error_mapper.dart';
-import 'package:andespace/core/session/session_controller.dart';
+import 'package:andespace/core/utils/date_time_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../rooms/domain/entities/room_search.dart';
@@ -17,16 +17,16 @@ class CreateBookingNotifier
     extends AutoDisposeFamilyNotifier<CreateBookingState, RoomSearchItem> {
   late final CreateBooking _createBooking;
   late final AnalyticsService _analyticsService;
-  late final SessionController _sessionController;
+  late final SessionNotifier _sessionNotifier;
 
   @override
   CreateBookingState build(RoomSearchItem arg) {
     _createBooking = ref.read(createBookingUseCaseProvider);
     _analyticsService = ref.read(analyticsServiceProvider);
-    _sessionController = ref.read(sessionControllerProvider);
+    _sessionNotifier = ref.read(sessionControllerProvider.notifier);
 
-    final initialDate = _resolveInitialDate(_sessionController);
-    final preferredRange = _resolveInitialPreferredTimeRange(_sessionController);
+    final initialDate = _resolveInitialDate(_sessionNotifier);
+    final preferredRange = _resolveInitialPreferredTimeRange(_sessionNotifier);
 
     Future.microtask(
       () => _loadAvailabilityFor(initialDate, preferredTimeRange: preferredRange),
@@ -42,13 +42,13 @@ class CreateBookingNotifier
     return DateTime(now.year, now.month, now.day);
   }
 
-  static DateTime _resolveInitialDate(SessionController sessionController) {
+  static DateTime _resolveInitialDate(SessionNotifier sessionController) {
     final searchDate = sessionController.currentSearch?.date;
     if (searchDate == null) return _today();
     return DateTime(searchDate.year, searchDate.month, searchDate.day);
   }
 
-  static TimeRange? _resolveInitialPreferredTimeRange(SessionController sessionController) {
+  static TimeRange? _resolveInitialPreferredTimeRange(SessionNotifier sessionController) {
     final search = sessionController.currentSearch;
     final start = search?.startTime;
     final end = search?.endTime;
@@ -124,7 +124,7 @@ class CreateBookingNotifier
     try {
       final availability = await fetchRoomDateAvailability(
         roomId: _room.roomId,
-        date: _formatDate(date),
+        date: DateTimeUtils.toApiDate(date),
       );
       final ranges = availability.availableSlots
           .map((slot) => TimeRange(start: slot.start, end: slot.end))
@@ -166,8 +166,8 @@ class CreateBookingNotifier
   }) async {
     try {
       await _analyticsService.track(
-        sessionId: _sessionController.sessionId,
-        deviceId: _sessionController.deviceId,
+        sessionId: _sessionNotifier.sessionId,
+        deviceId: _sessionNotifier.deviceId,
         eventName: AnalyticsEvents.bookingCreated,
         screen: 'create_booking',
         propsJson: {
@@ -187,12 +187,6 @@ class CreateBookingNotifier
     } catch (_) {}
   }
 
-  String _formatDate(DateTime value) {
-    final year = value.year.toString().padLeft(4, '0');
-    final month = value.month.toString().padLeft(2, '0');
-    final day = value.day.toString().padLeft(2, '0');
-    return '$year-$month-$day';
-  }
 
   String _mapError(Object error) => DioErrorMapper.map(
         error,

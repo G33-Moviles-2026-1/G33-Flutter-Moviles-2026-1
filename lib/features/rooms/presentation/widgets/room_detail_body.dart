@@ -33,7 +33,7 @@ class _RoomDetailBodyState extends ConsumerState<RoomDetailBody> {
   @override
   void initState() {
     super.initState();
-    final session = ref.read(sessionControllerProvider);
+    final session = ref.read(sessionControllerProvider.notifier);
     selectedDate = session.currentSearch?.date ?? DateTime.now();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -99,7 +99,7 @@ class _RoomDetailBodyState extends ConsumerState<RoomDetailBody> {
 
     if (picked != null) {
       setState(() => selectedDate = picked);
-      final session = ref.read(sessionControllerProvider);
+      final session = ref.read(sessionControllerProvider.notifier);
       session.updateSearchSelection(
         date: picked,
         startTime: session.currentSearch?.startTime,

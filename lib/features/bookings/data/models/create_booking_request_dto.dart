@@ -1,3 +1,4 @@
+import 'package:andespace/core/utils/date_time_utils.dart';
 import '../../../rooms/domain/entities/time_range.dart';
 import '../../domain/entities/booking_purpose.dart';
 
@@ -17,17 +18,10 @@ class CreateBookingRequestDto {
   Map<String, dynamic> toJson() {
     return {
       'room_id': roomId,
-      'date': _formatDate(date),
+      'date': DateTimeUtils.toApiDate(date),
       'start_time': timeRange.start,
       'end_time': timeRange.end,
       'purpose': purpose.backendKey,
     };
-  }
-
-  String _formatDate(DateTime value) {
-    final year = value.year.toString().padLeft(4, '0');
-    final month = value.month.toString().padLeft(2, '0');
-    final day = value.day.toString().padLeft(2, '0');
-    return '$year-$month-$day';
   }
 }
