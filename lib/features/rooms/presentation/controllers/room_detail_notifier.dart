@@ -34,7 +34,7 @@ class RoomDetailNotifier extends AutoDisposeNotifier<RoomDetailState> {
     return RoomDetailState();
   }
 
-  Future<void> loadAvailability(String roomId, String date) async {
+  Future<void> loadAvailability(String roomId, DateTime date) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
       final result = await _fetchRoomDateAvailability(roomId: roomId, date: date);

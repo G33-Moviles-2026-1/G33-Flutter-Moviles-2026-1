@@ -1,6 +1,5 @@
+import 'package:andespace/core/di/core_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../../../../core/di/core_provider.dart';
 import '../../../rooms/domain/entities/room_search.dart';
 import '../../../rooms/domain/entities/time_range.dart';
 import '../../domain/entities/booking_purpose.dart';

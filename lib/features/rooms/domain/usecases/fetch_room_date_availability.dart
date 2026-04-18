@@ -1,3 +1,5 @@
+import 'package:andespace/core/utils/date_time_utils.dart';
+
 import '../entities/room_date_availability.dart';
 import '../repositories/rooms_repository.dart';
 
@@ -8,11 +10,11 @@ class FetchRoomDateAvailability {
 
   Future<RoomDateAvailability> call({
     required String roomId,
-    required String date,
+    required DateTime date,
   }) {
     return _repository.fetchRoomDateAvailability(
       roomId: roomId,
-      date: date,
+      date: DateTimeUtils.toApiDate(date),
     );
   }
 }
