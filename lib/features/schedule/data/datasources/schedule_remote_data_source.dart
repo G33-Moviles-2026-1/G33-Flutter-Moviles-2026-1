@@ -1,11 +1,11 @@
 import 'package:dio/dio.dart';
 
-import '../models/free_rooms_for_day_model.dart';
-import '../models/manual_class_model.dart';
-import '../models/schedule_class_model.dart';
-import '../models/schedule_delete_response_model.dart';
-import '../models/schedule_upload_response_model.dart';
-import '../models/weekly_schedule_model.dart';
+import '../models/free_rooms_for_day_dto.dart';
+import '../models/manual_class_dto.dart';
+import '../models/schedule_class_dto.dart';
+import '../models/schedule_delete_response_dto.dart';
+import '../models/schedule_upload_response_dto.dart';
+import '../models/weekly_schedule_dto.dart';
 
 abstract class ScheduleRemoteDataSource {
   Future<ScheduleUploadResponseModel> uploadIcsSchedule({

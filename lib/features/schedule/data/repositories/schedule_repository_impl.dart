@@ -7,7 +7,7 @@ import '../../domain/entities/schedule_occurrence.dart';
 import '../../domain/entities/weekly_schedule.dart';
 import '../../domain/repositories/schedule_repository.dart';
 import '../datasources/schedule_remote_data_source.dart';
-import '../models/manual_class_model.dart';
+import '../models/manual_class_dto.dart';
 
 class ScheduleRepositoryImpl implements ScheduleRepository {
   final ScheduleRemoteDataSource remoteDataSource;
