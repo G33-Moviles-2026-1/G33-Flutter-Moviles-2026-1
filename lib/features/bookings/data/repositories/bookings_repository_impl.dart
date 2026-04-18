@@ -1,5 +1,3 @@
-import 'package:dio/dio.dart';
-
 import '../../../rooms/domain/entities/time_range.dart';
 import '../../domain/entities/booking.dart';
 import '../../domain/entities/booking_purpose.dart';
@@ -11,12 +9,8 @@ import '../models/my_bookings_response_dto.dart';
 import '../remote/bookings_api.dart';
 
 class BookingsRepositoryImpl implements BookingsRepository {
-  BookingsRepositoryImpl({
-    required this.dio,
-    required this.bookingsApi,
-  });
+  BookingsRepositoryImpl({required this.bookingsApi});
 
-  final Dio dio;
   final BookingsApi bookingsApi;
 
   @override

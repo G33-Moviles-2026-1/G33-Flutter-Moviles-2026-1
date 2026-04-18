@@ -1,3 +1,4 @@
+import 'package:andespace/core/error/dio_error_mapper.dart';
 import 'package:andespace/features/rooms/domain/entities/room_date_availability.dart';
 import 'package:andespace/features/rooms/domain/usecases/fetch_room_date_availability.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -34,15 +35,7 @@ class RoomDetailController extends StateNotifier<RoomDetailState> {
       final result = await fetchRoomDateAvailability(roomId: roomId, date: date);
       state = state.copyWith(availability: result, isLoading: false);
     } catch (e) {
-      // Aquí mapeamos el error de internet o API
-      String errorMessage = "Sucedió un error inesperado";
-      if (e.toString().contains('SocketException') || e.toString().contains('Connection failed')) {
-        errorMessage = "No internet connection. Please check your network.";
-      } else {
-        errorMessage = e.toString();
-      }
-      
-      state = state.copyWith(isLoading: false, error: errorMessage);
+      state = state.copyWith(isLoading: false, error: DioErrorMapper.map(e));
     }
   }
 }

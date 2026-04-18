@@ -1,5 +1,3 @@
-import 'package:dio/dio.dart';
-
 import '../../domain/entities/room_date_availability.dart';
 import '../../domain/entities/room_search.dart';
 import '../../domain/repositories/rooms_repository.dart';
@@ -9,12 +7,8 @@ import '../models/room_search_response_dto.dart';
 import '../remote/rooms_api.dart';
 
 class RoomRepositoryImpl implements RoomRepository {
-  RoomRepositoryImpl({
-    required this.dio,
-    required this.roomsApi,
-  });
+  RoomRepositoryImpl({required this.roomsApi});
 
-  final Dio dio;
   final RoomsApi roomsApi;
 
   @override

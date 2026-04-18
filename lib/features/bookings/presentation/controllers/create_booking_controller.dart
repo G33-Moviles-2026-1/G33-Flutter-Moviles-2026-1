@@ -1,7 +1,7 @@
 import 'package:andespace/core/analytics/analytics_events.dart';
 import 'package:andespace/core/analytics/analytics_service.dart';
+import 'package:andespace/core/error/dio_error_mapper.dart';
 import 'package:andespace/core/session/session_controller.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../rooms/domain/entities/time_range.dart';
@@ -243,67 +243,12 @@ class CreateBookingController extends StateNotifier<CreateBookingState> {
     return '$year-$month-$day';
   }
 
-  String _mapError(Object error) {
-    if (error is DioException) {
-      switch (error.type) {
-        case DioExceptionType.connectionTimeout:
-        case DioExceptionType.sendTimeout:
-        case DioExceptionType.receiveTimeout:
-          return 'The server is not responding. Please try again later.';
-
-        case DioExceptionType.connectionError:
-          return 'No internet connection. Please check your connection and try again.';
-
-        case DioExceptionType.badCertificate:
-          return 'A secure connection could not be established. Please try again later.';
-
-        case DioExceptionType.cancel:
-          return 'The request was cancelled. Please try again.';
-
-        case DioExceptionType.badResponse:
-          final statusCode = error.response?.statusCode;
-          final data = error.response?.data;
-
-          if (data is Map && data['detail'] is String) {
-            return data['detail'] as String;
-          }
-
-          if (statusCode != null && statusCode >= 500) {
-            return 'The server is currently unavailable. Please try again later.';
-          }
-
-          if (statusCode != null && statusCode >= 400) {
-            return 'We could not complete your booking. Please try again.';
-          }
-
+  String _mapError(Object error) => DioErrorMapper.map(
+        error,
+        onBadResponse: (statusCode, detail) {
+          if (detail != null) return detail;
+          if (statusCode >= 400) return 'We could not complete your booking. Please try again.';
           return 'Something went wrong. Please try again.';
-
-        case DioExceptionType.unknown:
-          final message = error.message?.toLowerCase() ?? '';
-          if (message.contains('socketexception') ||
-              message.contains('failed host lookup') ||
-              message.contains('network is unreachable')) {
-            return 'No internet connection. Please check your connection and try again.';
-          }
-          if (message.contains('timeout')) {
-            return 'The server is not responding. Please try again later.';
-          }
-          return 'Something went wrong. Please try again.';
-      }
-    }
-
-    final raw = error.toString().toLowerCase();
-
-    if (raw.contains('failed host lookup') ||
-        raw.contains('socketexception') ||
-        raw.contains('network is unreachable')) {
-      return 'No internet connection. Please check your connection and try again.';
-    }
-
-    if (raw.contains('timeout')) {
-      return 'The server is not responding. Please try again later.';
-    }
-
-    return 'Something went wrong. Please try again.';
-  }
+        },
+      );
 }

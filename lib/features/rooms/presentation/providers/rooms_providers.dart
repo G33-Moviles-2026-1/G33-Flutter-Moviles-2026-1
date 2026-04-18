@@ -10,23 +10,20 @@ import 'package:andespace/features/rooms/presentation/controllers/room_detail_co
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final roomsApiProvider = Provider<RoomsApi>((ref) {
-  return RoomsApi(ref.read(dioProvider));
+  return RoomsApi(ref.watch(dioProvider));
 });
 
 final roomRepositoryProvider = Provider<RoomRepository>((ref) {
-  return RoomRepositoryImpl(
-    dio: ref.read(dioProvider),
-    roomsApi: ref.read(roomsApiProvider),
-  );
+  return RoomRepositoryImpl(roomsApi: ref.watch(roomsApiProvider));
 });
 
 final searchRoomsUseCaseProvider = Provider<SearchRooms>((ref) {
-  return SearchRooms(ref.read(roomRepositoryProvider));
+  return SearchRooms(ref.watch(roomRepositoryProvider));
 });
 
 final fetchRoomDateAvailabilityUseCaseProvider =
     Provider<FetchRoomDateAvailability>((ref) {
-      return FetchRoomDateAvailability(ref.read(roomRepositoryProvider));
+      return FetchRoomDateAvailability(ref.watch(roomRepositoryProvider));
     });
 
 final roomDetailControllerProvider = StateNotifierProvider.autoDispose<RoomDetailController, RoomDetailState>((ref) {

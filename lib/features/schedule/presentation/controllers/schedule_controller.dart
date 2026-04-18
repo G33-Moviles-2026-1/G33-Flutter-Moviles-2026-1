@@ -1,8 +1,9 @@
+import 'package:andespace/core/analytics/analytics_service.dart';
+import 'package:andespace/core/error/dio_error_mapper.dart';
 import 'package:andespace/features/rooms/domain/entities/room_search.dart';
 import 'package:andespace/features/schedule/domain/entities/schedule_class.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:andespace/core/analytics/analytics_service.dart';
 
 import '../../domain/entities/manual_class.dart';
 import '../../domain/usecases/delete_full_schedule.dart';
@@ -48,71 +49,20 @@ class ScheduleController extends StateNotifier<ScheduleState> {
     return email;
   }
 
-  String _extractBackendErrorMessage(Object error) {
-    if (error is DioException) {
-      switch (error.type) {
-        case DioExceptionType.connectionTimeout:
-        case DioExceptionType.sendTimeout:
-        case DioExceptionType.receiveTimeout:
-          return 'The request is taking longer than expected. Please try again.';
-
-        case DioExceptionType.connectionError:
-          return 'No internet connection. Please check your network and try again.';
-
-        case DioExceptionType.badResponse:
-          final statusCode = error.response?.statusCode;
-          final responseData = error.response?.data;
-
-          String? backendDetail;
-          if (responseData is Map<String, dynamic>) {
-            final detail = responseData['detail'];
-            if (detail is String) {
-              backendDetail = detail;
-            }
-          }
-
-          if (statusCode == 404) {
-            return 'No schedule was found for this week.';
-          }
-
+  String _extractBackendErrorMessage(Object error) => DioErrorMapper.map(
+        error,
+        onBadResponse: (statusCode, detail) {
           if (statusCode == 422) {
-            final detail = backendDetail?.toLowerCase() ?? '';
-
-            final isInvalidTimeRange =
-                detail.contains('class start_time must be between 05:30 and 22:00') ||
-                detail.contains('class end_time must be at or before 22:00') ||
-                detail.contains('class end_time must be later than start_time');
-
-            if (isInvalidTimeRange) {
+            final d = detail?.toLowerCase() ?? '';
+            if (d.contains('class start_time must be between 05:30 and 22:00') ||
+                d.contains('class end_time must be at or before 22:00') ||
+                d.contains('class end_time must be later than start_time')) {
               return 'The class hours must be between 05:30 and 22:00.';
             }
           }
-
-          if (statusCode != null && statusCode >= 500) {
-            return 'Our servers are having trouble right now. Please try again in a moment.';
-          }
-
           return 'Something went wrong. Please try again.';
-
-        case DioExceptionType.badCertificate:
-          return 'A secure connection could not be established. Please try again later.';
-
-        case DioExceptionType.cancel:
-          return 'The request was cancelled. Please try again.';
-
-        case DioExceptionType.unknown:
-          final message = error.message?.toLowerCase() ?? '';
-          if (message.contains('socketexception') ||
-              message.contains('failed host lookup') ||
-              message.contains('network is unreachable')) {
-            return 'No internet connection. Please check your network and try again.';
-          }
-          return 'Something went wrong. Please try again.';
-      }
-    }
-
-    return 'Something went wrong. Please try again.';
-  }
+        },
+      );
 
   Future<void> _trackScheduleImportStep({
     required String importSessionId,

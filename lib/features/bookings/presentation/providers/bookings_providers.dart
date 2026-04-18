@@ -15,26 +15,23 @@ import '../controllers/my_bookings_controller.dart';
 import '../controllers/my_bookings_state.dart';
 
 final bookingsApiProvider = Provider<BookingsApi>((ref) {
-  return BookingsApi(ref.read(dioProvider));
+  return BookingsApi(ref.watch(dioProvider));
 });
 
 final bookingsRepositoryProvider = Provider<BookingsRepository>((ref) {
-  return BookingsRepositoryImpl(
-    dio: ref.read(dioProvider),
-    bookingsApi: ref.read(bookingsApiProvider),
-  );
+  return BookingsRepositoryImpl(bookingsApi: ref.watch(bookingsApiProvider));
 });
 
 final createBookingUseCaseProvider = Provider<CreateBooking>((ref) {
-  return CreateBooking(ref.read(bookingsRepositoryProvider));
+  return CreateBooking(ref.watch(bookingsRepositoryProvider));
 });
 
 final getMyBookingsUseCaseProvider = Provider<GetMyBookings>((ref) {
-  return GetMyBookings(ref.read(bookingsRepositoryProvider));
+  return GetMyBookings(ref.watch(bookingsRepositoryProvider));
 });
 
 final deleteMyBookingUseCaseProvider = Provider<DeleteMyBooking>((ref) {
-  return DeleteMyBooking(ref.read(bookingsRepositoryProvider));
+  return DeleteMyBooking(ref.watch(bookingsRepositoryProvider));
 });
 
 final createBookingControllerProvider = StateNotifierProvider.autoDispose
