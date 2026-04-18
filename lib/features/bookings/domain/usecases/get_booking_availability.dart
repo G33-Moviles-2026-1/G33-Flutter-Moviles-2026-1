@@ -1,5 +1,4 @@
 import '../../../../core/error/dio_error_mapper.dart';
-import '../../../../core/utils/date_time_utils.dart';
 import '../../../rooms/domain/entities/time_range.dart';
 import '../../../rooms/domain/usecases/fetch_room_date_availability.dart';
 import '../entities/booking_availability_data.dart';
@@ -17,7 +16,7 @@ class GetBookingAvailability {
     try {
       final availability = await _fetchRoomDateAvailability(
         roomId: roomId,
-        date: DateTimeUtils.toApiDate(date),
+        date: date,
       );
 
       final ranges = availability.availableSlots
