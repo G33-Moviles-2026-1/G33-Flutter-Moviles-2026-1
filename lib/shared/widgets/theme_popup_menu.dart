@@ -16,7 +16,7 @@ class ThemePopupMenu extends ConsumerWidget {
   void _showThemeDialog(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final currentPreference = ref.read(themeControllerProvider).preference;
+    final currentPreference = ref.read(themeModeProvider).preference;
 
     showGeneralDialog(
       context: context,

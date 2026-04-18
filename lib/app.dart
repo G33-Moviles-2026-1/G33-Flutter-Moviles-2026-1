@@ -10,7 +10,7 @@ class AndespaceApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final themeState = ref.watch(themeControllerProvider);
+    final themeState = ref.watch(themeModeProvider);
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
