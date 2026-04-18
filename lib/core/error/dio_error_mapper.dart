@@ -2,9 +2,23 @@ import 'package:dio/dio.dart';
 
 class DioErrorMapper {
   const DioErrorMapper._();
+
+  static const String _defaultFallback =
+      'Something went wrong. Please try again.';
+  static const String _serverNotResponding =
+      'The server is not responding. Please try again later.';
+  static const String _noInternetConnection =
+      'No internet connection. Please check your connection and try again.';
+  static const String _secureConnectionFailed =
+      'A secure connection could not be established. Please try again later.';
+  static const String _requestCancelled =
+      'The request was cancelled. Please try again.';
+  static const String _serverUnavailable =
+      'The server is currently unavailable. Please try again later.';
+
   static String map(
     Object error, {
-    String fallback = 'Something went wrong. Please try again.',
+    String fallback = _defaultFallback,
     String Function(int statusCode, String? detail)? onBadResponse,
   }) {
     if (error is DioException) {
@@ -12,16 +26,16 @@ class DioErrorMapper {
         case DioExceptionType.connectionTimeout:
         case DioExceptionType.sendTimeout:
         case DioExceptionType.receiveTimeout:
-          return 'The server is not responding. Please try again later.';
+          return _serverNotResponding;
 
         case DioExceptionType.connectionError:
-          return 'No internet connection. Please check your connection and try again.';
+          return _noInternetConnection;
 
         case DioExceptionType.badCertificate:
-          return 'A secure connection could not be established. Please try again later.';
+          return _secureConnectionFailed;
 
         case DioExceptionType.cancel:
-          return 'The request was cancelled. Please try again.';
+          return _requestCancelled;
 
         case DioExceptionType.badResponse:
           final statusCode = error.response?.statusCode;
@@ -29,7 +43,7 @@ class DioErrorMapper {
           final detail = data is Map ? data['detail'] as String? : null;
 
           if (statusCode != null && statusCode >= 500) {
-            return 'The server is currently unavailable. Please try again later.';
+            return _serverUnavailable;
           }
 
           if (statusCode != null && onBadResponse != null) {
@@ -41,10 +55,10 @@ class DioErrorMapper {
         case DioExceptionType.unknown:
           final msg = error.message?.toLowerCase() ?? '';
           if (_isNetworkKeyword(msg)) {
-            return 'No internet connection. Please check your connection and try again.';
+            return _noInternetConnection;
           }
           if (msg.contains('timeout')) {
-            return 'The server is not responding. Please try again later.';
+            return _serverNotResponding;
           }
           return fallback;
       }
@@ -52,10 +66,10 @@ class DioErrorMapper {
 
     final raw = error.toString().toLowerCase();
     if (_isNetworkKeyword(raw)) {
-      return 'No internet connection. Please check your connection and try again.';
+      return _noInternetConnection;
     }
     if (raw.contains('timeout')) {
-      return 'The server is not responding. Please try again later.';
+      return _serverNotResponding;
     }
 
     return fallback;

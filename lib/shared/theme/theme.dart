@@ -138,7 +138,7 @@ abstract final class AppTheme {
           if (states.contains(WidgetState.selected)) {
             return Colors.black;
           }
-          return Color(0xFFFCBD00);
+          return const Color(0xFFFCBD00);
         }),
 
       ),
@@ -292,7 +292,7 @@ abstract final class AppTheme {
           if (states.contains(WidgetState.selected)) {
             return Colors.white;
           }
-          return Color(0xFFFFA500);
+          return const Color(0xFFFFA500);
         }),
         dayBackgroundColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {

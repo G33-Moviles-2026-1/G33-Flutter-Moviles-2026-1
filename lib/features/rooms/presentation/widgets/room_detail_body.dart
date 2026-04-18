@@ -431,7 +431,7 @@ class _RoomDetailBodyState extends ConsumerState<RoomDetailBody> {
             border: Border.all(
               color: _isDark(context)
                   ? t.colorScheme.onSurface.withValues(alpha: 0.14)
-                  : Colors.black.withOpacity(0.1),
+                  : Colors.black.withValues(alpha: 0.1),
               width: 1,
             ),
           ),
@@ -490,7 +490,7 @@ class _RoomDetailBodyState extends ConsumerState<RoomDetailBody> {
           decoration: BoxDecoration(
             color: _isDark(context)
                 ? _fieldColor(context)
-                : brand.softYellow.withOpacity(0.5),
+                : brand.softYellow.withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
               color: _isDark(context) ? brand.accentYellow : Colors.black,
