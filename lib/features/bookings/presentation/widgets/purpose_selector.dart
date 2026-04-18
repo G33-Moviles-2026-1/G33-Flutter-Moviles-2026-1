@@ -14,43 +14,47 @@ class PurposeSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final purposes = BookingPurpose.values;
+    const purposes = BookingPurpose.values;
     final theme = Theme.of(context);
     final brand = theme.extension<BrandColors>();
 
     final radioColor = brand?.accentYellow ?? theme.colorScheme.secondary;
 
-    return ListTileTheme(
-      dense: true,
-      horizontalTitleGap: 8,
-      minVerticalPadding: 0,
-      contentPadding: EdgeInsets.zero,
-      child: Column(
-        children: purposes.map((p) {
-          return RadioListTile<BookingPurpose>(
-            value: p,
-            groupValue: selected,
-            onChanged: (v) {
-              if (v != null) onChanged(v);
-            },
-            activeColor: radioColor,
-            fillColor: WidgetStateProperty.resolveWith<Color>((states) {
-              if (states.contains(WidgetState.selected)) {
-                return radioColor;
-              }
-              return theme.colorScheme.onSurface;
-            }),
-            dense: true,
-            visualDensity: const VisualDensity(vertical: -3),
-            contentPadding: EdgeInsets.zero,
-            title: Text(
-              p.label,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: theme.colorScheme.onSurface,
+    return RadioGroup<BookingPurpose>(
+      groupValue: selected,
+      onChanged: (BookingPurpose? value) {
+        if (value != null) {
+          onChanged(value);
+        }
+      },
+      child: ListTileTheme(
+        dense: true,
+        horizontalTitleGap: 8,
+        minVerticalPadding: 0,
+        contentPadding: EdgeInsets.zero,
+        child: Column(
+          children: purposes.map((p) {
+            return RadioListTile<BookingPurpose>(
+              value: p,
+              activeColor: radioColor,
+              fillColor: WidgetStateProperty.resolveWith<Color>((states) {
+                if (states.contains(WidgetState.selected)) {
+                  return radioColor;
+                }
+                return theme.colorScheme.onSurface;
+              }),
+              dense: true,
+              visualDensity: const VisualDensity(vertical: -3),
+              contentPadding: EdgeInsets.zero,
+              title: Text(
+                p.label,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: theme.colorScheme.onSurface,
+                ),
               ),
-            ),
-          );
-        }).toList(),
+            );
+          }).toList(),
+        ),
       ),
     );
   }
