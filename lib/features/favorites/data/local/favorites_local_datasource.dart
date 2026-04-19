@@ -1,7 +1,8 @@
+import 'package:andespace/core/local/app_database.dart';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../../bookings/data/local/bookings_database.dart';
+import '../../../../core/local/app_database.dart';
 import '../models/favorite_mutation_dto.dart';
 import '../models/favorite_room_snapshot_dto.dart';
 

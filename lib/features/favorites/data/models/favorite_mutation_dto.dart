@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart';
 
-import '../../../bookings/data/local/bookings_database.dart';
+import '../../../../core/local/app_database.dart';
 
 class FavoriteMutationDto {
   const FavoriteMutationDto({

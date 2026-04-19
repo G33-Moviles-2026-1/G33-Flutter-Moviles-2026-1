@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart';
 
-import '../../../bookings/data/local/bookings_database.dart';
+import '../../../../core/local/app_database.dart';
 import '../../../rooms/domain/entities/room_search.dart';
 import '../../domain/entities/favorite_room.dart';
 
