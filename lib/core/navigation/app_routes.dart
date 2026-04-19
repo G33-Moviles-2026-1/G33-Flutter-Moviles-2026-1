@@ -9,6 +9,7 @@ import 'package:andespace/features/navigation/presentation/pages/path_page.dart'
 import 'package:andespace/features/rooms/presentation/pages/results_page.dart';
 import 'package:andespace/features/rooms/presentation/pages/room_detail_page.dart';
 import 'package:andespace/features/schedule/presentation/pages/schedule_entry_page.dart';
+import 'package:andespace/features/favorites/presentation/pages/favorites_page.dart';
 import 'package:flutter/material.dart';
 
 class AppRoutes {
@@ -21,6 +22,7 @@ class AppRoutes {
   static const String myBookings = '/my-bookings';
   static const String schedule = '/schedule';
   static const String path = '/path';
+  static const String favorites = '/favorites';
 
   static Map<String, WidgetBuilder> routes = {
     home: (context) => const HomePage(),
@@ -41,6 +43,7 @@ class AppRoutes {
       return CreateBookingPage(room: room);
     },
     myBookings: (context) => const MyBookingsPage(),
+    favorites: (context) => const FavoritesPage(),
   };
 
   static void handleTabSelection(BuildContext context, AppTab tab) {
@@ -67,11 +70,9 @@ class AppRoutes {
         }
         break;
       case AppTab.favorites:
-        ScaffoldMessenger.of(context)
-          ..hideCurrentSnackBar()
-          ..showSnackBar(
-            const SnackBar(content: Text('Favorites screen coming soon.')),
-          );
+        if (currentRoute != favorites) {
+          Navigator.pushReplacementNamed(context, favorites);
+        }
         break;
     }
   }
