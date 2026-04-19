@@ -19,10 +19,12 @@ class AppFooter extends StatelessWidget {
         return 0;
       case AppTab.favorites:
         return 1;
-      case AppTab.bookings:
+      case AppTab.path:
         return 2;
-      case AppTab.schedule:
+      case AppTab.bookings:
         return 3;
+      case AppTab.schedule:
+        return 4;
     }
   }
 
@@ -73,6 +75,14 @@ class AppFooter extends StatelessWidget {
             currentTab == AppTab.favorites,
           ),
           label: 'Favorites',
+        ),
+        BottomNavigationBarItem(
+          icon: _icon(
+            context,
+            'assets/icons/path.svg',
+            currentTab == AppTab.path,
+          ),
+          label: 'Path',
         ),
         BottomNavigationBarItem(
           icon: _icon(
