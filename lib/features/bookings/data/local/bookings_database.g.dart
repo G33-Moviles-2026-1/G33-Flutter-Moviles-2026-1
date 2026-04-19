@@ -510,17 +510,1182 @@ class MyBookingsTableCompanion extends UpdateCompanion<MyBookingsTableData> {
   }
 }
 
+class $FavoriteRoomsTableTable extends FavoriteRoomsTable
+    with TableInfo<$FavoriteRoomsTableTable, FavoriteRoomsTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FavoriteRoomsTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _roomIdMeta = const VerificationMeta('roomId');
+  @override
+  late final GeneratedColumn<String> roomId = GeneratedColumn<String>(
+    'room_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _buildingCodeMeta = const VerificationMeta(
+    'buildingCode',
+  );
+  @override
+  late final GeneratedColumn<String> buildingCode = GeneratedColumn<String>(
+    'building_code',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _buildingNameMeta = const VerificationMeta(
+    'buildingName',
+  );
+  @override
+  late final GeneratedColumn<String> buildingName = GeneratedColumn<String>(
+    'building_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _roomNumberMeta = const VerificationMeta(
+    'roomNumber',
+  );
+  @override
+  late final GeneratedColumn<String> roomNumber = GeneratedColumn<String>(
+    'room_number',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _capacityMeta = const VerificationMeta(
+    'capacity',
+  );
+  @override
+  late final GeneratedColumn<int> capacity = GeneratedColumn<int>(
+    'capacity',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _reliabilityMeta = const VerificationMeta(
+    'reliability',
+  );
+  @override
+  late final GeneratedColumn<double> reliability = GeneratedColumn<double>(
+    'reliability',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _utilitiesJsonMeta = const VerificationMeta(
+    'utilitiesJson',
+  );
+  @override
+  late final GeneratedColumn<String> utilitiesJson = GeneratedColumn<String>(
+    'utilities_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('[]'),
+  );
+  static const VerificationMeta _syncStateMeta = const VerificationMeta(
+    'syncState',
+  );
+  @override
+  late final GeneratedColumn<String> syncState = GeneratedColumn<String>(
+    'sync_state',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('clean'),
+  );
+  static const VerificationMeta _lastErrorMeta = const VerificationMeta(
+    'lastError',
+  );
+  @override
+  late final GeneratedColumn<String> lastError = GeneratedColumn<String>(
+    'last_error',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _savedAtMeta = const VerificationMeta(
+    'savedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> savedAt = GeneratedColumn<DateTime>(
+    'saved_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    roomId,
+    buildingCode,
+    buildingName,
+    roomNumber,
+    capacity,
+    reliability,
+    utilitiesJson,
+    syncState,
+    lastError,
+    savedAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'favorite_rooms';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<FavoriteRoomsTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('room_id')) {
+      context.handle(
+        _roomIdMeta,
+        roomId.isAcceptableOrUnknown(data['room_id']!, _roomIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_roomIdMeta);
+    }
+    if (data.containsKey('building_code')) {
+      context.handle(
+        _buildingCodeMeta,
+        buildingCode.isAcceptableOrUnknown(
+          data['building_code']!,
+          _buildingCodeMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_buildingCodeMeta);
+    }
+    if (data.containsKey('building_name')) {
+      context.handle(
+        _buildingNameMeta,
+        buildingName.isAcceptableOrUnknown(
+          data['building_name']!,
+          _buildingNameMeta,
+        ),
+      );
+    }
+    if (data.containsKey('room_number')) {
+      context.handle(
+        _roomNumberMeta,
+        roomNumber.isAcceptableOrUnknown(data['room_number']!, _roomNumberMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_roomNumberMeta);
+    }
+    if (data.containsKey('capacity')) {
+      context.handle(
+        _capacityMeta,
+        capacity.isAcceptableOrUnknown(data['capacity']!, _capacityMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_capacityMeta);
+    }
+    if (data.containsKey('reliability')) {
+      context.handle(
+        _reliabilityMeta,
+        reliability.isAcceptableOrUnknown(
+          data['reliability']!,
+          _reliabilityMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_reliabilityMeta);
+    }
+    if (data.containsKey('utilities_json')) {
+      context.handle(
+        _utilitiesJsonMeta,
+        utilitiesJson.isAcceptableOrUnknown(
+          data['utilities_json']!,
+          _utilitiesJsonMeta,
+        ),
+      );
+    }
+    if (data.containsKey('sync_state')) {
+      context.handle(
+        _syncStateMeta,
+        syncState.isAcceptableOrUnknown(data['sync_state']!, _syncStateMeta),
+      );
+    }
+    if (data.containsKey('last_error')) {
+      context.handle(
+        _lastErrorMeta,
+        lastError.isAcceptableOrUnknown(data['last_error']!, _lastErrorMeta),
+      );
+    }
+    if (data.containsKey('saved_at')) {
+      context.handle(
+        _savedAtMeta,
+        savedAt.isAcceptableOrUnknown(data['saved_at']!, _savedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_savedAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {roomId};
+  @override
+  FavoriteRoomsTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return FavoriteRoomsTableData(
+      roomId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}room_id'],
+      )!,
+      buildingCode: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}building_code'],
+      )!,
+      buildingName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}building_name'],
+      ),
+      roomNumber: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}room_number'],
+      )!,
+      capacity: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}capacity'],
+      )!,
+      reliability: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}reliability'],
+      )!,
+      utilitiesJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}utilities_json'],
+      )!,
+      syncState: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sync_state'],
+      )!,
+      lastError: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}last_error'],
+      ),
+      savedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}saved_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $FavoriteRoomsTableTable createAlias(String alias) {
+    return $FavoriteRoomsTableTable(attachedDatabase, alias);
+  }
+}
+
+class FavoriteRoomsTableData extends DataClass
+    implements Insertable<FavoriteRoomsTableData> {
+  final String roomId;
+  final String buildingCode;
+  final String? buildingName;
+  final String roomNumber;
+  final int capacity;
+  final double reliability;
+  final String utilitiesJson;
+  final String syncState;
+  final String? lastError;
+  final DateTime savedAt;
+  final DateTime updatedAt;
+  const FavoriteRoomsTableData({
+    required this.roomId,
+    required this.buildingCode,
+    this.buildingName,
+    required this.roomNumber,
+    required this.capacity,
+    required this.reliability,
+    required this.utilitiesJson,
+    required this.syncState,
+    this.lastError,
+    required this.savedAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['room_id'] = Variable<String>(roomId);
+    map['building_code'] = Variable<String>(buildingCode);
+    if (!nullToAbsent || buildingName != null) {
+      map['building_name'] = Variable<String>(buildingName);
+    }
+    map['room_number'] = Variable<String>(roomNumber);
+    map['capacity'] = Variable<int>(capacity);
+    map['reliability'] = Variable<double>(reliability);
+    map['utilities_json'] = Variable<String>(utilitiesJson);
+    map['sync_state'] = Variable<String>(syncState);
+    if (!nullToAbsent || lastError != null) {
+      map['last_error'] = Variable<String>(lastError);
+    }
+    map['saved_at'] = Variable<DateTime>(savedAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  FavoriteRoomsTableCompanion toCompanion(bool nullToAbsent) {
+    return FavoriteRoomsTableCompanion(
+      roomId: Value(roomId),
+      buildingCode: Value(buildingCode),
+      buildingName: buildingName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(buildingName),
+      roomNumber: Value(roomNumber),
+      capacity: Value(capacity),
+      reliability: Value(reliability),
+      utilitiesJson: Value(utilitiesJson),
+      syncState: Value(syncState),
+      lastError: lastError == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastError),
+      savedAt: Value(savedAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory FavoriteRoomsTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return FavoriteRoomsTableData(
+      roomId: serializer.fromJson<String>(json['roomId']),
+      buildingCode: serializer.fromJson<String>(json['buildingCode']),
+      buildingName: serializer.fromJson<String?>(json['buildingName']),
+      roomNumber: serializer.fromJson<String>(json['roomNumber']),
+      capacity: serializer.fromJson<int>(json['capacity']),
+      reliability: serializer.fromJson<double>(json['reliability']),
+      utilitiesJson: serializer.fromJson<String>(json['utilitiesJson']),
+      syncState: serializer.fromJson<String>(json['syncState']),
+      lastError: serializer.fromJson<String?>(json['lastError']),
+      savedAt: serializer.fromJson<DateTime>(json['savedAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'roomId': serializer.toJson<String>(roomId),
+      'buildingCode': serializer.toJson<String>(buildingCode),
+      'buildingName': serializer.toJson<String?>(buildingName),
+      'roomNumber': serializer.toJson<String>(roomNumber),
+      'capacity': serializer.toJson<int>(capacity),
+      'reliability': serializer.toJson<double>(reliability),
+      'utilitiesJson': serializer.toJson<String>(utilitiesJson),
+      'syncState': serializer.toJson<String>(syncState),
+      'lastError': serializer.toJson<String?>(lastError),
+      'savedAt': serializer.toJson<DateTime>(savedAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  FavoriteRoomsTableData copyWith({
+    String? roomId,
+    String? buildingCode,
+    Value<String?> buildingName = const Value.absent(),
+    String? roomNumber,
+    int? capacity,
+    double? reliability,
+    String? utilitiesJson,
+    String? syncState,
+    Value<String?> lastError = const Value.absent(),
+    DateTime? savedAt,
+    DateTime? updatedAt,
+  }) => FavoriteRoomsTableData(
+    roomId: roomId ?? this.roomId,
+    buildingCode: buildingCode ?? this.buildingCode,
+    buildingName: buildingName.present ? buildingName.value : this.buildingName,
+    roomNumber: roomNumber ?? this.roomNumber,
+    capacity: capacity ?? this.capacity,
+    reliability: reliability ?? this.reliability,
+    utilitiesJson: utilitiesJson ?? this.utilitiesJson,
+    syncState: syncState ?? this.syncState,
+    lastError: lastError.present ? lastError.value : this.lastError,
+    savedAt: savedAt ?? this.savedAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  FavoriteRoomsTableData copyWithCompanion(FavoriteRoomsTableCompanion data) {
+    return FavoriteRoomsTableData(
+      roomId: data.roomId.present ? data.roomId.value : this.roomId,
+      buildingCode: data.buildingCode.present
+          ? data.buildingCode.value
+          : this.buildingCode,
+      buildingName: data.buildingName.present
+          ? data.buildingName.value
+          : this.buildingName,
+      roomNumber: data.roomNumber.present
+          ? data.roomNumber.value
+          : this.roomNumber,
+      capacity: data.capacity.present ? data.capacity.value : this.capacity,
+      reliability: data.reliability.present
+          ? data.reliability.value
+          : this.reliability,
+      utilitiesJson: data.utilitiesJson.present
+          ? data.utilitiesJson.value
+          : this.utilitiesJson,
+      syncState: data.syncState.present ? data.syncState.value : this.syncState,
+      lastError: data.lastError.present ? data.lastError.value : this.lastError,
+      savedAt: data.savedAt.present ? data.savedAt.value : this.savedAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FavoriteRoomsTableData(')
+          ..write('roomId: $roomId, ')
+          ..write('buildingCode: $buildingCode, ')
+          ..write('buildingName: $buildingName, ')
+          ..write('roomNumber: $roomNumber, ')
+          ..write('capacity: $capacity, ')
+          ..write('reliability: $reliability, ')
+          ..write('utilitiesJson: $utilitiesJson, ')
+          ..write('syncState: $syncState, ')
+          ..write('lastError: $lastError, ')
+          ..write('savedAt: $savedAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    roomId,
+    buildingCode,
+    buildingName,
+    roomNumber,
+    capacity,
+    reliability,
+    utilitiesJson,
+    syncState,
+    lastError,
+    savedAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FavoriteRoomsTableData &&
+          other.roomId == this.roomId &&
+          other.buildingCode == this.buildingCode &&
+          other.buildingName == this.buildingName &&
+          other.roomNumber == this.roomNumber &&
+          other.capacity == this.capacity &&
+          other.reliability == this.reliability &&
+          other.utilitiesJson == this.utilitiesJson &&
+          other.syncState == this.syncState &&
+          other.lastError == this.lastError &&
+          other.savedAt == this.savedAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class FavoriteRoomsTableCompanion
+    extends UpdateCompanion<FavoriteRoomsTableData> {
+  final Value<String> roomId;
+  final Value<String> buildingCode;
+  final Value<String?> buildingName;
+  final Value<String> roomNumber;
+  final Value<int> capacity;
+  final Value<double> reliability;
+  final Value<String> utilitiesJson;
+  final Value<String> syncState;
+  final Value<String?> lastError;
+  final Value<DateTime> savedAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const FavoriteRoomsTableCompanion({
+    this.roomId = const Value.absent(),
+    this.buildingCode = const Value.absent(),
+    this.buildingName = const Value.absent(),
+    this.roomNumber = const Value.absent(),
+    this.capacity = const Value.absent(),
+    this.reliability = const Value.absent(),
+    this.utilitiesJson = const Value.absent(),
+    this.syncState = const Value.absent(),
+    this.lastError = const Value.absent(),
+    this.savedAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  FavoriteRoomsTableCompanion.insert({
+    required String roomId,
+    required String buildingCode,
+    this.buildingName = const Value.absent(),
+    required String roomNumber,
+    required int capacity,
+    required double reliability,
+    this.utilitiesJson = const Value.absent(),
+    this.syncState = const Value.absent(),
+    this.lastError = const Value.absent(),
+    required DateTime savedAt,
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : roomId = Value(roomId),
+       buildingCode = Value(buildingCode),
+       roomNumber = Value(roomNumber),
+       capacity = Value(capacity),
+       reliability = Value(reliability),
+       savedAt = Value(savedAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<FavoriteRoomsTableData> custom({
+    Expression<String>? roomId,
+    Expression<String>? buildingCode,
+    Expression<String>? buildingName,
+    Expression<String>? roomNumber,
+    Expression<int>? capacity,
+    Expression<double>? reliability,
+    Expression<String>? utilitiesJson,
+    Expression<String>? syncState,
+    Expression<String>? lastError,
+    Expression<DateTime>? savedAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (roomId != null) 'room_id': roomId,
+      if (buildingCode != null) 'building_code': buildingCode,
+      if (buildingName != null) 'building_name': buildingName,
+      if (roomNumber != null) 'room_number': roomNumber,
+      if (capacity != null) 'capacity': capacity,
+      if (reliability != null) 'reliability': reliability,
+      if (utilitiesJson != null) 'utilities_json': utilitiesJson,
+      if (syncState != null) 'sync_state': syncState,
+      if (lastError != null) 'last_error': lastError,
+      if (savedAt != null) 'saved_at': savedAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  FavoriteRoomsTableCompanion copyWith({
+    Value<String>? roomId,
+    Value<String>? buildingCode,
+    Value<String?>? buildingName,
+    Value<String>? roomNumber,
+    Value<int>? capacity,
+    Value<double>? reliability,
+    Value<String>? utilitiesJson,
+    Value<String>? syncState,
+    Value<String?>? lastError,
+    Value<DateTime>? savedAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return FavoriteRoomsTableCompanion(
+      roomId: roomId ?? this.roomId,
+      buildingCode: buildingCode ?? this.buildingCode,
+      buildingName: buildingName ?? this.buildingName,
+      roomNumber: roomNumber ?? this.roomNumber,
+      capacity: capacity ?? this.capacity,
+      reliability: reliability ?? this.reliability,
+      utilitiesJson: utilitiesJson ?? this.utilitiesJson,
+      syncState: syncState ?? this.syncState,
+      lastError: lastError ?? this.lastError,
+      savedAt: savedAt ?? this.savedAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (roomId.present) {
+      map['room_id'] = Variable<String>(roomId.value);
+    }
+    if (buildingCode.present) {
+      map['building_code'] = Variable<String>(buildingCode.value);
+    }
+    if (buildingName.present) {
+      map['building_name'] = Variable<String>(buildingName.value);
+    }
+    if (roomNumber.present) {
+      map['room_number'] = Variable<String>(roomNumber.value);
+    }
+    if (capacity.present) {
+      map['capacity'] = Variable<int>(capacity.value);
+    }
+    if (reliability.present) {
+      map['reliability'] = Variable<double>(reliability.value);
+    }
+    if (utilitiesJson.present) {
+      map['utilities_json'] = Variable<String>(utilitiesJson.value);
+    }
+    if (syncState.present) {
+      map['sync_state'] = Variable<String>(syncState.value);
+    }
+    if (lastError.present) {
+      map['last_error'] = Variable<String>(lastError.value);
+    }
+    if (savedAt.present) {
+      map['saved_at'] = Variable<DateTime>(savedAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FavoriteRoomsTableCompanion(')
+          ..write('roomId: $roomId, ')
+          ..write('buildingCode: $buildingCode, ')
+          ..write('buildingName: $buildingName, ')
+          ..write('roomNumber: $roomNumber, ')
+          ..write('capacity: $capacity, ')
+          ..write('reliability: $reliability, ')
+          ..write('utilitiesJson: $utilitiesJson, ')
+          ..write('syncState: $syncState, ')
+          ..write('lastError: $lastError, ')
+          ..write('savedAt: $savedAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $FavoriteMutationsTableTable extends FavoriteMutationsTable
+    with TableInfo<$FavoriteMutationsTableTable, FavoriteMutationsTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FavoriteMutationsTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _opIdMeta = const VerificationMeta('opId');
+  @override
+  late final GeneratedColumn<String> opId = GeneratedColumn<String>(
+    'op_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _roomIdMeta = const VerificationMeta('roomId');
+  @override
+  late final GeneratedColumn<String> roomId = GeneratedColumn<String>(
+    'room_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _operationMeta = const VerificationMeta(
+    'operation',
+  );
+  @override
+  late final GeneratedColumn<String> operation = GeneratedColumn<String>(
+    'operation',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _attemptCountMeta = const VerificationMeta(
+    'attemptCount',
+  );
+  @override
+  late final GeneratedColumn<int> attemptCount = GeneratedColumn<int>(
+    'attempt_count',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _lastErrorMeta = const VerificationMeta(
+    'lastError',
+  );
+  @override
+  late final GeneratedColumn<String> lastError = GeneratedColumn<String>(
+    'last_error',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    opId,
+    roomId,
+    operation,
+    attemptCount,
+    lastError,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'favorite_mutations';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<FavoriteMutationsTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('op_id')) {
+      context.handle(
+        _opIdMeta,
+        opId.isAcceptableOrUnknown(data['op_id']!, _opIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_opIdMeta);
+    }
+    if (data.containsKey('room_id')) {
+      context.handle(
+        _roomIdMeta,
+        roomId.isAcceptableOrUnknown(data['room_id']!, _roomIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_roomIdMeta);
+    }
+    if (data.containsKey('operation')) {
+      context.handle(
+        _operationMeta,
+        operation.isAcceptableOrUnknown(data['operation']!, _operationMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_operationMeta);
+    }
+    if (data.containsKey('attempt_count')) {
+      context.handle(
+        _attemptCountMeta,
+        attemptCount.isAcceptableOrUnknown(
+          data['attempt_count']!,
+          _attemptCountMeta,
+        ),
+      );
+    }
+    if (data.containsKey('last_error')) {
+      context.handle(
+        _lastErrorMeta,
+        lastError.isAcceptableOrUnknown(data['last_error']!, _lastErrorMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {opId};
+  @override
+  FavoriteMutationsTableData map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return FavoriteMutationsTableData(
+      opId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}op_id'],
+      )!,
+      roomId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}room_id'],
+      )!,
+      operation: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}operation'],
+      )!,
+      attemptCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}attempt_count'],
+      )!,
+      lastError: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}last_error'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $FavoriteMutationsTableTable createAlias(String alias) {
+    return $FavoriteMutationsTableTable(attachedDatabase, alias);
+  }
+}
+
+class FavoriteMutationsTableData extends DataClass
+    implements Insertable<FavoriteMutationsTableData> {
+  final String opId;
+  final String roomId;
+  final String operation;
+  final int attemptCount;
+  final String? lastError;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const FavoriteMutationsTableData({
+    required this.opId,
+    required this.roomId,
+    required this.operation,
+    required this.attemptCount,
+    this.lastError,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['op_id'] = Variable<String>(opId);
+    map['room_id'] = Variable<String>(roomId);
+    map['operation'] = Variable<String>(operation);
+    map['attempt_count'] = Variable<int>(attemptCount);
+    if (!nullToAbsent || lastError != null) {
+      map['last_error'] = Variable<String>(lastError);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  FavoriteMutationsTableCompanion toCompanion(bool nullToAbsent) {
+    return FavoriteMutationsTableCompanion(
+      opId: Value(opId),
+      roomId: Value(roomId),
+      operation: Value(operation),
+      attemptCount: Value(attemptCount),
+      lastError: lastError == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastError),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory FavoriteMutationsTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return FavoriteMutationsTableData(
+      opId: serializer.fromJson<String>(json['opId']),
+      roomId: serializer.fromJson<String>(json['roomId']),
+      operation: serializer.fromJson<String>(json['operation']),
+      attemptCount: serializer.fromJson<int>(json['attemptCount']),
+      lastError: serializer.fromJson<String?>(json['lastError']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'opId': serializer.toJson<String>(opId),
+      'roomId': serializer.toJson<String>(roomId),
+      'operation': serializer.toJson<String>(operation),
+      'attemptCount': serializer.toJson<int>(attemptCount),
+      'lastError': serializer.toJson<String?>(lastError),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  FavoriteMutationsTableData copyWith({
+    String? opId,
+    String? roomId,
+    String? operation,
+    int? attemptCount,
+    Value<String?> lastError = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => FavoriteMutationsTableData(
+    opId: opId ?? this.opId,
+    roomId: roomId ?? this.roomId,
+    operation: operation ?? this.operation,
+    attemptCount: attemptCount ?? this.attemptCount,
+    lastError: lastError.present ? lastError.value : this.lastError,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  FavoriteMutationsTableData copyWithCompanion(
+    FavoriteMutationsTableCompanion data,
+  ) {
+    return FavoriteMutationsTableData(
+      opId: data.opId.present ? data.opId.value : this.opId,
+      roomId: data.roomId.present ? data.roomId.value : this.roomId,
+      operation: data.operation.present ? data.operation.value : this.operation,
+      attemptCount: data.attemptCount.present
+          ? data.attemptCount.value
+          : this.attemptCount,
+      lastError: data.lastError.present ? data.lastError.value : this.lastError,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FavoriteMutationsTableData(')
+          ..write('opId: $opId, ')
+          ..write('roomId: $roomId, ')
+          ..write('operation: $operation, ')
+          ..write('attemptCount: $attemptCount, ')
+          ..write('lastError: $lastError, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    opId,
+    roomId,
+    operation,
+    attemptCount,
+    lastError,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FavoriteMutationsTableData &&
+          other.opId == this.opId &&
+          other.roomId == this.roomId &&
+          other.operation == this.operation &&
+          other.attemptCount == this.attemptCount &&
+          other.lastError == this.lastError &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class FavoriteMutationsTableCompanion
+    extends UpdateCompanion<FavoriteMutationsTableData> {
+  final Value<String> opId;
+  final Value<String> roomId;
+  final Value<String> operation;
+  final Value<int> attemptCount;
+  final Value<String?> lastError;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const FavoriteMutationsTableCompanion({
+    this.opId = const Value.absent(),
+    this.roomId = const Value.absent(),
+    this.operation = const Value.absent(),
+    this.attemptCount = const Value.absent(),
+    this.lastError = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  FavoriteMutationsTableCompanion.insert({
+    required String opId,
+    required String roomId,
+    required String operation,
+    this.attemptCount = const Value.absent(),
+    this.lastError = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : opId = Value(opId),
+       roomId = Value(roomId),
+       operation = Value(operation),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<FavoriteMutationsTableData> custom({
+    Expression<String>? opId,
+    Expression<String>? roomId,
+    Expression<String>? operation,
+    Expression<int>? attemptCount,
+    Expression<String>? lastError,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (opId != null) 'op_id': opId,
+      if (roomId != null) 'room_id': roomId,
+      if (operation != null) 'operation': operation,
+      if (attemptCount != null) 'attempt_count': attemptCount,
+      if (lastError != null) 'last_error': lastError,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  FavoriteMutationsTableCompanion copyWith({
+    Value<String>? opId,
+    Value<String>? roomId,
+    Value<String>? operation,
+    Value<int>? attemptCount,
+    Value<String?>? lastError,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return FavoriteMutationsTableCompanion(
+      opId: opId ?? this.opId,
+      roomId: roomId ?? this.roomId,
+      operation: operation ?? this.operation,
+      attemptCount: attemptCount ?? this.attemptCount,
+      lastError: lastError ?? this.lastError,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (opId.present) {
+      map['op_id'] = Variable<String>(opId.value);
+    }
+    if (roomId.present) {
+      map['room_id'] = Variable<String>(roomId.value);
+    }
+    if (operation.present) {
+      map['operation'] = Variable<String>(operation.value);
+    }
+    if (attemptCount.present) {
+      map['attempt_count'] = Variable<int>(attemptCount.value);
+    }
+    if (lastError.present) {
+      map['last_error'] = Variable<String>(lastError.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FavoriteMutationsTableCompanion(')
+          ..write('opId: $opId, ')
+          ..write('roomId: $roomId, ')
+          ..write('operation: $operation, ')
+          ..write('attemptCount: $attemptCount, ')
+          ..write('lastError: $lastError, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $MyBookingsTableTable myBookingsTable = $MyBookingsTableTable(
     this,
   );
+  late final $FavoriteRoomsTableTable favoriteRoomsTable =
+      $FavoriteRoomsTableTable(this);
+  late final $FavoriteMutationsTableTable favoriteMutationsTable =
+      $FavoriteMutationsTableTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities => [myBookingsTable];
+  List<DatabaseSchemaEntity> get allSchemaEntities => [
+    myBookingsTable,
+    favoriteRoomsTable,
+    favoriteMutationsTable,
+  ];
 }
 
 typedef $$MyBookingsTableTableCreateCompanionBuilder =
@@ -790,10 +1955,613 @@ typedef $$MyBookingsTableTableProcessedTableManager =
       MyBookingsTableData,
       PrefetchHooks Function()
     >;
+typedef $$FavoriteRoomsTableTableCreateCompanionBuilder =
+    FavoriteRoomsTableCompanion Function({
+      required String roomId,
+      required String buildingCode,
+      Value<String?> buildingName,
+      required String roomNumber,
+      required int capacity,
+      required double reliability,
+      Value<String> utilitiesJson,
+      Value<String> syncState,
+      Value<String?> lastError,
+      required DateTime savedAt,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$FavoriteRoomsTableTableUpdateCompanionBuilder =
+    FavoriteRoomsTableCompanion Function({
+      Value<String> roomId,
+      Value<String> buildingCode,
+      Value<String?> buildingName,
+      Value<String> roomNumber,
+      Value<int> capacity,
+      Value<double> reliability,
+      Value<String> utilitiesJson,
+      Value<String> syncState,
+      Value<String?> lastError,
+      Value<DateTime> savedAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$FavoriteRoomsTableTableFilterComposer
+    extends Composer<_$AppDatabase, $FavoriteRoomsTableTable> {
+  $$FavoriteRoomsTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get roomId => $composableBuilder(
+    column: $table.roomId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get buildingCode => $composableBuilder(
+    column: $table.buildingCode,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get buildingName => $composableBuilder(
+    column: $table.buildingName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get roomNumber => $composableBuilder(
+    column: $table.roomNumber,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get capacity => $composableBuilder(
+    column: $table.capacity,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get reliability => $composableBuilder(
+    column: $table.reliability,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get utilitiesJson => $composableBuilder(
+    column: $table.utilitiesJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get syncState => $composableBuilder(
+    column: $table.syncState,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lastError => $composableBuilder(
+    column: $table.lastError,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get savedAt => $composableBuilder(
+    column: $table.savedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$FavoriteRoomsTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $FavoriteRoomsTableTable> {
+  $$FavoriteRoomsTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get roomId => $composableBuilder(
+    column: $table.roomId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get buildingCode => $composableBuilder(
+    column: $table.buildingCode,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get buildingName => $composableBuilder(
+    column: $table.buildingName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get roomNumber => $composableBuilder(
+    column: $table.roomNumber,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get capacity => $composableBuilder(
+    column: $table.capacity,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get reliability => $composableBuilder(
+    column: $table.reliability,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get utilitiesJson => $composableBuilder(
+    column: $table.utilitiesJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get syncState => $composableBuilder(
+    column: $table.syncState,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lastError => $composableBuilder(
+    column: $table.lastError,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get savedAt => $composableBuilder(
+    column: $table.savedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$FavoriteRoomsTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $FavoriteRoomsTableTable> {
+  $$FavoriteRoomsTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get roomId =>
+      $composableBuilder(column: $table.roomId, builder: (column) => column);
+
+  GeneratedColumn<String> get buildingCode => $composableBuilder(
+    column: $table.buildingCode,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get buildingName => $composableBuilder(
+    column: $table.buildingName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get roomNumber => $composableBuilder(
+    column: $table.roomNumber,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get capacity =>
+      $composableBuilder(column: $table.capacity, builder: (column) => column);
+
+  GeneratedColumn<double> get reliability => $composableBuilder(
+    column: $table.reliability,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get utilitiesJson => $composableBuilder(
+    column: $table.utilitiesJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get syncState =>
+      $composableBuilder(column: $table.syncState, builder: (column) => column);
+
+  GeneratedColumn<String> get lastError =>
+      $composableBuilder(column: $table.lastError, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get savedAt =>
+      $composableBuilder(column: $table.savedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$FavoriteRoomsTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $FavoriteRoomsTableTable,
+          FavoriteRoomsTableData,
+          $$FavoriteRoomsTableTableFilterComposer,
+          $$FavoriteRoomsTableTableOrderingComposer,
+          $$FavoriteRoomsTableTableAnnotationComposer,
+          $$FavoriteRoomsTableTableCreateCompanionBuilder,
+          $$FavoriteRoomsTableTableUpdateCompanionBuilder,
+          (
+            FavoriteRoomsTableData,
+            BaseReferences<
+              _$AppDatabase,
+              $FavoriteRoomsTableTable,
+              FavoriteRoomsTableData
+            >,
+          ),
+          FavoriteRoomsTableData,
+          PrefetchHooks Function()
+        > {
+  $$FavoriteRoomsTableTableTableManager(
+    _$AppDatabase db,
+    $FavoriteRoomsTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$FavoriteRoomsTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$FavoriteRoomsTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$FavoriteRoomsTableTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> roomId = const Value.absent(),
+                Value<String> buildingCode = const Value.absent(),
+                Value<String?> buildingName = const Value.absent(),
+                Value<String> roomNumber = const Value.absent(),
+                Value<int> capacity = const Value.absent(),
+                Value<double> reliability = const Value.absent(),
+                Value<String> utilitiesJson = const Value.absent(),
+                Value<String> syncState = const Value.absent(),
+                Value<String?> lastError = const Value.absent(),
+                Value<DateTime> savedAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FavoriteRoomsTableCompanion(
+                roomId: roomId,
+                buildingCode: buildingCode,
+                buildingName: buildingName,
+                roomNumber: roomNumber,
+                capacity: capacity,
+                reliability: reliability,
+                utilitiesJson: utilitiesJson,
+                syncState: syncState,
+                lastError: lastError,
+                savedAt: savedAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String roomId,
+                required String buildingCode,
+                Value<String?> buildingName = const Value.absent(),
+                required String roomNumber,
+                required int capacity,
+                required double reliability,
+                Value<String> utilitiesJson = const Value.absent(),
+                Value<String> syncState = const Value.absent(),
+                Value<String?> lastError = const Value.absent(),
+                required DateTime savedAt,
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => FavoriteRoomsTableCompanion.insert(
+                roomId: roomId,
+                buildingCode: buildingCode,
+                buildingName: buildingName,
+                roomNumber: roomNumber,
+                capacity: capacity,
+                reliability: reliability,
+                utilitiesJson: utilitiesJson,
+                syncState: syncState,
+                lastError: lastError,
+                savedAt: savedAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$FavoriteRoomsTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $FavoriteRoomsTableTable,
+      FavoriteRoomsTableData,
+      $$FavoriteRoomsTableTableFilterComposer,
+      $$FavoriteRoomsTableTableOrderingComposer,
+      $$FavoriteRoomsTableTableAnnotationComposer,
+      $$FavoriteRoomsTableTableCreateCompanionBuilder,
+      $$FavoriteRoomsTableTableUpdateCompanionBuilder,
+      (
+        FavoriteRoomsTableData,
+        BaseReferences<
+          _$AppDatabase,
+          $FavoriteRoomsTableTable,
+          FavoriteRoomsTableData
+        >,
+      ),
+      FavoriteRoomsTableData,
+      PrefetchHooks Function()
+    >;
+typedef $$FavoriteMutationsTableTableCreateCompanionBuilder =
+    FavoriteMutationsTableCompanion Function({
+      required String opId,
+      required String roomId,
+      required String operation,
+      Value<int> attemptCount,
+      Value<String?> lastError,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$FavoriteMutationsTableTableUpdateCompanionBuilder =
+    FavoriteMutationsTableCompanion Function({
+      Value<String> opId,
+      Value<String> roomId,
+      Value<String> operation,
+      Value<int> attemptCount,
+      Value<String?> lastError,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$FavoriteMutationsTableTableFilterComposer
+    extends Composer<_$AppDatabase, $FavoriteMutationsTableTable> {
+  $$FavoriteMutationsTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get opId => $composableBuilder(
+    column: $table.opId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get roomId => $composableBuilder(
+    column: $table.roomId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get operation => $composableBuilder(
+    column: $table.operation,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get attemptCount => $composableBuilder(
+    column: $table.attemptCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lastError => $composableBuilder(
+    column: $table.lastError,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$FavoriteMutationsTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $FavoriteMutationsTableTable> {
+  $$FavoriteMutationsTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get opId => $composableBuilder(
+    column: $table.opId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get roomId => $composableBuilder(
+    column: $table.roomId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get operation => $composableBuilder(
+    column: $table.operation,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get attemptCount => $composableBuilder(
+    column: $table.attemptCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lastError => $composableBuilder(
+    column: $table.lastError,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$FavoriteMutationsTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $FavoriteMutationsTableTable> {
+  $$FavoriteMutationsTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get opId =>
+      $composableBuilder(column: $table.opId, builder: (column) => column);
+
+  GeneratedColumn<String> get roomId =>
+      $composableBuilder(column: $table.roomId, builder: (column) => column);
+
+  GeneratedColumn<String> get operation =>
+      $composableBuilder(column: $table.operation, builder: (column) => column);
+
+  GeneratedColumn<int> get attemptCount => $composableBuilder(
+    column: $table.attemptCount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get lastError =>
+      $composableBuilder(column: $table.lastError, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$FavoriteMutationsTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $FavoriteMutationsTableTable,
+          FavoriteMutationsTableData,
+          $$FavoriteMutationsTableTableFilterComposer,
+          $$FavoriteMutationsTableTableOrderingComposer,
+          $$FavoriteMutationsTableTableAnnotationComposer,
+          $$FavoriteMutationsTableTableCreateCompanionBuilder,
+          $$FavoriteMutationsTableTableUpdateCompanionBuilder,
+          (
+            FavoriteMutationsTableData,
+            BaseReferences<
+              _$AppDatabase,
+              $FavoriteMutationsTableTable,
+              FavoriteMutationsTableData
+            >,
+          ),
+          FavoriteMutationsTableData,
+          PrefetchHooks Function()
+        > {
+  $$FavoriteMutationsTableTableTableManager(
+    _$AppDatabase db,
+    $FavoriteMutationsTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$FavoriteMutationsTableTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$FavoriteMutationsTableTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$FavoriteMutationsTableTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> opId = const Value.absent(),
+                Value<String> roomId = const Value.absent(),
+                Value<String> operation = const Value.absent(),
+                Value<int> attemptCount = const Value.absent(),
+                Value<String?> lastError = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FavoriteMutationsTableCompanion(
+                opId: opId,
+                roomId: roomId,
+                operation: operation,
+                attemptCount: attemptCount,
+                lastError: lastError,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String opId,
+                required String roomId,
+                required String operation,
+                Value<int> attemptCount = const Value.absent(),
+                Value<String?> lastError = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => FavoriteMutationsTableCompanion.insert(
+                opId: opId,
+                roomId: roomId,
+                operation: operation,
+                attemptCount: attemptCount,
+                lastError: lastError,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$FavoriteMutationsTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $FavoriteMutationsTableTable,
+      FavoriteMutationsTableData,
+      $$FavoriteMutationsTableTableFilterComposer,
+      $$FavoriteMutationsTableTableOrderingComposer,
+      $$FavoriteMutationsTableTableAnnotationComposer,
+      $$FavoriteMutationsTableTableCreateCompanionBuilder,
+      $$FavoriteMutationsTableTableUpdateCompanionBuilder,
+      (
+        FavoriteMutationsTableData,
+        BaseReferences<
+          _$AppDatabase,
+          $FavoriteMutationsTableTable,
+          FavoriteMutationsTableData
+        >,
+      ),
+      FavoriteMutationsTableData,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
   $AppDatabaseManager(this._db);
   $$MyBookingsTableTableTableManager get myBookingsTable =>
       $$MyBookingsTableTableTableManager(_db, _db.myBookingsTable);
+  $$FavoriteRoomsTableTableTableManager get favoriteRoomsTable =>
+      $$FavoriteRoomsTableTableTableManager(_db, _db.favoriteRoomsTable);
+  $$FavoriteMutationsTableTableTableManager get favoriteMutationsTable =>
+      $$FavoriteMutationsTableTableTableManager(
+        _db,
+        _db.favoriteMutationsTable,
+      );
 }
