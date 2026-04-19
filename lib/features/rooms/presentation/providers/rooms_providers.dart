@@ -22,4 +22,3 @@ final fetchRoomDateAvailabilityUseCaseProvider =
     Provider<FetchRoomDateAvailability>((ref) {
       return FetchRoomDateAvailability(ref.watch(roomRepositoryProvider));
     });
-
