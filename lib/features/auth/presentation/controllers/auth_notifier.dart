@@ -48,7 +48,6 @@ class AuthNotifier extends Notifier<AuthState> {
     state = state.copyWith(isLoading: true, error: null, isSuccess: false);
     try {
       await _loginUseCase(email: email, password: password);
-      await ref.read(bookingsLocalDataSourceProvider).clear();
       final user = await _getCurrentUserUseCase();
       state = AuthState(isLoading: false, isAuthenticated: user != null, user: user, isSuccess: true);
     } catch (e) {
