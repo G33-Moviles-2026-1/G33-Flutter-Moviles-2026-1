@@ -56,7 +56,7 @@ class HomeSearchNotifier extends AutoDisposeNotifier<HomeSearchState> {
     final sessionLocation = nearMe ? _sessionNotifier.currentLocation : null;
 
     if (nearMe && sessionLocation == null) {
-      state = HomeSearchState.error('No se pudo obtener tu ubicación GPS.');
+      state = const HomeSearchState.error('No se pudo obtener tu ubicación GPS.');
       return;
     }
 

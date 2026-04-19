@@ -207,7 +207,7 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
     );
   }
 
-  void _onSearch() async {
+  Future<void> _onSearch() async {
     await ref
         .read(homeSearchControllerProvider.notifier)
         .submitSearch(
@@ -219,6 +219,9 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
           nearMe: _closeToMe,
           offset: 0,
         );
+
+    if (!mounted) return;
+
     if (ref.read(homeSearchControllerProvider).status ==
         HomeSearchStatus.success) {
       Navigator.pushNamed(context, AppRoutes.results);
@@ -234,7 +237,12 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
       if (nextError != null && nextError != previousError) {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
-          ..showSnackBar(SnackBar(content: Text(nextError), duration: const Duration(seconds: 4),));
+          ..showSnackBar(
+            SnackBar(
+              content: Text(nextError),
+              duration: const Duration(seconds: 4),
+            ),
+          );
       }
     });
 
@@ -277,7 +285,8 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
                         floatingLabelBehavior: FloatingLabelBehavior.never,
                         border: InputBorder.none,
                         contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 16,
+                          horizontal: 14,
+                          vertical: 16,
                         ),
                       ),
                     ),
