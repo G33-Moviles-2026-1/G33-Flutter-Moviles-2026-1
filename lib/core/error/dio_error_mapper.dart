@@ -40,7 +40,12 @@ class DioErrorMapper {
         case DioExceptionType.badResponse:
           final statusCode = error.response?.statusCode;
           final data = error.response?.data;
-          final detail = data is Map ? data['detail'] as String? : null;
+          final rawDetail = data is Map ? data['detail'] : null;
+          final detail = rawDetail is String
+              ? rawDetail
+              : rawDetail is List
+                  ? (rawDetail as List).map((e) => e is Map ? (e['msg'] ?? e.toString()) : e.toString()).join(', ')
+                  : null;
 
           if (statusCode != null && statusCode >= 500) {
             return _serverUnavailable;
