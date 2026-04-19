@@ -1,7 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
-
-part 'bookings_database.g.dart';
+part 'app_database.g.dart';
 
 class MyBookingsTable extends Table {
   @override
