@@ -1,6 +1,7 @@
 import 'package:andespace/core/di/auth_providers.dart';
 import 'package:andespace/core/error/dio_error_mapper.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../bookings/presentation/providers/bookings_providers.dart';
 import '../../domain/usecases/get_current_user_usecase.dart';
 import '../../domain/usecases/login_usecase.dart';
 import '../../domain/usecases/logout_usecase.dart';
@@ -47,6 +48,7 @@ class AuthNotifier extends Notifier<AuthState> {
     state = state.copyWith(isLoading: true, error: null, isSuccess: false);
     try {
       await _loginUseCase(email: email, password: password);
+      await ref.read(bookingsLocalDataSourceProvider).clear();
       final user = await _getCurrentUserUseCase();
       state = AuthState(isLoading: false, isAuthenticated: user != null, user: user, isSuccess: true);
     } catch (e) {
@@ -84,6 +86,7 @@ class AuthNotifier extends Notifier<AuthState> {
     state = state.copyWith(isLoading: true, error: null, isSuccess: false);
     try {
       await _logoutUseCase();
+      await ref.read(bookingsLocalDataSourceProvider).clear();
       state = const AuthState(isLoading: false, isAuthenticated: false, user: null, isSuccess: false);
     } catch (e) {
       state = state.copyWith(

@@ -39,7 +39,7 @@ class BookingsRepositoryImpl implements BookingsRepository {
 
   @override
   Future<List<MyBooking>> getCachedBookings() async {
-    final dtos = localDataSource.getBookings();
+    final dtos = await localDataSource.getBookings();
     return dtos.map((d) => d.toDomain()).toList();
   }
 
