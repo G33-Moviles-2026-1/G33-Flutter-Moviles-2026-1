@@ -190,11 +190,8 @@ class _LocationFieldState extends State<_LocationField> {
   @override
   Widget build(BuildContext context) {
     final hasError = widget.validationError != null;
-    final borderColor = hasError
-        ? widget.t.colorScheme.error
-        : widget.isDark
-            ? Colors.white24
-            : Colors.black;
+    final defaultBorderColor = widget.isDark ? Colors.white24 : Colors.black;
+    final borderColor = hasError ? widget.t.colorScheme.error : defaultBorderColor;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
