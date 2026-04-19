@@ -23,7 +23,7 @@ class PathNotifier
     _sessionNotifier = ref.read(sessionControllerProvider.notifier);
 
     final destText = arg != null ? arg.roomId : '';
-    return PathState.initial().copyWith(destText: destText);
+    return  const PathState.initial().copyWith(destText: destText);
   }
 
   String? _validate(String text, String fieldName) {
