@@ -28,8 +28,7 @@ class AuthNotifier extends Notifier<AuthState> {
         fallback: fallbackMessage,
         onBadResponse: (statusCode, detail) {
           if (statusCode == 400 && detail == 'User already registered') return 'This user already exists.';
-          if (statusCode == 401) return 'Incorrect email or password.';
-          if (statusCode == 403) return 'You do not have permission to perform this action.';
+          if (statusCode == 401 || statusCode == 403) return 'Incorrect email or password.';
           return fallbackMessage;
         },
       );
