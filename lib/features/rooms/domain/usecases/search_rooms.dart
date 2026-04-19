@@ -3,7 +3,11 @@ import '../repositories/rooms_repository.dart';
 
 class SearchRoomsValidationException implements Exception {
   const SearchRoomsValidationException(this.message);
+
   final String message;
+
+  @override
+  String toString() => message;
 }
 
 class SearchRoomsInput {
@@ -43,6 +47,8 @@ class SearchRooms {
   }
 
   void _validate(SearchRoomsInput input) {
+    _validateDate(input.date);
+
     if (input.since == null && input.until == null) {
       throw const SearchRoomsValidationException(
         'Please provide at least one of Since or Until.',
@@ -51,9 +57,25 @@ class SearchRooms {
 
     final since = input.since;
     final until = input.until;
+
     if (since != null && until != null && !_isStrictlyEarlier(since, until)) {
       throw const SearchRoomsValidationException(
         'Since must be earlier than Until.',
+      );
+    }
+  }
+
+  void _validateDate(String rawDate) {
+    final parsed = DateTime.tryParse(rawDate);
+    if (parsed == null) {
+      throw const SearchRoomsValidationException(
+        'Please select a valid date.',
+      );
+    }
+
+    if (parsed.weekday == DateTime.sunday) {
+      throw const SearchRoomsValidationException(
+        'Campus is closed on Sundays.',
       );
     }
   }

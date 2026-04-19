@@ -377,7 +377,8 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
           SizedBox(
             width: double.infinity,
             child: _CtaButton(
-              label: state.isLoading ? 'Searching...' : 'Search',
+              label: 'Search',
+              isLoading: state.isLoading,
               onPressed: state.isLoading ? null : _onSearch,
             ),
           ),
@@ -592,21 +593,29 @@ class _TimeBox extends StatelessWidget {
 }
 
 class _CtaButton extends StatelessWidget {
-  const _CtaButton({required this.label, required this.onPressed});
+  const _CtaButton({
+    required this.label,
+    required this.onPressed,
+    this.isLoading = false,
+  });
 
   final String label;
   final VoidCallback? onPressed;
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final brand = theme.extension<BrandColors>()!;
+    final isEnabled = onPressed != null;
 
     return ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
         backgroundColor: brand.accentYellow,
         foregroundColor: theme.colorScheme.onSecondary,
+        disabledBackgroundColor: brand.accentYellow,
+        disabledForegroundColor: theme.colorScheme.onSecondary,
         elevation: 0,
         padding: const EdgeInsets.symmetric(vertical: 16),
         shape: RoundedRectangleBorder(
@@ -619,7 +628,51 @@ class _CtaButton extends StatelessWidget {
           fontWeight: FontWeight.w700,
         ),
       ),
-      child: Text(label),
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 180),
+        transitionBuilder: (child, animation) {
+          return FadeTransition(
+            opacity: animation,
+            child: child,
+          );
+        },
+        child: isLoading
+            ? Row(
+                key: const ValueKey('loading'),
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.2,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        theme.colorScheme.onSecondary,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Searching...',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: theme.colorScheme.onSecondary,
+                    ),
+                  ),
+                ],
+              )
+            : Text(
+                label,
+                key: const ValueKey('idle'),
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: isEnabled
+                      ? theme.colorScheme.onSecondary
+                      : theme.colorScheme.onSecondary,
+                ),
+              ),
+      ),
     );
   }
 }

@@ -29,26 +29,17 @@ abstract final class AppTheme {
     return base.copyWith(
       scaffoldBackgroundColor: const Color(0xFFF5F5F5),
       textTheme: textTheme,
-      progressIndicatorTheme: const ProgressIndicatorThemeData(
-        color: Color(0xFFFDF21C),
+      progressIndicatorTheme: _buildProgressIndicatorTheme(
+        color: const Color(0xFFFDF21C),
       ),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Color(0xFFFFFBA9),
-        foregroundColor: Color(0xFF000000),
-        surfaceTintColor: Colors.transparent,
-        shadowColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        centerTitle: true,
+      appBarTheme: _buildAppBarTheme(
+        backgroundColor: const Color(0xFFFFFBA9),
+        foregroundColor: const Color(0xFF000000),
       ),
-      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-        backgroundColor: Color(0xFFFFFBA9),
-        selectedItemColor: Color(0xFF000000),
-        unselectedItemColor: Color(0xFF000000),
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        type: BottomNavigationBarType.fixed,
-        elevation: 0,
+      bottomNavigationBarTheme: _buildBottomNavigationBarTheme(
+        backgroundColor: const Color(0xFFFFFBA9),
+        selectedItemColor: const Color(0xFF000000),
+        unselectedItemColor: const Color(0xFF000000),
       ),
       inputDecorationTheme: _buildInputDecorationTheme(
         hintColor: Colors.black54,
@@ -123,26 +114,17 @@ abstract final class AppTheme {
     return base.copyWith(
       scaffoldBackgroundColor: background,
       textTheme: textTheme,
-      progressIndicatorTheme: const ProgressIndicatorThemeData(
-        color: Color(0xFFFFA500),
+      progressIndicatorTheme: _buildProgressIndicatorTheme(
+        color: const Color(0xFFFFA500),
       ),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Color(0xFF121417),
-        foregroundColor: Color(0xFFF5F5F5),
-        surfaceTintColor: Colors.transparent,
-        shadowColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        centerTitle: true,
+      appBarTheme: _buildAppBarTheme(
+        backgroundColor: const Color(0xFF121417),
+        foregroundColor: const Color(0xFFF5F5F5),
       ),
-      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-        backgroundColor: Color(0xFF121417),
-        selectedItemColor: Color(0xFFF5F5F5),
-        unselectedItemColor: Color(0xFF9AA0A6),
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        type: BottomNavigationBarType.fixed,
-        elevation: 0,
+      bottomNavigationBarTheme: _buildBottomNavigationBarTheme(
+        backgroundColor: const Color(0xFF121417),
+        selectedItemColor: const Color(0xFFF5F5F5),
+        unselectedItemColor: const Color(0xFF9AA0A6),
       ),
       inputDecorationTheme: _buildInputDecorationTheme(
         hintColor: Colors.white60,
@@ -193,6 +175,43 @@ abstract final class AppTheme {
   static const SnackBarThemeData _snackBarTheme = SnackBarThemeData(
     behavior: SnackBarBehavior.floating,
   );
+
+  static ProgressIndicatorThemeData _buildProgressIndicatorTheme({
+    required Color color,
+  }) {
+    return ProgressIndicatorThemeData(color: color);
+  }
+
+  static AppBarTheme _buildAppBarTheme({
+    required Color backgroundColor,
+    required Color foregroundColor,
+  }) {
+    return AppBarTheme(
+      backgroundColor: backgroundColor,
+      foregroundColor: foregroundColor,
+      surfaceTintColor: Colors.transparent,
+      shadowColor: Colors.transparent,
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      centerTitle: true,
+    );
+  }
+
+  static BottomNavigationBarThemeData _buildBottomNavigationBarTheme({
+    required Color backgroundColor,
+    required Color selectedItemColor,
+    required Color unselectedItemColor,
+  }) {
+    return BottomNavigationBarThemeData(
+      backgroundColor: backgroundColor,
+      selectedItemColor: selectedItemColor,
+      unselectedItemColor: unselectedItemColor,
+      showSelectedLabels: false,
+      showUnselectedLabels: false,
+      type: BottomNavigationBarType.fixed,
+      elevation: 0,
+    );
+  }
 
   static InputDecorationTheme _buildInputDecorationTheme({
     required Color hintColor,
