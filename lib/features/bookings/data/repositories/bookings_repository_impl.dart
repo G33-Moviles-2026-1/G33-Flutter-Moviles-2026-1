@@ -3,15 +3,20 @@ import '../../domain/entities/booking.dart';
 import '../../domain/entities/booking_purpose.dart';
 import '../../domain/entities/my_booking.dart';
 import '../../domain/repositories/bookings_repository.dart';
+import '../local/bookings_local_datasource.dart';
 import '../models/booking_response_dto.dart';
 import '../models/create_booking_request_dto.dart';
 import '../models/my_bookings_response_dto.dart';
 import '../remote/bookings_api.dart';
 
 class BookingsRepositoryImpl implements BookingsRepository {
-  BookingsRepositoryImpl({required this.bookingsApi});
+  BookingsRepositoryImpl({
+    required this.bookingsApi,
+    required this.localDataSource,
+  });
 
   final BookingsApi bookingsApi;
+  final BookingsLocalDataSource localDataSource;
 
   @override
   Future<Booking> createBooking({
@@ -33,16 +38,22 @@ class BookingsRepositoryImpl implements BookingsRepository {
   }
 
   @override
-  Future<List<MyBooking>> getMyBookings() async {
-    final raw = await bookingsApi.fetchMyBookings();
-    final dto = MyBookingsResponseDto.fromJson(raw);
-    return dto.toDomain();
+  Future<List<MyBooking>> getCachedBookings() async {
+    final dtos = await localDataSource.getBookings();
+    return dtos.map((d) => d.toDomain()).toList();
   }
 
   @override
-  Future<void> deleteMyBooking({
-    required String bookingId,
-  }) {
-    return bookingsApi.deleteMyBooking(bookingId: bookingId);
+  Future<List<MyBooking>> getMyBookings() async {
+    final raw = await bookingsApi.fetchMyBookings();
+    final responseDto = MyBookingsResponseDto.fromJson(raw);
+    await localDataSource.saveBookings(responseDto.items);
+    return responseDto.toDomain();
+  }
+
+  @override
+  Future<void> deleteMyBooking({required String bookingId}) async {
+    await bookingsApi.deleteMyBooking(bookingId: bookingId);
+    await localDataSource.removeBooking(bookingId);
   }
 }

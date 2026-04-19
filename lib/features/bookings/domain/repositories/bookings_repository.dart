@@ -11,6 +11,8 @@ abstract class BookingsRepository {
     required BookingPurpose purpose,
   });
 
+  Future<List<MyBooking>> getCachedBookings();
+
   Future<List<MyBooking>> getMyBookings();
 
   Future<void> deleteMyBooking({

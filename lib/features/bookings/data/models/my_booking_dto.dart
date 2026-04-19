@@ -52,6 +52,17 @@ class MyBookingDto {
     );
   }
 
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'room_id': roomId,
+        'date': date.toIso8601String(),
+        'created_at': createdAt.toIso8601String(),
+        'start_time': startTime,
+        'end_time': endTime,
+        'purpose': purpose,
+        'status': status,
+      };
+
   String _hhmm(String value) {
     return value.length >= 5 ? value.substring(0, 5) : value;
   }
