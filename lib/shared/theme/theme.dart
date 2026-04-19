@@ -29,11 +29,9 @@ abstract final class AppTheme {
     return base.copyWith(
       scaffoldBackgroundColor: const Color(0xFFF5F5F5),
       textTheme: textTheme,
-
       progressIndicatorTheme: const ProgressIndicatorThemeData(
         color: Color(0xFFFDF21C),
       ),
-
       appBarTheme: const AppBarTheme(
         backgroundColor: Color(0xFFFFFBA9),
         foregroundColor: Color(0xFF000000),
@@ -43,7 +41,6 @@ abstract final class AppTheme {
         scrolledUnderElevation: 0,
         centerTitle: true,
       ),
-
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: Color(0xFFFFFBA9),
         selectedItemColor: Color(0xFF000000),
@@ -53,74 +50,26 @@ abstract final class AppTheme {
         type: BottomNavigationBarType.fixed,
         elevation: 0,
       ),
-
-      inputDecorationTheme: InputDecorationTheme(
-        hintStyle: const TextStyle(
-          fontSize: 16,
-          color: Colors.black54,
-        ),
-        suffixIconColor: Colors.black54,
-        filled: true,
+      inputDecorationTheme: _buildInputDecorationTheme(
+        hintColor: Colors.black54,
         fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 20,
-          vertical: 18,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Colors.black12),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Colors.redAccent),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Colors.redAccent),
-        ),
+        focusedBorderColor: Colors.black12,
+        errorBorderColor: Colors.redAccent,
       ),
-
-      textButtonTheme: TextButtonThemeData(
-        style: TextButton.styleFrom(
-          foregroundColor: const Color(0xFFFCBD00),
-          textStyle: const TextStyle(fontWeight: FontWeight.w700),
-        ),
+      textButtonTheme: _buildTextButtonTheme(
+        foregroundColor: const Color(0xFFFCBD00),
       ),
-
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: colorScheme.secondary,
-          foregroundColor: colorScheme.onSecondary,
-          elevation: 3,
-          shadowColor: Colors.black38,
-          minimumSize: const Size.fromHeight(56),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          textStyle: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-          disabledForegroundColor: Colors.black54,
-        ),
+      elevatedButtonTheme: _buildElevatedButtonTheme(
+        backgroundColor: colorScheme.secondary,
+        foregroundColor: colorScheme.onSecondary,
+        shadowColor: Colors.black38,
+        disabledForegroundColor: Colors.black54,
       ),
-
-      outlinedButtonTheme: OutlinedButtonThemeData(
-        style: OutlinedButton.styleFrom(
-          foregroundColor: Colors.black,
-          textStyle: const TextStyle(fontWeight: FontWeight.w700),
-          side: const BorderSide(color: Colors.black),
-        ),
+      outlinedButtonTheme: _buildOutlinedButtonTheme(
+        foregroundColor: Colors.black,
+        sideColor: Colors.black,
       ),
-
-      snackBarTheme: const SnackBarThemeData(
-        behavior: SnackBarBehavior.floating,
-      ),
-
+      snackBarTheme: _snackBarTheme,
       extensions: const [
         BrandColors(
           softYellow: Color(0xFFFFFBA9),
@@ -132,26 +81,16 @@ abstract final class AppTheme {
           footerUnselected: Color(0xFF000000),
         ),
       ],
-
-      datePickerTheme: DatePickerThemeData(
-        todayForegroundColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) {
-            return Colors.black;
-          }
-          return const Color(0xFFFCBD00);
-        }),
-
+      datePickerTheme: _buildDatePickerTheme(
+        todayUnselectedForeground: const Color(0xFFFCBD00),
+        todaySelectedForeground: Colors.black,
       ),
-
-      timePickerTheme: const TimePickerThemeData(
-        dialHandColor: Color(0xFFFDF21C),
-        entryModeIconColor: Colors.white70,
+      timePickerTheme: _buildTimePickerTheme(
+        dialHandColor: const Color(0xFFFDF21C),
       ),
-
-      textSelectionTheme: const TextSelectionThemeData(
-        cursorColor: Color(0xFFFCBD00),
-        selectionColor: Color(0x33FCBD00),
-        selectionHandleColor: Color(0xFFFCBD00),
+      textSelectionTheme: _buildTextSelectionTheme(
+        accentColor: const Color(0xFFFCBD00),
+        selectionColor: const Color(0x33FCBD00),
       ),
     );
   }
@@ -184,11 +123,9 @@ abstract final class AppTheme {
     return base.copyWith(
       scaffoldBackgroundColor: background,
       textTheme: textTheme,
-
       progressIndicatorTheme: const ProgressIndicatorThemeData(
         color: Color(0xFFFFA500),
       ),
-
       appBarTheme: const AppBarTheme(
         backgroundColor: Color(0xFF121417),
         foregroundColor: Color(0xFFF5F5F5),
@@ -198,7 +135,6 @@ abstract final class AppTheme {
         scrolledUnderElevation: 0,
         centerTitle: true,
       ),
-
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: Color(0xFF121417),
         selectedItemColor: Color(0xFFF5F5F5),
@@ -208,73 +144,25 @@ abstract final class AppTheme {
         type: BottomNavigationBarType.fixed,
         elevation: 0,
       ),
-
-      inputDecorationTheme: InputDecorationTheme(
-        hintStyle: const TextStyle(
-          fontSize: 16,
-          color: Colors.white60,
-        ),
-        suffixIconColor: Colors.white60,
-        filled: true,
+      inputDecorationTheme: _buildInputDecorationTheme(
+        hintColor: Colors.white60,
         fillColor: cardColor,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 20,
-          vertical: 18,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Colors.white24),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Colors.redAccent),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Colors.redAccent),
-        ),
+        focusedBorderColor: Colors.white24,
+        errorBorderColor: Colors.redAccent,
       ),
-
-      textButtonTheme: TextButtonThemeData(
-        style: TextButton.styleFrom(
-          foregroundColor: const Color(0xFFFFA500),
-          textStyle: const TextStyle(fontWeight: FontWeight.w700),
-        ),
+      textButtonTheme: _buildTextButtonTheme(
+        foregroundColor: const Color(0xFFFFA500),
       ),
-
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: colorScheme.secondary,
-          foregroundColor: colorScheme.onSecondary,
-          elevation: 3,
-          shadowColor: Colors.black54,
-          minimumSize: const Size.fromHeight(56),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          textStyle: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+      elevatedButtonTheme: _buildElevatedButtonTheme(
+        backgroundColor: colorScheme.secondary,
+        foregroundColor: colorScheme.onSecondary,
+        shadowColor: Colors.black54,
       ),
-
-      outlinedButtonTheme: OutlinedButtonThemeData(
-        style: OutlinedButton.styleFrom(
-          foregroundColor: onSurface,
-          textStyle: const TextStyle(fontWeight: FontWeight.w700),
-          side: const BorderSide(color: Colors.white24),
-        ),
+      outlinedButtonTheme: _buildOutlinedButtonTheme(
+        foregroundColor: onSurface,
+        sideColor: Colors.white24,
       ),
-
-      snackBarTheme: const SnackBarThemeData(
-        behavior: SnackBarBehavior.floating,
-      ),
-
+      snackBarTheme: _snackBarTheme,
       extensions: const [
         BrandColors(
           softYellow: Color(0xFFFFFBA9),
@@ -286,41 +174,161 @@ abstract final class AppTheme {
           footerUnselected: Color(0xFF9AA0A6),
         ),
       ],
-
-      datePickerTheme: DatePickerThemeData(
-        todayForegroundColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) {
-            return Colors.white;
-          }
-          return const Color(0xFFFFA500);
-        }),
-        dayBackgroundColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) {
-            return const Color(0xFFC78201);
-          }
-          return Colors.transparent;
-        }),
-        todayBackgroundColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) {
-            return const Color(0xFFC78201);
-          }
-          return Colors.transparent;
-        }),
-
+      datePickerTheme: _buildDatePickerTheme(
+        todayUnselectedForeground: const Color(0xFFFFA500),
+        todaySelectedForeground: Colors.white,
+        selectedDayBackground: const Color(0xFFC78201),
+        selectedTodayBackground: const Color(0xFFC78201),
       ),
-      
-
-      timePickerTheme: const TimePickerThemeData(
-        dialHandColor: Color(0xFFFFA500),
-        entryModeIconColor: Colors.white70,
+      timePickerTheme: _buildTimePickerTheme(
+        dialHandColor: const Color(0xFFFFA500),
       ),
-
-      textSelectionTheme: const TextSelectionThemeData(
-        cursorColor: Color(0xFFFFA500),
-        selectionColor: Color(0x33FFA500),
-        selectionHandleColor: Color(0xFFFFA500),
+      textSelectionTheme: _buildTextSelectionTheme(
+        accentColor: const Color(0xFFFFA500),
+        selectionColor: const Color(0x33FFA500),
       ),
+    );
+  }
 
+  static const SnackBarThemeData _snackBarTheme = SnackBarThemeData(
+    behavior: SnackBarBehavior.floating,
+  );
+
+  static InputDecorationTheme _buildInputDecorationTheme({
+    required Color hintColor,
+    required Color fillColor,
+    required Color focusedBorderColor,
+    required Color errorBorderColor,
+  }) {
+    return InputDecorationTheme(
+      hintStyle: TextStyle(
+        fontSize: 16,
+        color: hintColor,
+      ),
+      suffixIconColor: hintColor,
+      filled: true,
+      fillColor: fillColor,
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: 20,
+        vertical: 18,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide.none,
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: focusedBorderColor),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: errorBorderColor),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: errorBorderColor),
+      ),
+    );
+  }
+
+  static TextButtonThemeData _buildTextButtonTheme({
+    required Color foregroundColor,
+  }) {
+    return TextButtonThemeData(
+      style: TextButton.styleFrom(
+        foregroundColor: foregroundColor,
+        textStyle: const TextStyle(fontWeight: FontWeight.w700),
+      ),
+    );
+  }
+
+  static ElevatedButtonThemeData _buildElevatedButtonTheme({
+    required Color backgroundColor,
+    required Color foregroundColor,
+    required Color shadowColor,
+    Color? disabledForegroundColor,
+  }) {
+    return ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: backgroundColor,
+        foregroundColor: foregroundColor,
+        elevation: 3,
+        shadowColor: shadowColor,
+        minimumSize: const Size.fromHeight(56),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        textStyle: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
+        disabledForegroundColor: disabledForegroundColor,
+      ),
+    );
+  }
+
+  static OutlinedButtonThemeData _buildOutlinedButtonTheme({
+    required Color foregroundColor,
+    required Color sideColor,
+  }) {
+    return OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: foregroundColor,
+        textStyle: const TextStyle(fontWeight: FontWeight.w700),
+        side: BorderSide(color: sideColor),
+      ),
+    );
+  }
+
+  static DatePickerThemeData _buildDatePickerTheme({
+    required Color todayUnselectedForeground,
+    required Color todaySelectedForeground,
+    Color? selectedDayBackground,
+    Color? selectedTodayBackground,
+  }) {
+    return DatePickerThemeData(
+      todayForegroundColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
+          return todaySelectedForeground;
+        }
+        return todayUnselectedForeground;
+      }),
+      dayBackgroundColor: selectedDayBackground == null
+          ? null
+          : WidgetStateProperty.resolveWith((states) {
+              if (states.contains(WidgetState.selected)) {
+                return selectedDayBackground;
+              }
+              return Colors.transparent;
+            }),
+      todayBackgroundColor: selectedTodayBackground == null
+          ? null
+          : WidgetStateProperty.resolveWith((states) {
+              if (states.contains(WidgetState.selected)) {
+                return selectedTodayBackground;
+              }
+              return Colors.transparent;
+            }),
+    );
+  }
+
+  static TimePickerThemeData _buildTimePickerTheme({
+    required Color dialHandColor,
+  }) {
+    return TimePickerThemeData(
+      dialHandColor: dialHandColor,
+      entryModeIconColor: Colors.white70,
+    );
+  }
+
+  static TextSelectionThemeData _buildTextSelectionTheme({
+    required Color accentColor,
+    required Color selectionColor,
+  }) {
+    return TextSelectionThemeData(
+      cursorColor: accentColor,
+      selectionColor: selectionColor,
+      selectionHandleColor: accentColor,
     );
   }
 

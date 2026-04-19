@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import 'anchored_popup_dialog.dart';
+
 class AuthPopupMenu extends StatelessWidget {
   const AuthPopupMenu({
     super.key,
@@ -20,75 +22,30 @@ class AuthPopupMenu extends StatelessWidget {
   final Color? iconColor;
 
   void _showAuthDialog(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    showGeneralDialog(
+    showAnchoredPopupDialog(
       context: context,
       barrierLabel: 'Auth menu',
-      barrierDismissible: true,
-      barrierColor: Colors.black54,
-      transitionDuration: const Duration(milliseconds: 180),
-      pageBuilder: (dialogContext, animation, secondaryAnimation) {
-        return SafeArea(
-          child: Stack(
-            children: [
-              Positioned(
-                top: 70,
-                right: 12,
-                child: Material(
-                  color: Colors.transparent,
-                  child: Container(
-                    width: 320,
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: theme.cardColor,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: isDark ? Colors.white10 : Colors.black12,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.18),
-                          blurRadius: 14,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
-                    child: isLoggedIn
-                        ? _LoggedInContent(
-                            onLogout: () {
-                              Navigator.of(dialogContext).pop();
-                              onLogout?.call();
-                            },
-                          )
-                        : _LoggedOutContent(
-                            onLogin: () {
-                              Navigator.of(dialogContext).pop();
-                              onLogin?.call();
-                            },
-                            onSignUp: () {
-                              Navigator.of(dialogContext).pop();
-                              onSignUp?.call();
-                            },
-                          ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-      transitionBuilder: (context, animation, secondaryAnimation, child) {
-        final curved = CurvedAnimation(
-          parent: animation,
-          curve: Curves.easeOut,
-        );
-
-        return FadeTransition(
-          opacity: curved,
-          child: child,
-        );
+      right: 12,
+      width: 320,
+      padding: const EdgeInsets.all(20),
+      builder: (dialogContext) {
+        return isLoggedIn
+            ? _LoggedInContent(
+                onLogout: () {
+                  Navigator.of(dialogContext).pop();
+                  onLogout?.call();
+                },
+              )
+            : _LoggedOutContent(
+                onLogin: () {
+                  Navigator.of(dialogContext).pop();
+                  onLogin?.call();
+                },
+                onSignUp: () {
+                  Navigator.of(dialogContext).pop();
+                  onSignUp?.call();
+                },
+              );
       },
     );
   }
@@ -96,7 +53,10 @@ class AuthPopupMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final resolvedIconColor = iconColor ?? theme.appBarTheme.foregroundColor ?? theme.colorScheme.onSurface;
+    final resolvedIconColor =
+        iconColor ??
+        theme.appBarTheme.foregroundColor ??
+        theme.colorScheme.onSurface;
 
     return IconButton(
       onPressed: () => _showAuthDialog(context),

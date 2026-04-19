@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/di/theme_mode_provider.dart';
+import 'anchored_popup_dialog.dart';
 
 class ThemePopupMenu extends ConsumerWidget {
   const ThemePopupMenu({
@@ -15,126 +16,80 @@ class ThemePopupMenu extends ConsumerWidget {
 
   void _showThemeDialog(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final currentPreference = ref.read(themeModeProvider).preference;
 
-    showGeneralDialog(
+    showAnchoredPopupDialog(
       context: context,
       barrierLabel: 'Theme menu',
-      barrierDismissible: true,
-      barrierColor: Colors.black54,
-      transitionDuration: const Duration(milliseconds: 180),
-      pageBuilder: (dialogContext, animation, secondaryAnimation) {
-        return SafeArea(
-          child: Stack(
-            children: [
-              Positioned(
-                top: 70,
-                left: 12,
-                child: Material(
-                  color: Colors.transparent,
-                  child: Container(
-                    width: 280,
-                    padding: const EdgeInsets.all(18),
-                    decoration: BoxDecoration(
-                      color: theme.cardColor,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: isDark ? Colors.white10 : Colors.black12,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.18),
-                          blurRadius: 14,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Theme',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(height: 14),
-                        _ThemeOptionTile(
-                          label: 'Automatic',
-                          subtitle: 'Uses ambient light sensor',
-                          selected:
-                              currentPreference == AppThemePreference.automatic,
-                          onTap: () async {
-                            await ref
-                                .read(themeModeProvider.notifier)
-                                .setPreference(AppThemePreference.automatic);
-                            if (dialogContext.mounted) {
-                              Navigator.of(dialogContext).pop();
-                            }
-                          },
-                        ),
-                        const SizedBox(height: 10),
-                        _ThemeOptionTile(
-                          label: 'System',
-                          subtitle: 'Follows device theme',
-                          selected:
-                              currentPreference == AppThemePreference.system,
-                          onTap: () async {
-                            await ref
-                                .read(themeModeProvider.notifier)
-                                .setPreference(AppThemePreference.system);
-                            if (dialogContext.mounted) {
-                              Navigator.of(dialogContext).pop();
-                            }
-                          },
-                        ),
-                        const SizedBox(height: 10),
-                        _ThemeOptionTile(
-                          label: 'Light',
-                          selected:
-                              currentPreference == AppThemePreference.light,
-                          onTap: () async {
-                            await ref
-                                .read(themeModeProvider.notifier)
-                                .setPreference(AppThemePreference.light);
-                            if (dialogContext.mounted) {
-                              Navigator.of(dialogContext).pop();
-                            }
-                          },
-                        ),
-                        const SizedBox(height: 10),
-                        _ThemeOptionTile(
-                          label: 'Dark',
-                          selected: currentPreference == AppThemePreference.dark,
-                          onTap: () async {
-                            await ref
-                                .read(themeModeProvider.notifier)
-                                .setPreference(AppThemePreference.dark);
-                            if (dialogContext.mounted) {
-                              Navigator.of(dialogContext).pop();
-                            }
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+      left: 12,
+      width: 280,
+      padding: const EdgeInsets.all(18),
+      builder: (dialogContext) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Theme',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
               ),
-            ],
-          ),
-        );
-      },
-      transitionBuilder: (context, animation, secondaryAnimation, child) {
-        final curved = CurvedAnimation(
-          parent: animation,
-          curve: Curves.easeOut,
-        );
-
-        return FadeTransition(
-          opacity: curved,
-          child: child,
+            ),
+            const SizedBox(height: 14),
+            _ThemeOptionTile(
+              label: 'Automatic',
+              subtitle: 'Uses ambient light sensor',
+              selected: currentPreference == AppThemePreference.automatic,
+              onTap: () async {
+                await ref
+                    .read(themeModeProvider.notifier)
+                    .setPreference(AppThemePreference.automatic);
+                if (dialogContext.mounted) {
+                  Navigator.of(dialogContext).pop();
+                }
+              },
+            ),
+            const SizedBox(height: 10),
+            _ThemeOptionTile(
+              label: 'System',
+              subtitle: 'Follows device theme',
+              selected: currentPreference == AppThemePreference.system,
+              onTap: () async {
+                await ref
+                    .read(themeModeProvider.notifier)
+                    .setPreference(AppThemePreference.system);
+                if (dialogContext.mounted) {
+                  Navigator.of(dialogContext).pop();
+                }
+              },
+            ),
+            const SizedBox(height: 10),
+            _ThemeOptionTile(
+              label: 'Light',
+              selected: currentPreference == AppThemePreference.light,
+              onTap: () async {
+                await ref
+                    .read(themeModeProvider.notifier)
+                    .setPreference(AppThemePreference.light);
+                if (dialogContext.mounted) {
+                  Navigator.of(dialogContext).pop();
+                }
+              },
+            ),
+            const SizedBox(height: 10),
+            _ThemeOptionTile(
+              label: 'Dark',
+              selected: currentPreference == AppThemePreference.dark,
+              onTap: () async {
+                await ref
+                    .read(themeModeProvider.notifier)
+                    .setPreference(AppThemePreference.dark);
+                if (dialogContext.mounted) {
+                  Navigator.of(dialogContext).pop();
+                }
+              },
+            ),
+          ],
         );
       },
     );
