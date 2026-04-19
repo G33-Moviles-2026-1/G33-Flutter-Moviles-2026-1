@@ -1,10 +1,12 @@
 import 'package:andespace/core/di/core_provider.dart';
 import 'package:andespace/core/navigation/app_routes.dart';
+import 'package:andespace/features/auth/presentation/controllers/auth_notifier.dart';
 import 'package:andespace/features/rooms/domain/entities/room_date_availability.dart';
 import 'package:andespace/features/rooms/presentation/controllers/room_detail_notifier.dart';
 import 'package:andespace/shared/widgets/utilities_string.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:andespace/features/favorites/presentation/providers/favorites_providers.dart';
 
 import '../../../../shared/theme/app_theme_extension.dart';
 import '../../domain/entities/room_search.dart';
@@ -150,6 +152,14 @@ class _RoomDetailBodyState extends ConsumerState<RoomDetailBody> {
     final t = Theme.of(context);
     final brand = t.extension<BrandColors>()!;
     final room = widget.room;
+    final authState = ref.watch(authControllerProvider);
+    final favoritesState = ref.watch(favoritesControllerProvider);
+    final favoritesNotifier = ref.read(favoritesControllerProvider.notifier);
+
+    final isFavorite = favoritesState.isFavorite(room.roomId);
+    final isFavoritePending = favoritesState.pendingRoomIds.contains(
+      room.roomId,
+    );
 
     return Column(
       children: [
@@ -189,10 +199,32 @@ class _RoomDetailBodyState extends ConsumerState<RoomDetailBody> {
                       onTap: () => _showInDevelopmentMessage("Reporting"),
                     ),
                     const SizedBox(width: 10),
-                    _HeaderIcon(
-                      icon: Icons.favorite_border,
-                      onTap: () => _showInDevelopmentMessage("Favorites"),
-                    ),
+                    if (isFavoritePending)
+                      const SizedBox(
+                        width: 38,
+                        height: 38,
+                        child: Center(
+                          child: SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        ),
+                      )
+                    else
+                      _HeaderIcon(
+                        icon: isFavorite
+                            ? Icons.favorite
+                            : Icons.favorite_border,
+                        onTap: () async {
+                          if (!authState.hasActiveSession) {
+                            Navigator.pushNamed(context, AppRoutes.favorites);
+                            return;
+                          }
+
+                          await favoritesNotifier.toggleFromSearch(room);
+                        },
+                      ),
                   ],
                 ),
                 const SizedBox(height: 24),
@@ -281,18 +313,21 @@ class _RoomDetailBodyState extends ConsumerState<RoomDetailBody> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: _onBookPressed,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: brand.accentYellow,
-                    foregroundColor: Colors.black,
-                    elevation: 0,
-                    padding: const EdgeInsets.symmetric(vertical: 18),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      side: t.brightness == Brightness.light
-                          ? const BorderSide(color: Colors.black, width: 2)
-                          : BorderSide.none,
-                    ),
-                  ).copyWith(overlayColor: WidgetStateProperty.all(Colors.black12)),
+                  style:
+                      ElevatedButton.styleFrom(
+                        backgroundColor: brand.accentYellow,
+                        foregroundColor: Colors.black,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 18),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: t.brightness == Brightness.light
+                              ? const BorderSide(color: Colors.black, width: 2)
+                              : BorderSide.none,
+                        ),
+                      ).copyWith(
+                        overlayColor: WidgetStateProperty.all(Colors.black12),
+                      ),
                   child: Text(
                     "Book Room",
                     style: t.textTheme.titleMedium?.copyWith(
@@ -602,4 +637,4 @@ class _HeaderIcon extends StatelessWidget {
     final theme = Theme.of(context);
     return theme.inputDecorationTheme.fillColor ?? theme.colorScheme.surface;
   }
-  }
+}

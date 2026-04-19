@@ -6,6 +6,7 @@ import '../../domain/usecases/get_current_user_usecase.dart';
 import '../../domain/usecases/login_usecase.dart';
 import '../../domain/usecases/logout_usecase.dart';
 import '../../domain/usecases/signup_usecase.dart';
+import '../../../favorites/presentation/providers/favorites_providers.dart';
 import 'auth_state.dart';
 
 class AuthNotifier extends Notifier<AuthState> {
@@ -48,6 +49,9 @@ class AuthNotifier extends Notifier<AuthState> {
     state = state.copyWith(isLoading: true, error: null, isSuccess: false);
     try {
       await _loginUseCase(email: email, password: password);
+      await ref.read(bookingsLocalDataSourceProvider).clear();
+      await ref.read(bookingsLocalDataSourceProvider).clear();
+      await ref.read(favoritesLocalDataSourceProvider).clear();
       final user = await _getCurrentUserUseCase();
       state = AuthState(isLoading: false, isAuthenticated: user != null, user: user, isSuccess: true);
     } catch (e) {
@@ -86,6 +90,8 @@ class AuthNotifier extends Notifier<AuthState> {
     try {
       await _logoutUseCase();
       await ref.read(bookingsLocalDataSourceProvider).clear();
+      await ref.read(bookingsLocalDataSourceProvider).clear();
+      await ref.read(favoritesLocalDataSourceProvider).clear();
       state = const AuthState(isLoading: false, isAuthenticated: false, user: null, isSuccess: false);
     } catch (e) {
       state = state.copyWith(

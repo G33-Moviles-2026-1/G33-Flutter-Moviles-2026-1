@@ -1,10 +1,12 @@
 import 'package:andespace/core/navigation/app_routes.dart';
+import 'package:andespace/features/auth/presentation/controllers/auth_notifier.dart';
 import 'package:andespace/features/rooms/domain/entities/room_search.dart';
 import 'package:andespace/features/rooms/presentation/controllers/home_search_state.dart';
 import 'package:andespace/features/rooms/presentation/controllers/home_search_notifier.dart';
 import 'package:andespace/shared/theme/app_theme_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:andespace/features/favorites/presentation/providers/favorites_providers.dart';
 
 class ResultsBody extends ConsumerStatefulWidget {
   final HomeSearchState state;
@@ -184,7 +186,7 @@ class _ResultsBodyState extends ConsumerState<ResultsBody> {
   }
 }
 
-class _RoomCard extends StatelessWidget {
+class _RoomCard extends ConsumerWidget {
   final RoomSearchItem room;
   final BrandColors brand;
   final String? searchTime;
@@ -192,9 +194,17 @@ class _RoomCard extends StatelessWidget {
   const _RoomCard({required this.room, required this.brand, this.searchTime});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final authState = ref.watch(authControllerProvider);
+    final favoritesState = ref.watch(favoritesControllerProvider);
+    final favoritesNotifier = ref.read(favoritesControllerProvider.notifier);
+
+    final isFavorite = favoritesState.isFavorite(room.roomId);
+    final isFavoritePending = favoritesState.pendingRoomIds.contains(
+      room.roomId,
+    );
 
     final String referenceTime =
         searchTime ??
@@ -248,6 +258,30 @@ class _RoomCard extends StatelessWidget {
                       ),
                     ),
                   ),
+                  if (isFavoritePending)
+                    const SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  else
+                    IconButton(
+                      onPressed: () async {
+                        if (!authState.hasActiveSession) {
+                          Navigator.pushNamed(context, AppRoutes.favorites);
+                          return;
+                        }
+
+                        await favoritesNotifier.toggleFromSearch(room);
+                      },
+                      icon: Icon(
+                        isFavorite ? Icons.favorite : Icons.favorite_border,
+                      ),
+                      color: isFavorite
+                          ? brand.accentYellow
+                          : colorScheme.onSurface,
+                      tooltip: isFavorite ? 'Remove favorite' : 'Save favorite',
+                    ),
                   if (room.distanceSeconds != null)
                     _Badge(
                       label: '${room.distanceSeconds!.toStringAsFixed(0)} sec',
