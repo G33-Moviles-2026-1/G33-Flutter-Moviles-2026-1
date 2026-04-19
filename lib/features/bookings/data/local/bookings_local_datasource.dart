@@ -1,5 +1,5 @@
+import '../../../../core/local/app_database.dart';
 import '../models/my_booking_dto.dart';
-import 'bookings_database.dart';
 
 class BookingsLocalDataSource {
   final AppDatabase _db;

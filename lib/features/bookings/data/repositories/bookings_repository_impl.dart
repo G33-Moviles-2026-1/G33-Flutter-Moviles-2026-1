@@ -47,7 +47,9 @@ class BookingsRepositoryImpl implements BookingsRepository {
   Future<List<MyBooking>> getMyBookings() async {
     final raw = await bookingsApi.fetchMyBookings();
     final responseDto = MyBookingsResponseDto.fromJson(raw);
-    await localDataSource.saveBookings(responseDto.items);
+    try {
+      await localDataSource.saveBookings(responseDto.items);
+    } catch (_) {}
     return responseDto.toDomain();
   }
 

@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../domain/entities/my_booking.dart';
 import '../../domain/usecases/get_cached_bookings.dart';
 import '../../domain/usecases/load_my_bookings.dart';
 import '../../domain/usecases/remove_booking_from_list.dart';
@@ -21,7 +22,10 @@ class MyBookingsNotifier extends AutoDisposeNotifier<MyBookingsState> {
   }
 
   Future<void> load() async {
-    final cached = await _getCachedBookings();
+    List<MyBooking> cached = [];
+    try {
+      cached = await _getCachedBookings();
+    } catch (_) {}
     state = state.copyWith(
       items: cached.isNotEmpty ? cached : state.items,
       isLoading: true,
