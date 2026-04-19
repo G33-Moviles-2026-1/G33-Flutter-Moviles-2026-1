@@ -1,5 +1,11 @@
+import 'package:dio/dio.dart' show DioException;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/connectivity/connectivity_queue_service.dart';
+import '../../../../core/di/core_provider.dart';
+import '../../data/actions/delete_booking_action.dart';
+import '../../data/local/bookings_local_datasource.dart';
+import '../../data/remote/bookings_api.dart';
 import '../../domain/entities/my_booking.dart';
 import '../../domain/usecases/get_cached_bookings.dart';
 import '../../domain/usecases/load_my_bookings.dart';
@@ -11,12 +17,18 @@ class MyBookingsNotifier extends AutoDisposeNotifier<MyBookingsState> {
   late final GetCachedBookings _getCachedBookings;
   late final LoadMyBookings _loadMyBookings;
   late final RemoveBookingFromList _removeBookingFromList;
+  late final BookingsLocalDataSource _localDataSource;
+  late final ConnectivityQueueService _queueService;
+  late final BookingsApi _bookingsApi;
 
   @override
   MyBookingsState build() {
     _getCachedBookings = ref.read(getCachedBookingsUseCaseProvider);
     _loadMyBookings = ref.read(loadMyBookingsUseCaseProvider);
     _removeBookingFromList = ref.read(removeBookingFromListUseCaseProvider);
+    _localDataSource = ref.read(bookingsLocalDataSourceProvider);
+    _queueService = ref.read(connectivityQueueServiceProvider);
+    _bookingsApi = ref.read(bookingsApiProvider);
     Future.microtask(load);
     return const MyBookingsState();
   }
@@ -63,10 +75,21 @@ class MyBookingsNotifier extends AutoDisposeNotifier<MyBookingsState> {
         deletingIds: {...state.deletingIds}..remove(bookingId),
       );
     } catch (error) {
-      state = state.copyWith(
-        deletingIds: {...state.deletingIds}..remove(bookingId),
-        errorMessage: error.toString().replaceFirst('Exception: ', ''),
-      );
+      if (error is DioException && error.response == null) {
+        try {
+          await _localDataSource.removeBooking(bookingId);
+        } catch (_) {}
+        state = state.copyWith(
+          items: state.items.where((i) => i.id != bookingId).toList(),
+          deletingIds: {...state.deletingIds}..remove(bookingId),
+        );
+        _queueService.enqueue(DeleteBookingAction(_bookingsApi, bookingId));
+      } else {
+        state = state.copyWith(
+          deletingIds: {...state.deletingIds}..remove(bookingId),
+          errorMessage: error.toString().replaceFirst('Exception: ', ''),
+        );
+      }
     }
   }
 }
