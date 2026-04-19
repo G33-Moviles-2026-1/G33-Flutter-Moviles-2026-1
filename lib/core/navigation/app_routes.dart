@@ -5,7 +5,7 @@ import 'package:andespace/features/bookings/presentation/pages/create_booking_pa
 import 'package:andespace/features/bookings/presentation/pages/my_bookings_page.dart';
 import 'package:andespace/features/rooms/domain/entities/room_search.dart';
 import 'package:andespace/features/rooms/presentation/pages/home_page.dart';
-import 'package:andespace/features/rooms/presentation/pages/path_page.dart';
+import 'package:andespace/features/navigation/presentation/pages/path_page.dart';
 import 'package:andespace/features/rooms/presentation/pages/results_page.dart';
 import 'package:andespace/features/rooms/presentation/pages/room_detail_page.dart';
 import 'package:andespace/features/schedule/presentation/pages/schedule_entry_page.dart';
@@ -28,7 +28,10 @@ class AppRoutes {
     signup: (context) => const SignUpPage(),
     results: (context) => const ResultsPage(),
     schedule: (context) => const ScheduleEntryPage(),
-    path: (context) => const PathPage(),
+    path: (context) {
+      final room = ModalRoute.of(context)?.settings.arguments as RoomSearchItem?;
+      return PathPage(initialDestination: room);
+    },
     roomDetail: (context) {
       final room = ModalRoute.of(context)!.settings.arguments as RoomSearchItem;
       return RoomDetailPage(room: room);

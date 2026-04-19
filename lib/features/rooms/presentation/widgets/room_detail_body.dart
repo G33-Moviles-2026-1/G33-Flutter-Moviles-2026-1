@@ -274,31 +274,64 @@ class _RoomDetailBodyState extends ConsumerState<RoomDetailBody> {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.all(18),
-          child: SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: _onBookPressed,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: brand.accentYellow,
-                foregroundColor: Colors.black,
-                elevation: 0,
-                padding: const EdgeInsets.symmetric(vertical: 18),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: t.brightness == Brightness.light
-                      ? const BorderSide(color: Colors.black, width: 2)
-                      : BorderSide.none,
-                ),
-              ).copyWith(overlayColor: WidgetStateProperty.all(Colors.black12)),
-              child: Text(
-                "Book Room",
-                style: t.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w900,
-                  color: Colors.black,
+          padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
+          child: Column(
+            children: [
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _onBookPressed,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: brand.accentYellow,
+                    foregroundColor: Colors.black,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: t.brightness == Brightness.light
+                          ? const BorderSide(color: Colors.black, width: 2)
+                          : BorderSide.none,
+                    ),
+                  ).copyWith(overlayColor: WidgetStateProperty.all(Colors.black12)),
+                  child: Text(
+                    "Book Room",
+                    style: t.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w900,
+                      color: Colors.black,
+                    ),
+                  ),
                 ),
               ),
-            ),
+              const SizedBox(height: 10),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () => Navigator.pushNamed(
+                    context,
+                    AppRoutes.path,
+                    arguments: widget.room,
+                  ),
+                  icon: const Icon(Icons.directions_walk, size: 20),
+                  label: const Text("Get Directions"),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: t.colorScheme.onSurface,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    side: BorderSide(
+                      color: _isDark(context)
+                          ? t.colorScheme.onSurface.withValues(alpha: 0.3)
+                          : Colors.black,
+                      width: 1.5,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    textStyle: t.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ],
