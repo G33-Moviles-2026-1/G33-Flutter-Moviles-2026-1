@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'app.dart';
-import 'features/bookings/data/local/bookings_database.dart';
+import 'core/local/app_database.dart';
 import 'features/bookings/data/local/bookings_local_datasource.dart';
 import 'features/bookings/presentation/providers/bookings_providers.dart';
 import 'features/favorites/data/local/favorites_local_datasource.dart';

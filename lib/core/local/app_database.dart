@@ -1,7 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
-
-part 'bookings_database.g.dart';
+part 'app_database.g.dart';
 
 class MyBookingsTable extends Table {
   @override
@@ -68,6 +67,17 @@ class AppDatabase extends _$AppDatabase {
 
   @override
   int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+    onCreate: (m) => m.createAll(),
+    onUpgrade: (m, from, to) async {
+      for (final table in allTables) {
+        await m.deleteTable(table.actualTableName);
+        await m.createTable(table);
+      }
+    },
+  );
 
   Future<List<MyBookingsTableData>> getAllBookings() =>
       select(myBookingsTable).get();
