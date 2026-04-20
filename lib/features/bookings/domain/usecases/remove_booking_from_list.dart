@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+
 import '../../../../core/error/dio_error_mapper.dart';
 import '../entities/my_booking.dart';
 import 'delete_my_booking.dart';
@@ -15,6 +17,7 @@ class RemoveBookingFromList {
       await _deleteMyBooking(bookingId: bookingId);
       return currentItems.where((item) => item.id != bookingId).toList();
     } catch (error) {
+      if (error is DioException && error.response == null) rethrow;
       throw Exception(_mapError(error));
     }
   }

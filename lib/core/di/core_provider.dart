@@ -7,6 +7,8 @@ import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../connectivity/connectivity_queue_service.dart';
+import '../connectivity/connectivity_recovery_service.dart';
 import '../network/network_constants.dart';
 
 final cookieJarProvider = Provider<CookieJar>((ref) {
@@ -37,6 +39,18 @@ final sessionControllerProvider =
 
 final analyticsServiceProvider = Provider<AnalyticsService>((ref) {
   return AnalyticsService(ref.read(dioProvider));
+});
+
+final connectivityRecoveryServiceProvider = Provider<ConnectivityRecoveryService>((ref) {
+  final service = ConnectivityRecoveryService();
+  service.startMonitoring();
+  return service;
+});
+
+final connectivityQueueServiceProvider = Provider<ConnectivityQueueService>((ref) {
+  final service = ConnectivityQueueService();
+  service.init(ref.read(connectivityRecoveryServiceProvider).onRecovered);
+  return service;
 });
 
 String _validatedBaseUrl(String rawBaseUrl) {

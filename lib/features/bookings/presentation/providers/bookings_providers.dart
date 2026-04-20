@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/connectivity/pending_action_event.dart';
 import '../../../../core/di/core_provider.dart';
 import '../../../rooms/presentation/providers/rooms_providers.dart';
 import '../../data/local/bookings_local_datasource.dart';
@@ -79,4 +80,8 @@ final getBookingAvailabilityUseCaseProvider = Provider<GetBookingAvailability>((
 
 final getBookingDateBoundsUseCaseProvider = Provider<GetBookingDateBounds>((ref) {
   return const GetBookingDateBounds();
+});
+
+final connectivitySyncEventsProvider = StreamProvider<PendingActionEvent>((ref) {
+  return ref.watch(connectivityQueueServiceProvider).events;
 });
