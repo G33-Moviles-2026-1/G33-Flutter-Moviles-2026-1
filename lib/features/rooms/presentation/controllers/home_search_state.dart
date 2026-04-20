@@ -12,12 +12,14 @@ class HomeSearchState {
     required this.status,
     this.response,
     this.errorMessage,
+    this.infoMessage,
   });
 
   const HomeSearchState.initial()
       : status = HomeSearchStatus.initial,
         response = null,
-        errorMessage = null;
+        errorMessage = null,
+        infoMessage = null;
 
   const HomeSearchState.loading({
     RoomSearchResponse? previousResponse,
@@ -25,13 +27,17 @@ class HomeSearchState {
           status: HomeSearchStatus.loading,
           response: previousResponse,
           errorMessage: null,
+          infoMessage: null,
         );
 
-  const HomeSearchState.success(RoomSearchResponse response)
-      : this(
+  const HomeSearchState.success(
+    RoomSearchResponse response, {
+    String? infoMessage,
+  }) : this(
           status: HomeSearchStatus.success,
           response: response,
           errorMessage: null,
+          infoMessage: infoMessage,
         );
 
   const HomeSearchState.error(
@@ -41,11 +47,15 @@ class HomeSearchState {
           status: HomeSearchStatus.error,
           response: previousResponse,
           errorMessage: message,
+          infoMessage: null,
         );
 
   final HomeSearchStatus status;
   final RoomSearchResponse? response;
   final String? errorMessage;
+  final String? infoMessage;
 
   bool get isLoading => status == HomeSearchStatus.loading;
+
+  String? get feedbackMessage => errorMessage ?? infoMessage;
 }

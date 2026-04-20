@@ -231,15 +231,15 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
   @override
   Widget build(BuildContext context) {
     ref.listen<HomeSearchState>(homeSearchControllerProvider, (previous, next) {
-      final previousError = previous?.errorMessage;
-      final nextError = next.errorMessage;
+      final previousMessage = previous?.feedbackMessage;
+      final nextMessage = next.feedbackMessage;
 
-      if (nextError != null && nextError != previousError) {
+      if (nextMessage != null && nextMessage != previousMessage) {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(
             SnackBar(
-              content: Text(nextError),
+              content: Text(nextMessage),
               duration: const Duration(seconds: 4),
             ),
           );

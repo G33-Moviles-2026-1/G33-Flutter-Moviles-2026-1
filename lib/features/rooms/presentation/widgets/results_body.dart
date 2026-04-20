@@ -37,6 +37,20 @@ class _ResultsBodyState extends ConsumerState<ResultsBody> {
           );
         }
       }
+
+      final previousMessage = previous?.feedbackMessage;
+      final nextMessage = next.feedbackMessage;
+
+      if (nextMessage != null && nextMessage != previousMessage) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(nextMessage),
+              duration: const Duration(seconds: 4),
+            ),
+          );
+      }
     });
 
     final theme = Theme.of(context);
