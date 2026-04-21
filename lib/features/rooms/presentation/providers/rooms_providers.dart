@@ -5,6 +5,7 @@ import 'package:andespace/features/rooms/data/repositories/rooms_repository_impl
 import 'package:andespace/features/rooms/domain/repositories/rooms_repository.dart';
 import 'package:andespace/features/rooms/domain/usecases/fetch_room_date_availability.dart';
 import 'package:andespace/features/rooms/domain/usecases/search_rooms.dart';
+import 'package:andespace/features/rooms/data/cache/home_search_params_memory_cache.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final roomsApiProvider = Provider<RoomsApi>((ref) {
@@ -16,6 +17,11 @@ final roomSearchMemoryCacheProvider = Provider<RoomSearchMemoryCache>((ref) {
   ref.onDispose(cache.dispose);
   return cache;
 });
+
+final homeSearchParamsMemoryCacheProvider =
+    Provider<HomeSearchParamsMemoryCache>((ref) {
+      return HomeSearchParamsMemoryCache();
+    });
 
 final roomRepositoryProvider = Provider<RoomRepository>((ref) {
   return RoomRepositoryImpl(
