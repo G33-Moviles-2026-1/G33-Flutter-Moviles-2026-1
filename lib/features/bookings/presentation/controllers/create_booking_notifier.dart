@@ -1,7 +1,13 @@
+import 'package:andespace/core/connectivity/connectivity_queue_service.dart';
 import 'package:andespace/core/di/core_provider.dart';
+import 'package:dio/dio.dart' show DioException;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../rooms/domain/entities/room_search.dart';
 import '../../../rooms/domain/entities/time_range.dart';
+import '../../data/actions/create_booking_action.dart';
+import '../../data/models/create_booking_request_dto.dart';
+import '../../data/remote/bookings_api.dart';
 import '../../domain/entities/booking_purpose.dart';
 import '../../domain/usecases/get_booking_availability.dart';
 import '../../domain/usecases/get_create_booking_initial_data.dart';
@@ -17,6 +23,8 @@ class CreateBookingNotifier
   late final GetBookingAvailability _getBookingAvailability;
   late final SubmitBooking _submitBooking;
   late final SessionNotifier _sessionNotifier;
+  late final ConnectivityQueueService _queueService;
+  late final BookingsApi _bookingsApi;
 
   @override
   CreateBookingState build(RoomSearchItem arg) {
@@ -25,6 +33,8 @@ class CreateBookingNotifier
     _getBookingAvailability = ref.read(getBookingAvailabilityUseCaseProvider);
     _submitBooking = ref.read(submitBookingUseCaseProvider);
     _sessionNotifier = ref.read(sessionControllerProvider.notifier);
+    _queueService = ref.read(connectivityQueueServiceProvider);
+    _bookingsApi = ref.read(bookingsApiProvider);
 
     final initialData = _getInitialData(_sessionNotifier);
 
@@ -99,11 +109,26 @@ class CreateBookingNotifier
         created: booking,
       );
     } catch (error) {
-      state = state.copyWith(
-        isSubmitting: false,
-        errorMessage: error.toString().replaceFirst('Exception: ', ''),
-        clearCreated: true,
-      );
+      if (error is DioException && error.response == null) {
+        final payload = CreateBookingRequestDto(
+          roomId: _room.roomId,
+          date: state.selectedDate,
+          timeRange: state.selectedTimeRange!,
+          purpose: state.selectedPurpose,
+        ).toJson();
+        _queueService.enqueue(CreateBookingAction(_bookingsApi, payload));
+        state = state.copyWith(
+          isSubmitting: false,
+          isPendingSync: true,
+          clearCreated: true,
+        );
+      } else {
+        state = state.copyWith(
+          isSubmitting: false,
+          errorMessage: error.toString().replaceFirst('Exception: ', ''),
+          clearCreated: true,
+        );
+      }
     }
   }
 

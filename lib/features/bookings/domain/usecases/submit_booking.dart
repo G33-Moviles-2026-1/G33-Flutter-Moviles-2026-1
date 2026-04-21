@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+
 import '../../../../core/analytics/analytics_events.dart';
 import '../../../../core/analytics/analytics_service.dart';
 import '../../../../core/di/core_provider.dart';
@@ -47,6 +49,7 @@ class SubmitBooking {
 
       return booking;
     } catch (error) {
+      if (error is DioException && error.response == null) rethrow;
       throw Exception(_mapError(error));
     }
   }
