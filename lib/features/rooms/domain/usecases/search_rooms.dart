@@ -1,5 +1,8 @@
 import '../entities/room_search.dart';
+import '../entities/room_search_result.dart';
+import '../entities/room_search_source.dart';
 import '../repositories/rooms_repository.dart';
+import 'search_rooms_exceptions.dart';
 
 class SearchRoomsValidationException implements Exception {
   const SearchRoomsValidationException(this.message);
@@ -37,13 +40,59 @@ class SearchRooms {
 
   final RoomRepository _repository;
 
-  Future<RoomSearchResponse> call(SearchRoomsInput input) {
+  Future<RoomSearchResult> call(SearchRoomsInput input) async {
     _validate(input);
-    return _repository.searchRooms(_buildRequest(input));
+    final request = _buildRequest(input);
+    return _execute(request, allowHomepageFallback: true);
   }
 
-  Future<RoomSearchResponse> callWithRequest(RoomSearchRequest request) {
-    return _repository.searchRooms(request);
+  Future<RoomSearchResult> callWithRequest(RoomSearchRequest request) {
+    return _execute(request, allowHomepageFallback: false);
+  }
+
+  Future<RoomSearchResult> _execute(
+    RoomSearchRequest request, {
+    required bool allowHomepageFallback,
+  }) async {
+    try {
+      final response = await _repository.searchRooms(request);
+
+      if (request.offset == 0) {
+        _repository.cacheFirstSearchPage(
+          baseQuery: request.copyWith(offset: 0),
+          firstPage: response,
+        );
+        unawaited(_repository.prefetchFirstPages(request.copyWith(offset: 0)));
+      }
+
+      return RoomSearchResult(
+        response: response,
+        source: RoomSearchSource.network,
+      );
+    } on SearchRoomsConnectivityException {
+      final pageNumber = _pageNumberFromRequest(request);
+
+      if (pageNumber <= 3) {
+        final cached = _repository.getCachedSearchPage(pageNumber);
+        if (cached != null) {
+          return RoomSearchResult(
+            response: cached,
+            source: RoomSearchSource.cache,
+            message: allowHomepageFallback
+                ? 'No internet connection. Showing the cached results from your last search.'
+                : 'No internet connection. Showing cached results for page $pageNumber.',
+          );
+        }
+      }
+
+      if (!allowHomepageFallback && pageNumber > 3) {
+        throw const SearchRoomsOfflinePaginationException(
+          'More results require an internet connection. Please check your connection and try again.',
+        );
+      }
+
+      rethrow;
+    }
   }
 
   void _validate(SearchRoomsInput input) {
@@ -124,4 +173,10 @@ class SearchRooms {
     final parts = hhmm.split(':');
     return int.parse(parts[0]) * 60 + int.parse(parts[1]);
   }
+
+  int _pageNumberFromRequest(RoomSearchRequest request) {
+    return (request.offset ~/ request.limit) + 1;
+  }
 }
+
+void unawaited(Future<void> future) {}

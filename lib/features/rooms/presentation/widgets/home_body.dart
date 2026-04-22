@@ -3,6 +3,8 @@ import 'package:andespace/features/rooms/presentation/controllers/home_search_st
 import 'package:andespace/core/utils/date_time_utils.dart';
 import 'package:andespace/features/rooms/presentation/controllers/home_search_notifier.dart';
 import 'package:andespace/shared/theme/app_theme_extension.dart';
+import 'package:andespace/features/rooms/data/cache/home_search_params_memory_cache.dart';
+import 'package:andespace/features/rooms/presentation/providers/rooms_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -22,6 +24,7 @@ Color _homeFieldColor(BuildContext context) {
 
 class _HomeBodyState extends ConsumerState<HomeBody> {
   final _roomInputCtrl = TextEditingController();
+  bool _isApplyingCachedValues = false;
 
   DateTime? _selectedDate;
   TimeOfDay? _since;
@@ -44,14 +47,36 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
   @override
   void initState() {
     super.initState();
+
+    _roomInputCtrl.addListener(_onRoomInputChanged);
+
+    final cache = ref.read(homeSearchParamsMemoryCacheProvider);
+    final cached = cache.snapshot;
+
+    if (cached != null) {
+      _isApplyingCachedValues = true;
+      _roomInputCtrl.text = cached.rawRoomInput;
+      _selectedDate = cached.selectedDate;
+      _since = cached.since;
+      _until = cached.until;
+      _closeToMe = cached.nearMe;
+      _selectedUtilities
+        ..clear()
+        ..addAll(cached.selectedUtilities);
+      _isApplyingCachedValues = false;
+      return;
+    }
+
     final now = TimeOfDay.now();
     _selectedDate = DateTime.now();
     _since = now;
     _until = _addMinutes(now, 90);
+    _persistCurrentParams();
   }
 
   @override
   void dispose() {
+    _roomInputCtrl.removeListener(_onRoomInputChanged);
     _roomInputCtrl.dispose();
     super.dispose();
   }
@@ -62,6 +87,34 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
     final h = normalized ~/ 60;
     final m = normalized % 60;
     return TimeOfDay(hour: h, minute: m);
+  }
+
+  void _onRoomInputChanged() {
+    if (_isApplyingCachedValues) return;
+    _persistCurrentParams();
+  }
+
+  void _persistCurrentParams() {
+    ref.read(homeSearchParamsMemoryCacheProvider).save(
+      HomeSearchParamsSnapshot(
+        rawRoomInput: _roomInputCtrl.text,
+        selectedUtilities: Set<String>.from(_selectedUtilities),
+        selectedDate: _selectedDate == null
+            ? null
+            : DateTime(
+                _selectedDate!.year,
+                _selectedDate!.month,
+                _selectedDate!.day,
+              ),
+        since: _since == null
+            ? null
+            : TimeOfDay(hour: _since!.hour, minute: _since!.minute),
+        until: _until == null
+            ? null
+            : TimeOfDay(hour: _until!.hour, minute: _until!.minute),
+        nearMe: _closeToMe,
+      ),
+    );
   }
 
   Future<void> _pickTime({required bool isSince}) async {
@@ -85,6 +138,7 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
         _until = picked;
       }
     });
+    _persistCurrentParams();
   }
 
   Future<void> _pickDate() async {
@@ -105,6 +159,7 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
     setState(() {
       _selectedDate = DateTime(picked.year, picked.month, picked.day);
     });
+    _persistCurrentParams();
   }
 
   String _formatTime(TimeOfDay? time) {
@@ -177,6 +232,7 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
                               _selectedUtilities.remove(entry.key);
                             }
                           });
+                          _persistCurrentParams();
                           modalSetState(() {});
                         },
                       ),
@@ -222,8 +278,10 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
 
     if (!mounted) return;
 
-    if (ref.read(homeSearchControllerProvider).status ==
-        HomeSearchStatus.success) {
+    final state = ref.read(homeSearchControllerProvider);
+
+    if (state.status == HomeSearchStatus.success &&
+        !state.navigateToNoInternetPage) {
       Navigator.pushNamed(context, AppRoutes.results);
     }
   }
@@ -231,15 +289,26 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
   @override
   Widget build(BuildContext context) {
     ref.listen<HomeSearchState>(homeSearchControllerProvider, (previous, next) {
-      final previousError = previous?.errorMessage;
-      final nextError = next.errorMessage;
+      final isCurrentRoute = ModalRoute.of(context)?.isCurrent ?? false;
+      if (!isCurrentRoute) return;
 
-      if (nextError != null && nextError != previousError) {
+      final previousNavigate = previous?.navigateToNoInternetPage ?? false;
+      final nextNavigate = next.navigateToNoInternetPage;
+
+      if (nextNavigate && !previousNavigate) {
+        Navigator.pushNamed(context, AppRoutes.noInternet);
+        return;
+      }
+
+      final previousMessage = previous?.feedbackMessage;
+      final nextMessage = next.feedbackMessage;
+
+      if (nextMessage != null && nextMessage != previousMessage) {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(
             SnackBar(
-              content: Text(nextError),
+              content: Text(nextMessage),
               duration: const Duration(seconds: 4),
             ),
           );
@@ -317,7 +386,10 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
                   onTap: () => _pickTime(isSince: true),
                   onClear: _since == null
                       ? null
-                      : () => setState(() => _since = null),
+                      : () {
+                          setState(() => _since = null);
+                          _persistCurrentParams();
+                        },
                 ),
               ),
               const SizedBox(width: 10),
@@ -328,7 +400,10 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
                   onTap: () => _pickTime(isSince: false),
                   onClear: _until == null
                       ? null
-                      : () => setState(() => _until = null),
+                      : () {
+                          setState(() => _until = null);
+                          _persistCurrentParams();
+                        },
                 ),
               ),
             ],
@@ -363,7 +438,10 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
                 value: _closeToMe,
                 onChanged: state.isLoading
                     ? null
-                    : (value) => setState(() => _closeToMe = value ?? false),
+                    : (value) {
+                        setState(() => _closeToMe = value ?? false);
+                        _persistCurrentParams();
+                      },
                 activeColor: brand.accentYellow,
                 checkColor: theme.colorScheme.onSecondary,
                 side: BorderSide(

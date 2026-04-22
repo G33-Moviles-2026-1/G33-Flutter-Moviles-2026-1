@@ -37,6 +37,29 @@ class _ResultsBodyState extends ConsumerState<ResultsBody> {
           );
         }
       }
+
+      final previousNavigate = previous?.navigateToNoInternetPage ?? false;
+      final nextNavigate = next.navigateToNoInternetPage;
+
+      if (nextNavigate && !previousNavigate) {
+        ref.read(homeSearchControllerProvider.notifier).clearNoInternetNavigation();
+        Navigator.pushNamed(context, AppRoutes.noInternet);
+        return;
+      }
+
+      final previousMessage = previous?.feedbackMessage;
+      final nextMessage = next.feedbackMessage;
+
+      if (nextMessage != null && nextMessage != previousMessage) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(nextMessage),
+              duration: const Duration(seconds: 4),
+            ),
+          );
+      }
     });
 
     final theme = Theme.of(context);
@@ -274,12 +297,13 @@ class _RoomCard extends ConsumerWidget {
 
                         await favoritesNotifier.toggleFromSearch(room);
                       },
-                      icon: Icon(
-                        isFavorite ? Icons.favorite : Icons.favorite_border,
+                      icon: _OutlinedHeartIcon(
+                        isFilled: isFavorite,
+                        fillColor: isFavorite
+                            ? brand.accentYellow
+                            : colorScheme.onSurface,
                       ),
-                      color: isFavorite
-                          ? brand.accentYellow
-                          : colorScheme.onSurface,
+                      color: null,
                       tooltip: isFavorite ? 'Remove favorite' : 'Save favorite',
                     ),
                   if (room.distanceSeconds != null)
@@ -501,5 +525,35 @@ extension RoomAvailabilityX on RoomSearchItem {
     }
 
     return 'No availability for this time';
+  }
+}
+
+class _OutlinedHeartIcon extends StatelessWidget {
+  const _OutlinedHeartIcon({required this.isFilled, required this.fillColor});
+
+  final bool isFilled;
+  final Color fillColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 24,
+      height: 24,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Icon(
+            isFilled ? Icons.favorite : Icons.favorite_border,
+            size: 23,
+            color:Colors.black,
+          ),
+          Icon(
+            isFilled ? Icons.favorite : Icons.favorite_border,
+            size: 18,
+            color: fillColor,
+          ),
+        ],
+      ),
+    );
   }
 }

@@ -58,8 +58,11 @@ class FavoriteRoomCard extends StatelessWidget {
                   else
                     IconButton(
                       onPressed: onRemoveTap,
-                      icon: const Icon(Icons.favorite),
-                      color: brand.accentYellow,
+                      icon: _OutlinedHeartIcon(
+                        isFilled: true,
+                        fillColor: brand.accentYellow,
+                      ),
+                      color: null,
                       tooltip: 'Remove favorite',
                     ),
                 ],
@@ -82,15 +85,18 @@ class FavoriteRoomCard extends StatelessWidget {
                     foregroundColor: theme.colorScheme.onSurface,
                     borderColor: theme.dividerColor.withValues(alpha: .18),
                   ),
-                  ...room.utilities.take(2).map(
+                  ...room.utilities
+                      .take(2)
+                      .map(
                         (u) => _Badge(
                           label: _toTitleCase(u),
                           backgroundColor: theme.brightness == Brightness.dark
                               ? theme.cardColor
                               : theme.colorScheme.surface,
                           foregroundColor: theme.colorScheme.onSurface,
-                          borderColor:
-                              theme.dividerColor.withValues(alpha: .18),
+                          borderColor: theme.dividerColor.withValues(
+                            alpha: .18,
+                          ),
                         ),
                       ),
                 ],
@@ -142,6 +148,36 @@ class _Badge extends StatelessWidget {
           fontWeight: FontWeight.w700,
           color: foregroundColor,
         ),
+      ),
+    );
+  }
+}
+
+class _OutlinedHeartIcon extends StatelessWidget {
+  const _OutlinedHeartIcon({required this.isFilled, required this.fillColor});
+
+  final bool isFilled;
+  final Color fillColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 24,
+      height: 24,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Icon(
+            isFilled ? Icons.favorite : Icons.favorite_border,
+            size: 23,
+            color: Colors.black,
+          ),
+          Icon(
+            isFilled ? Icons.favorite : Icons.favorite_border,
+            size: 18,
+            color:fillColor,
+          ),
+        ],
       ),
     );
   }
