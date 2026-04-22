@@ -68,3 +68,68 @@ class OutlinedHeartIcon extends StatelessWidget {
     );
   }
 }
+
+class RoomCardContainer extends StatelessWidget {
+  const RoomCardContainer({
+    super.key,
+    required this.child,
+    this.onTap,
+  });
+
+  final Widget child;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: onTap,
+        child: Ink(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: theme.cardColor,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: theme.dividerColor.withValues(alpha: .18),
+            ),
+          ),
+          child: child,
+        ),
+      ),
+    );
+  }
+}
+
+class RoomCardHeaderRow extends StatelessWidget {
+  const RoomCardHeaderRow({
+    super.key,
+    required this.roomId,
+    required this.trailing,
+  });
+
+  final String roomId;
+  final List<Widget> trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            roomId,
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+        ...trailing,
+      ],
+    );
+  }
+}

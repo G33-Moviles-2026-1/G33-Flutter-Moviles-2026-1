@@ -723,7 +723,6 @@ class _CtaButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final brand = theme.extension<BrandColors>()!;
-    final isEnabled = onPressed != null;
 
     return ElevatedButton(
       onPressed: onPressed,
@@ -783,9 +782,7 @@ class _CtaButton extends StatelessWidget {
                 key: const ValueKey('idle'),
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w700,
-                  color: isEnabled
-                      ? theme.colorScheme.onSecondary
-                      : theme.colorScheme.onSecondary,
+                  color: theme.colorScheme.onSecondary,
                 ),
               ),
       ),

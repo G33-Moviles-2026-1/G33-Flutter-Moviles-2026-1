@@ -40,12 +40,7 @@ class DioErrorMapper {
         case DioExceptionType.badResponse:
           final statusCode = error.response?.statusCode;
           final data = error.response?.data;
-          final rawDetail = data is Map ? data['detail'] : null;
-          final detail = rawDetail is String
-              ? rawDetail
-              : rawDetail is List
-                  ? (rawDetail as List).map((e) => e is Map ? (e['msg'] ?? e.toString()) : e.toString()).join(', ')
-                  : null;
+          final detail = _extractDetail(data);
 
           if (statusCode != null && statusCode >= 500) {
             return _serverUnavailable;
@@ -78,6 +73,22 @@ class DioErrorMapper {
     }
 
     return fallback;
+  }
+
+  static String? _extractDetail(Object? data) {
+    final rawDetail = data is Map ? data['detail'] : null;
+
+    if (rawDetail is String) {
+      return rawDetail;
+    }
+
+    if (rawDetail is List) {
+      return rawDetail
+          .map((e) => e is Map ? (e['msg'] ?? e.toString()) : e.toString())
+          .join(', ');
+    }
+
+    return null;
   }
 
   static bool _isNetworkKeyword(String msg) =>
