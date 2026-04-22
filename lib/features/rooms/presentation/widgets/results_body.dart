@@ -38,6 +38,15 @@ class _ResultsBodyState extends ConsumerState<ResultsBody> {
         }
       }
 
+      final previousNavigate = previous?.navigateToNoInternetPage ?? false;
+      final nextNavigate = next.navigateToNoInternetPage;
+
+      if (nextNavigate && !previousNavigate) {
+        ref.read(homeSearchControllerProvider.notifier).clearNoInternetNavigation();
+        Navigator.pushNamed(context, AppRoutes.noInternet);
+        return;
+      }
+
       final previousMessage = previous?.feedbackMessage;
       final nextMessage = next.feedbackMessage;
 

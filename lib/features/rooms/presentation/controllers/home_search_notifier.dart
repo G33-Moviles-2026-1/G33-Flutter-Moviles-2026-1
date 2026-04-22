@@ -112,7 +112,7 @@ class HomeSearchNotifier extends AutoDisposeNotifier<HomeSearchState> {
         },
       );
 
-            final result = await _searchRooms(input);
+      final result = await _searchRooms(input);
       state = HomeSearchState.success(
         result.response,
         infoMessage: result.message,
@@ -121,6 +121,12 @@ class HomeSearchNotifier extends AutoDisposeNotifier<HomeSearchState> {
       state = HomeSearchState.error(
         e.message,
         previousResponse: state.response,
+      );
+    } on SearchRoomsConnectivityException {
+      state = HomeSearchState.error(
+        'No internet connection. Please check your connection and try again.',
+        previousResponse: state.response,
+        navigateToNoInternetPage: true,
       );
     } catch (e) {
       state = HomeSearchState.error(
@@ -154,7 +160,7 @@ class HomeSearchNotifier extends AutoDisposeNotifier<HomeSearchState> {
     await _performSearch(updatedRequest);
   }
 
-    Future<void> _performSearch(RoomSearchRequest request) async {
+  Future<void> _performSearch(RoomSearchRequest request) async {
     state = HomeSearchState.loading(previousResponse: state.response);
 
     try {
@@ -167,6 +173,7 @@ class HomeSearchNotifier extends AutoDisposeNotifier<HomeSearchState> {
       state = HomeSearchState.error(
         e.message,
         previousResponse: state.response,
+        navigateToNoInternetPage: true,
       );
     } catch (e) {
       state = HomeSearchState.error(
@@ -174,6 +181,18 @@ class HomeSearchNotifier extends AutoDisposeNotifier<HomeSearchState> {
         previousResponse: state.response,
       );
     }
+  }
+
+  void clearNoInternetNavigation() {
+    if (!state.navigateToNoInternetPage) return;
+
+    state = HomeSearchState(
+      status: state.status,
+      response: state.response,
+      errorMessage: state.errorMessage,
+      infoMessage: state.infoMessage,
+      navigateToNoInternetPage: false,
+    );
   }
 
     String _mapError(Object error) {

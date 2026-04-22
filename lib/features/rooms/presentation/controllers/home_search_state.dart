@@ -13,13 +13,15 @@ class HomeSearchState {
     this.response,
     this.errorMessage,
     this.infoMessage,
+    this.navigateToNoInternetPage = false,
   });
 
   const HomeSearchState.initial()
       : status = HomeSearchStatus.initial,
         response = null,
         errorMessage = null,
-        infoMessage = null;
+        infoMessage = null,
+        navigateToNoInternetPage = false;
 
   const HomeSearchState.loading({
     RoomSearchResponse? previousResponse,
@@ -28,6 +30,7 @@ class HomeSearchState {
           response: previousResponse,
           errorMessage: null,
           infoMessage: null,
+          navigateToNoInternetPage: false,
         );
 
   const HomeSearchState.success(
@@ -38,22 +41,26 @@ class HomeSearchState {
           response: response,
           errorMessage: null,
           infoMessage: infoMessage,
+          navigateToNoInternetPage: false,
         );
 
   const HomeSearchState.error(
     String message, {
     RoomSearchResponse? previousResponse,
+    bool navigateToNoInternetPage = false,
   }) : this(
           status: HomeSearchStatus.error,
           response: previousResponse,
           errorMessage: message,
           infoMessage: null,
+          navigateToNoInternetPage: navigateToNoInternetPage,
         );
 
   final HomeSearchStatus status;
   final RoomSearchResponse? response;
   final String? errorMessage;
   final String? infoMessage;
+  final bool navigateToNoInternetPage;
 
   bool get isLoading => status == HomeSearchStatus.loading;
 

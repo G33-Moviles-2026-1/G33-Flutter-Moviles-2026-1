@@ -264,8 +264,6 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
   }
 
   Future<void> _onSearch() async {
-    _persistCurrentParams();
-
     await ref
         .read(homeSearchControllerProvider.notifier)
         .submitSearch(
@@ -280,8 +278,10 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
 
     if (!mounted) return;
 
-    if (ref.read(homeSearchControllerProvider).status ==
-        HomeSearchStatus.success) {
+    final state = ref.read(homeSearchControllerProvider);
+
+    if (state.status == HomeSearchStatus.success &&
+        !state.navigateToNoInternetPage) {
       Navigator.pushNamed(context, AppRoutes.results);
     }
   }
@@ -289,6 +289,17 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
   @override
   Widget build(BuildContext context) {
     ref.listen<HomeSearchState>(homeSearchControllerProvider, (previous, next) {
+      final isCurrentRoute = ModalRoute.of(context)?.isCurrent ?? false;
+      if (!isCurrentRoute) return;
+
+      final previousNavigate = previous?.navigateToNoInternetPage ?? false;
+      final nextNavigate = next.navigateToNoInternetPage;
+
+      if (nextNavigate && !previousNavigate) {
+        Navigator.pushNamed(context, AppRoutes.noInternet);
+        return;
+      }
+
       final previousMessage = previous?.feedbackMessage;
       final nextMessage = next.feedbackMessage;
 
