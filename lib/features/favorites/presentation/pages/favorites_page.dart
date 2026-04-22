@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/di/auth_providers.dart';
 import '../../../../core/navigation/app_routes.dart';
 import '../../../../core/navigation/app_tab.dart';
 import '../../../../shared/widgets/app_scaffold.dart';

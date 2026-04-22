@@ -17,6 +17,8 @@ class FavoritesNotifier extends Notifier<FavoritesState> {
   late final RemoveFavorite _removeFavorite;
   late final GetFavoriteDetailSeed _getFavoriteDetailSeed;
 
+  static const String _exceptionPrefix = 'Exception: ';
+
   @override
   FavoritesState build() {
     _getCachedFavorites = ref.read(getCachedFavoritesUseCaseProvider);
@@ -48,12 +50,12 @@ class FavoritesNotifier extends Notifier<FavoritesState> {
       if (cached.isNotEmpty) {
         state = state.copyWith(
           isLoading: false,
-          errorMessage: error.toString().replaceFirst('Exception: ', ''),
+          errorMessage: error.toString().replaceFirst(_exceptionPrefix, '')
         );
       } else {
         state = state.copyWith(
           isLoading: false,
-          errorMessage: error.toString().replaceFirst('Exception: ', ''),
+          errorMessage: error.toString().replaceFirst(_exceptionPrefix, '')
         );
       }
     }
@@ -94,7 +96,7 @@ class FavoritesNotifier extends Notifier<FavoritesState> {
       state = state.copyWith(
         items: cached,
         pendingRoomIds: {...state.pendingRoomIds}..remove(room.roomId),
-        errorMessage: error.toString().replaceFirst('Exception: ', ''),
+        errorMessage: error.toString().replaceFirst(_exceptionPrefix, '')
       );
     }
   }
@@ -118,7 +120,7 @@ class FavoritesNotifier extends Notifier<FavoritesState> {
       state = state.copyWith(
         items: cached,
         pendingRoomIds: {...state.pendingRoomIds}..remove(room.roomId),
-        errorMessage: error.toString().replaceFirst('Exception: ', ''),
+        errorMessage: error.toString().replaceFirst(_exceptionPrefix, '')
       );
     }
   }
@@ -142,7 +144,7 @@ class FavoritesNotifier extends Notifier<FavoritesState> {
       state = state.copyWith(
         items: cached,
         pendingRoomIds: {...state.pendingRoomIds}..remove(room.roomId),
-        errorMessage: error.toString().replaceFirst('Exception: ', ''),
+        errorMessage: error.toString().replaceFirst(_exceptionPrefix, '')
       );
     }
   }
