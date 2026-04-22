@@ -541,14 +541,13 @@ class _SquareIconButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final brand = theme.extension<BrandColors>()!;
 
     final backgroundColor = isHighlighted
-        ? Color(0xFFFFFBA9)
+        ? const Color(0xFFFFFBA9)
         : _homeFieldColor(context);
 
     final iconColor = isHighlighted
-        ? Color(0xFF000000)
+        ? const Color(0xFF000000)
         : theme.colorScheme.onSurface;
 
     return Material(
