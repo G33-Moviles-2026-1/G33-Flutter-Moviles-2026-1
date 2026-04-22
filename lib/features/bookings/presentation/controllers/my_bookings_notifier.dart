@@ -82,6 +82,8 @@ class MyBookingsNotifier extends AutoDisposeNotifier<MyBookingsState> {
         state = state.copyWith(
           items: state.items.where((i) => i.id != bookingId).toList(),
           deletingIds: {...state.deletingIds}..remove(bookingId),
+          pendingSyncMessage:
+              'Deletion queued — not confirmed yet. If you close the app before connection is restored, this action will be lost.',
         );
         _queueService.enqueue(DeleteBookingAction(_bookingsApi, bookingId));
       } else {

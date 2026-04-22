@@ -34,9 +34,18 @@ class MyBookingsPage extends ConsumerWidget {
       final previousError = previous?.errorMessage;
 
       if (nextError != null && nextError != previousError) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(nextError), duration: const Duration(seconds: 4),));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(nextError), duration: const Duration(seconds: 4)),
+        );
+      }
+
+      final nextPending = next.pendingSyncMessage;
+      final previousPending = previous?.pendingSyncMessage;
+
+      if (nextPending != null && nextPending != previousPending) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(nextPending), duration: const Duration(seconds: 7)),
+        );
       }
     });
 

@@ -498,6 +498,7 @@ class _RoomDetailBodyState extends ConsumerState<RoomDetailBody> {
           ),
           child: ListView.builder(
             padding: const EdgeInsets.all(12),
+            physics: const ClampingScrollPhysics(),
             itemCount: slots.length,
             itemBuilder: (context, index) {
               final slot = slots[index];

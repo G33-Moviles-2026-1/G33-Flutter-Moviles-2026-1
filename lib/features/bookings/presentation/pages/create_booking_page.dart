@@ -51,6 +51,20 @@ class CreateBookingPage extends ConsumerWidget {
         return;
       }
 
+      final queuedNow = previous?.isPendingSync != true && next.isPendingSync;
+      if (queuedNow) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Booking queued — not confirmed yet. If you close the app before connection is restored, this action will be lost.',
+            ),
+            duration: Duration(seconds: 7),
+          ),
+        );
+        Navigator.pop(context, null);
+        return;
+      }
+
       final previousError = previous?.errorMessage;
       final nextError = next.errorMessage;
 
