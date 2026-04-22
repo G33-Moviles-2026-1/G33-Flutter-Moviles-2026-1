@@ -104,6 +104,37 @@ class FavoritesPage extends ConsumerWidget {
                             isPending: isPending,
                             onRemoveTap: () async {
                               await notifier.removeFromFavorites(room);
+
+                              if (!context.mounted) return;
+
+                              ScaffoldMessenger.of(context)
+                                ..hideCurrentSnackBar()
+                                ..showSnackBar(
+                                  SnackBar(
+                                    duration: const Duration(seconds: 5),
+                                    content: Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text('${room.roomId} removed from favorites'),
+                                        ),
+                                        GestureDetector(
+                                          onTap: () async {
+                                            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                            await notifier.undoRemoveFromFavorites(room);
+                                          },
+                                          child: Text(
+                                            'Undo',
+                                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                              decoration: TextDecoration.underline,
+                                              fontWeight: FontWeight.w700,
+                                              color: const Color(0xFFFFFBA9),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
                             },
                             onTap: () async {
                               try {
