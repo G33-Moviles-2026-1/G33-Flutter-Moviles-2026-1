@@ -123,6 +123,30 @@ class FavoritesNotifier extends Notifier<FavoritesState> {
     }
   }
 
+  Future<void> undoRemoveFromFavorites(FavoriteRoom room) async {
+    state = state.copyWith(
+      pendingRoomIds: {...state.pendingRoomIds, room.roomId},
+      clearErrorMessage: true,
+      items: [room, ...state.items],
+    );
+
+    try {
+      await _toggleFavorite(room.toRoomSearchItem());
+      final cached = await _getCachedFavorites();
+      state = state.copyWith(
+        items: cached,
+        pendingRoomIds: {...state.pendingRoomIds}..remove(room.roomId),
+      );
+    } catch (error) {
+      final cached = await _getCachedFavorites();
+      state = state.copyWith(
+        items: cached,
+        pendingRoomIds: {...state.pendingRoomIds}..remove(room.roomId),
+        errorMessage: error.toString().replaceFirst('Exception: ', ''),
+      );
+    }
+  }
+
   Future<RoomSearchItem> getDetailSeed(FavoriteRoom room) {
     return _getFavoriteDetailSeed(room);
   }

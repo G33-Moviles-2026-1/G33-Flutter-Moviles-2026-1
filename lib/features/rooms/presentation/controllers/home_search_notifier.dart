@@ -7,6 +7,7 @@ import 'package:andespace/features/rooms/domain/entities/room_search.dart';
 import 'package:andespace/features/rooms/domain/usecases/search_rooms.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:andespace/features/rooms/domain/usecases/search_rooms_exceptions.dart';
 
 import '../providers/rooms_providers.dart';
 import 'home_search_state.dart';
@@ -111,12 +112,21 @@ class HomeSearchNotifier extends AutoDisposeNotifier<HomeSearchState> {
         },
       );
 
-      final response = await _searchRooms(input);
-      state = HomeSearchState.success(response);
+      final result = await _searchRooms(input);
+      state = HomeSearchState.success(
+        result.response,
+        infoMessage: result.message,
+      );
     } on SearchRoomsValidationException catch (e) {
       state = HomeSearchState.error(
         e.message,
         previousResponse: state.response,
+      );
+    } on SearchRoomsConnectivityException {
+      state = HomeSearchState.error(
+        'No internet connection. Please check your connection and try again.',
+        previousResponse: state.response,
+        navigateToNoInternetPage: true,
       );
     } catch (e) {
       state = HomeSearchState.error(
@@ -152,9 +162,19 @@ class HomeSearchNotifier extends AutoDisposeNotifier<HomeSearchState> {
 
   Future<void> _performSearch(RoomSearchRequest request) async {
     state = HomeSearchState.loading(previousResponse: state.response);
+
     try {
-      final response = await _searchRooms.callWithRequest(request);
-      state = HomeSearchState.success(response);
+      final result = await _searchRooms.callWithRequest(request);
+      state = HomeSearchState.success(
+        result.response,
+        infoMessage: result.message,
+      );
+    } on SearchRoomsOfflinePaginationException catch (e) {
+      state = HomeSearchState.error(
+        e.message,
+        previousResponse: state.response,
+        navigateToNoInternetPage: true,
+      );
     } catch (e) {
       state = HomeSearchState.error(
         _mapError(e),
@@ -163,9 +183,29 @@ class HomeSearchNotifier extends AutoDisposeNotifier<HomeSearchState> {
     }
   }
 
-  String _mapError(Object error) {
+  void clearNoInternetNavigation() {
+    if (!state.navigateToNoInternetPage) return;
+
+    state = HomeSearchState(
+      status: state.status,
+      response: state.response,
+      errorMessage: state.errorMessage,
+      infoMessage: state.infoMessage,
+      navigateToNoInternetPage: false,
+    );
+  }
+
+    String _mapError(Object error) {
     if (error is SearchRoomsValidationException) {
       return error.message;
+    }
+
+    if (error is SearchRoomsOfflinePaginationException) {
+      return error.message;
+    }
+
+    if (error is SearchRoomsConnectivityException) {
+      return 'No internet connection. Please check your connection and try again.';
     }
 
     return DioErrorMapper.map(

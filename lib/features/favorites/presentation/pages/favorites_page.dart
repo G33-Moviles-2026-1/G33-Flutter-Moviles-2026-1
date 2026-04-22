@@ -23,8 +23,7 @@ class FavoritesPage extends ConsumerWidget {
         currentTab: AppTab.favorites,
         onTabSelected: (tab) => AppRoutes.handleTabSelection(context, tab),
         title: 'Log in to view your favorites',
-        message:
-            'Sign in to save rooms and access your favorite spaces later.',
+        message: 'Sign in to save rooms and access your favorite spaces later.',
       );
     }
 
@@ -58,9 +57,9 @@ class FavoritesPage extends ConsumerWidget {
             children: [
               Text(
                 'My Favorites',
-                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                      fontSize: 32,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.headlineLarge?.copyWith(fontSize: 32),
               ),
               const SizedBox(height: 8),
               Text(
@@ -90,39 +89,73 @@ class FavoritesPage extends ConsumerWidget {
 
                     return RefreshIndicator(
                       onRefresh: notifier.load,
-                      child: ListView.builder(
+                      child: ListView.separated(
                         physics: const AlwaysScrollableScrollPhysics(),
                         itemCount: state.items.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 14),
                         itemBuilder: (context, index) {
                           final room = state.items[index];
-                          final isPending =
-                              state.pendingRoomIds.contains(room.roomId);
+                          final isPending = state.pendingRoomIds.contains(
+                            room.roomId,
+                          );
 
                           return FavoriteRoomCard(
                             room: room,
                             isPending: isPending,
                             onRemoveTap: () async {
                               await notifier.removeFromFavorites(room);
+
+                              if (!context.mounted) return;
+
+                              ScaffoldMessenger.of(context)
+                                ..hideCurrentSnackBar()
+                                ..showSnackBar(
+                                  SnackBar(
+                                    duration: const Duration(seconds: 5),
+                                    content: Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text('${room.roomId} removed from favorites'),
+                                        ),
+                                        GestureDetector(
+                                          onTap: () async {
+                                            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                            await notifier.undoRemoveFromFavorites(room);
+                                          },
+                                          child: Text(
+                                            'Undo',
+                                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                              decoration: TextDecoration.underline,
+                                              fontWeight: FontWeight.w700,
+                                              color: const Color(0xFFFFFBA9),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
                             },
                             onTap: () async {
                               try {
-                                final seed = await notifier.getDetailSeed(room);
+                                final seed = room.toRoomSearchItem();
                                 if (!context.mounted) return;
+
                                 Navigator.pushNamed(
                                   context,
                                   AppRoutes.roomDetail,
                                   arguments: seed,
                                 );
-                              } catch (error) {
+                              } catch (_) {
                                 if (!context.mounted) return;
                                 ScaffoldMessenger.of(context)
                                   ..hideCurrentSnackBar()
                                   ..showSnackBar(
-                                    SnackBar(
+                                    const SnackBar(
                                       content: Text(
-                                        error.toString().replaceFirst('Exception: ', ''),
+                                        'No internet connection. Please check your connection to open room details.',
                                       ),
-                                      duration: const Duration(seconds: 4),
+                                      duration: Duration(seconds: 4),
                                     ),
                                   );
                               }

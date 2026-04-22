@@ -8,4 +8,13 @@ abstract class RoomRepository {
     required String roomId,
     required String date,
   });
+
+  RoomSearchResponse? getCachedSearchPage(int pageNumber);
+
+  void cacheFirstSearchPage({
+    required RoomSearchRequest baseQuery,
+    required RoomSearchResponse firstPage,
+  });
+
+  Future<void> prefetchFirstPages(RoomSearchRequest baseQuery);
 }
