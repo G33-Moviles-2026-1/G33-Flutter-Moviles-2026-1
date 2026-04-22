@@ -518,11 +518,11 @@ class _SquareIconButton extends StatelessWidget {
     final brand = theme.extension<BrandColors>()!;
 
     final backgroundColor = isHighlighted
-        ? brand.accentYellow
+        ? Color(0xFFFFFBA9)
         : _homeFieldColor(context);
 
     final iconColor = isHighlighted
-        ? theme.colorScheme.onSecondary
+        ? Color(0xFF000000)
         : theme.colorScheme.onSurface;
 
     return Material(
