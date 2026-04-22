@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:light_sensor/light_sensor.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 enum AppThemePreference {
   system,
@@ -45,16 +46,21 @@ class ThemeControllerNotifier extends StateNotifier<ThemeControllerState> {
             preference: AppThemePreference.system,
             effectiveMode: ThemeMode.system,
           ),
-        );
+        ) {
+    _loadSavedPreference();
+  }
 
   static const int _darkThresholdLux = 20;
   static const int _lightThresholdLux = 35;
+  static const String _prefsKey = 'theme_preference';
 
   StreamSubscription<int>? _luxSubscription;
   bool _sensorStarted = false;
   DateTime? _lastFlipAt;
 
   Future<void> setPreference(AppThemePreference preference) async {
+    await _savePreference(preference);
+
     if (preference == AppThemePreference.system) {
       await _stopSensor();
       state = state.copyWith(
@@ -87,6 +93,63 @@ class ThemeControllerNotifier extends StateNotifier<ThemeControllerState> {
     );
 
     await _startSensorIfNeeded();
+  }
+
+  Future<void> _loadSavedPreference() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final rawValue = prefs.getString(_prefsKey);
+      final savedPreference = _decodePreference(rawValue);
+
+      await _applyLoadedPreference(savedPreference);
+    } catch (_) {
+      // If reading preferences fails, keep current default system mode.
+    }
+  }
+
+  Future<void> _applyLoadedPreference(AppThemePreference preference) async {
+    if (preference == AppThemePreference.system) {
+      await _stopSensor();
+      state = state.copyWith(
+        preference: AppThemePreference.system,
+        effectiveMode: ThemeMode.system,
+      );
+      return;
+    }
+
+    if (preference == AppThemePreference.light) {
+      await _stopSensor();
+      state = state.copyWith(
+        preference: AppThemePreference.light,
+        effectiveMode: ThemeMode.light,
+      );
+      return;
+    }
+
+    if (preference == AppThemePreference.dark) {
+      await _stopSensor();
+      state = state.copyWith(
+        preference: AppThemePreference.dark,
+        effectiveMode: ThemeMode.dark,
+      );
+      return;
+    }
+
+    state = state.copyWith(
+      preference: AppThemePreference.automatic,
+    );
+
+    await _startSensorIfNeeded();
+  }
+
+  Future<void> _savePreference(AppThemePreference preference) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_prefsKey, preference.name);
+  }
+
+  AppThemePreference _decodePreference(String? rawValue) {
+    return AppThemePreference.values.where((value) => value.name == rawValue).firstOrNull ??
+        AppThemePreference.system;
   }
 
   Future<void> _startSensorIfNeeded() async {
@@ -144,4 +207,8 @@ class ThemeControllerNotifier extends StateNotifier<ThemeControllerState> {
     _luxSubscription?.cancel();
     super.dispose();
   }
+}
+
+extension<T> on Iterable<T> {
+  T? get firstOrNull => isEmpty ? null : first;
 }
