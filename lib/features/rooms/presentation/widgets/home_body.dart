@@ -117,6 +117,21 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
     );
   }
 
+void _restoreDefaults() {
+  final now = TimeOfDay.now();
+
+  setState(() {
+    _roomInputCtrl.text = '';
+    _selectedUtilities.clear();
+    _selectedDate = DateTime.now();
+    _since = now;
+    _until = _addMinutes(now, 90);
+    _closeToMe = false;
+  });
+
+  _persistCurrentParams();
+}
+
   Future<void> _pickTime({required bool isSince}) async {
     final fallback = TimeOfDay.now();
     final initial = isSince
@@ -460,6 +475,17 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
               label: 'Search',
               isLoading: state.isLoading,
               onPressed: state.isLoading ? null : _onSearch,
+            ),
+          ),
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: state.isLoading ? null : _restoreDefaults,
+            child: Text(
+              'Reset filters',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                decoration: TextDecoration.underline,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],
