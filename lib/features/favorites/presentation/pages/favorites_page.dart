@@ -6,6 +6,7 @@ import '../../../../core/navigation/app_routes.dart';
 import '../../../../core/navigation/app_tab.dart';
 import '../../../../shared/widgets/app_scaffold.dart';
 import '../../../../shared/widgets/auth_required_scaffold.dart';
+import '../../../../shared/widgets/section_page_layout.dart';
 import '../../../auth/presentation/controllers/auth_notifier.dart';
 import '../controllers/favorites_state.dart';
 import '../providers/favorites_providers.dart';
@@ -49,128 +50,106 @@ class FavoritesPage extends ConsumerWidget {
     return AppScaffold(
       currentTab: AppTab.favorites,
       onTabSelected: (tab) => AppRoutes.handleTabSelection(context, tab),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(18, 18, 18, 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'My Favorites',
-                style: Theme.of(
-                  context,
-                ).textTheme.headlineLarge?.copyWith(fontSize: 32),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Your saved rooms appear here.',
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
-              const SizedBox(height: 20),
-              Expanded(
-                child: Builder(
-                  builder: (context) {
-                    if (state.isLoading && state.items.isEmpty) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
+      body: SectionPageLayout(
+      title: 'My Favorites',
+      subtitle: 'Your saved rooms appear here.',
+      child: Builder(
+        builder: (context) {
+          if (state.isLoading && state.items.isEmpty) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-                    if (state.items.isEmpty) {
-                      return Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(24),
-                          child: Text(
-                            'You have no favorite rooms yet.\nPress the heart icon in results or room detail to save one.',
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.bodyLarge,
+          if (state.items.isEmpty) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text(
+                  'You have no favorite rooms yet.\nPress the heart icon in results or room detail to save one.',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+              ),
+            );
+          }
+
+          return RefreshIndicator(
+            onRefresh: notifier.load,
+            child: ListView.separated(
+              physics: const AlwaysScrollableScrollPhysics(),
+              itemCount: state.items.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 14),
+              itemBuilder: (context, index) {
+                final room = state.items[index];
+                final isPending = state.pendingRoomIds.contains(room.roomId);
+
+                return FavoriteRoomCard(
+                  room: room,
+                  isPending: isPending,
+                  onRemoveTap: () async {
+                    await notifier.removeFromFavorites(room);
+
+                    if (!context.mounted) return;
+
+                    ScaffoldMessenger.of(context)
+                      ..hideCurrentSnackBar()
+                      ..showSnackBar(
+                        SnackBar(
+                          duration: const Duration(seconds: 5),
+                          content: Row(
+                            children: [
+                              Expanded(
+                                child: Text('${room.roomId} removed from favorites'),
+                              ),
+                              GestureDetector(
+                                onTap: () async {
+                                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                  await notifier.undoRemoveFromFavorites(room);
+                                },
+                                child: Text(
+                                  'Undo',
+                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                        decoration: TextDecoration.underline,
+                                        fontWeight: FontWeight.w700,
+                                        color: const Color(0xFFFFFBA9),
+                                      ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       );
-                    }
-
-                    return RefreshIndicator(
-                      onRefresh: notifier.load,
-                      child: ListView.separated(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        itemCount: state.items.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 14),
-                        itemBuilder: (context, index) {
-                          final room = state.items[index];
-                          final isPending = state.pendingRoomIds.contains(
-                            room.roomId,
-                          );
-
-                          return FavoriteRoomCard(
-                            room: room,
-                            isPending: isPending,
-                            onRemoveTap: () async {
-                              await notifier.removeFromFavorites(room);
-
-                              if (!context.mounted) return;
-
-                              ScaffoldMessenger.of(context)
-                                ..hideCurrentSnackBar()
-                                ..showSnackBar(
-                                  SnackBar(
-                                    duration: const Duration(seconds: 5),
-                                    content: Row(
-                                      children: [
-                                        Expanded(
-                                          child: Text('${room.roomId} removed from favorites'),
-                                        ),
-                                        GestureDetector(
-                                          onTap: () async {
-                                            ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                                            await notifier.undoRemoveFromFavorites(room);
-                                          },
-                                          child: Text(
-                                            'Undo',
-                                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                              decoration: TextDecoration.underline,
-                                              fontWeight: FontWeight.w700,
-                                              color: const Color(0xFFFFFBA9),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                            },
-                            onTap: () async {
-                              try {
-                                final seed = room.toRoomSearchItem();
-                                if (!context.mounted) return;
-
-                                Navigator.pushNamed(
-                                  context,
-                                  AppRoutes.roomDetail,
-                                  arguments: seed,
-                                );
-                              } catch (_) {
-                                if (!context.mounted) return;
-                                ScaffoldMessenger.of(context)
-                                  ..hideCurrentSnackBar()
-                                  ..showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'No internet connection. Please check your connection to open room details.',
-                                      ),
-                                      duration: Duration(seconds: 4),
-                                    ),
-                                  );
-                              }
-                            },
-                          );
-                        },
-                      ),
-                    );
                   },
-                ),
-              ),
-            ],
-          ),
-        ),
+                  onTap: () async {
+                    try {
+                      final seed = room.toRoomSearchItem();
+                      if (!context.mounted) return;
+
+                      Navigator.pushNamed(
+                        context,
+                        AppRoutes.roomDetail,
+                        arguments: seed,
+                      );
+                    } catch (_) {
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context)
+                        ..hideCurrentSnackBar()
+                        ..showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'No internet connection. Please check your connection to open room details.',
+                            ),
+                            duration: Duration(seconds: 4),
+                          ),
+                        );
+                    }
+                  },
+                );
+              },
+            ),
+          );
+        },
       ),
+     ),
     );
   }
 }

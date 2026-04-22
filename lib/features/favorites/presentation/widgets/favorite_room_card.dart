@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../shared/theme/app_theme_extension.dart';
+import '../../../../shared/widgets/room_card_bits.dart';
 import '../../domain/entities/favorite_room.dart';
 
 class FavoriteRoomCard extends StatelessWidget {
@@ -58,7 +59,7 @@ class FavoriteRoomCard extends StatelessWidget {
                   else
                     IconButton(
                       onPressed: onRemoveTap,
-                      icon: _OutlinedHeartIcon(
+                      icon: OutlinedHeartIcon(
                         isFilled: true,
                         fillColor: brand.accentYellow,
                       ),
@@ -77,7 +78,7 @@ class FavoriteRoomCard extends StatelessWidget {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  _Badge(
+                  RoomCardBadge(
                     label: 'Cap: ${room.capacity}',
                     backgroundColor: theme.brightness == Brightness.dark
                         ? const Color(0xFF2D220C)
@@ -85,20 +86,16 @@ class FavoriteRoomCard extends StatelessWidget {
                     foregroundColor: theme.colorScheme.onSurface,
                     borderColor: theme.dividerColor.withValues(alpha: .18),
                   ),
-                  ...room.utilities
-                      .take(2)
-                      .map(
-                        (u) => _Badge(
-                          label: _toTitleCase(u),
-                          backgroundColor: theme.brightness == Brightness.dark
-                              ? theme.cardColor
-                              : theme.colorScheme.surface,
-                          foregroundColor: theme.colorScheme.onSurface,
-                          borderColor: theme.dividerColor.withValues(
-                            alpha: .18,
-                          ),
-                        ),
-                      ),
+                  ...room.utilities.take(2).map(
+                    (u) => RoomCardBadge(
+                      label: _toTitleCase(u),
+                      backgroundColor: theme.brightness == Brightness.dark
+                          ? theme.cardColor
+                          : theme.colorScheme.surface,
+                      foregroundColor: theme.colorScheme.onSurface,
+                      borderColor: theme.dividerColor.withValues(alpha: .18),
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -116,69 +113,5 @@ class FavoriteRoomCard extends StatelessWidget {
           return word[0].toUpperCase() + word.substring(1).toLowerCase();
         })
         .join(' ');
-  }
-}
-
-class _Badge extends StatelessWidget {
-  const _Badge({
-    required this.label,
-    required this.backgroundColor,
-    required this.foregroundColor,
-    required this.borderColor,
-  });
-
-  final String label;
-  final Color backgroundColor;
-  final Color foregroundColor;
-  final Color borderColor;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: borderColor),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w700,
-          color: foregroundColor,
-        ),
-      ),
-    );
-  }
-}
-
-class _OutlinedHeartIcon extends StatelessWidget {
-  const _OutlinedHeartIcon({required this.isFilled, required this.fillColor});
-
-  final bool isFilled;
-  final Color fillColor;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 24,
-      height: 24,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Icon(
-            isFilled ? Icons.favorite : Icons.favorite_border,
-            size: 23,
-            color: Colors.black,
-          ),
-          Icon(
-            isFilled ? Icons.favorite : Icons.favorite_border,
-            size: 18,
-            color:fillColor,
-          ),
-        ],
-      ),
-    );
   }
 }

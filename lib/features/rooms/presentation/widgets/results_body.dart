@@ -7,6 +7,7 @@ import 'package:andespace/shared/theme/app_theme_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:andespace/features/favorites/presentation/providers/favorites_providers.dart';
+import 'package:andespace/shared/widgets/room_card_bits.dart';
 
 class ResultsBody extends ConsumerStatefulWidget {
   final HomeSearchState state;
@@ -297,7 +298,7 @@ class _RoomCard extends ConsumerWidget {
 
                         await favoritesNotifier.toggleFromSearch(room);
                       },
-                      icon: _OutlinedHeartIcon(
+                      icon: OutlinedHeartIcon(
                         isFilled: isFavorite,
                         fillColor: isFavorite
                             ? brand.accentYellow
@@ -307,7 +308,7 @@ class _RoomCard extends ConsumerWidget {
                       tooltip: isFavorite ? 'Remove favorite' : 'Save favorite',
                     ),
                   if (room.distanceSeconds != null)
-                    _Badge(
+                    RoomCardBadge(
                       label: '${room.distanceSeconds!.toStringAsFixed(0)} sec',
                       backgroundColor: theme.brightness == Brightness.dark
                           ? const Color(0xFF2D220C)
@@ -376,7 +377,7 @@ class _RoomCard extends ConsumerWidget {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  _Badge(
+                  RoomCardBadge(
                     label: 'Cap: ${room.capacity}',
                     backgroundColor: theme.brightness == Brightness.dark
                         ? const Color(0xFF2D220C)
@@ -387,7 +388,7 @@ class _RoomCard extends ConsumerWidget {
                   ...room.utilities
                       .take(2)
                       .map(
-                        (u) => _Badge(
+                        (u) => RoomCardBadge(
                           label: u.toTitleCase(),
                           backgroundColor: theme.brightness == Brightness.dark
                               ? theme.cardColor
@@ -402,40 +403,6 @@ class _RoomCard extends ConsumerWidget {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _Badge extends StatelessWidget {
-  final String label;
-  final Color backgroundColor;
-  final Color foregroundColor;
-  final Color borderColor;
-
-  const _Badge({
-    required this.label,
-    required this.backgroundColor,
-    required this.foregroundColor,
-    required this.borderColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: borderColor),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w700,
-          color: foregroundColor,
         ),
       ),
     );
@@ -525,35 +492,5 @@ extension RoomAvailabilityX on RoomSearchItem {
     }
 
     return 'No availability for this time';
-  }
-}
-
-class _OutlinedHeartIcon extends StatelessWidget {
-  const _OutlinedHeartIcon({required this.isFilled, required this.fillColor});
-
-  final bool isFilled;
-  final Color fillColor;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 24,
-      height: 24,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Icon(
-            isFilled ? Icons.favorite : Icons.favorite_border,
-            size: 23,
-            color:Colors.black,
-          ),
-          Icon(
-            isFilled ? Icons.favorite : Icons.favorite_border,
-            size: 18,
-            color: fillColor,
-          ),
-        ],
-      ),
-    );
   }
 }
