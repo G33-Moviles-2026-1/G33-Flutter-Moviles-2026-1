@@ -318,6 +318,7 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
     final state = ref.watch(homeSearchControllerProvider);
     final theme = Theme.of(context);
     final brand = theme.extension<BrandColors>()!;
+    final hasSelectedUtilities = _selectedUtilities.isNotEmpty;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(18, 18, 18, 24),
@@ -370,6 +371,7 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
                   tooltip: 'Filters',
                   svgAsset: 'assets/icons/filters.svg',
                   onPressed: _openFiltersSheet,
+                  isHighlighted: hasSelectedUtilities,
                 ),
               ),
             ],
@@ -502,18 +504,29 @@ class _SquareIconButton extends StatelessWidget {
     required this.svgAsset,
     required this.onPressed,
     required this.tooltip,
+    this.isHighlighted = false,
   });
 
   final String svgAsset;
   final VoidCallback onPressed;
   final String tooltip;
+  final bool isHighlighted;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final brand = theme.extension<BrandColors>()!;
+
+    final backgroundColor = isHighlighted
+        ? Color(0xFFFFFBA9)
+        : _homeFieldColor(context);
+
+    final iconColor = isHighlighted
+        ? Color(0xFF000000)
+        : theme.colorScheme.onSurface;
 
     return Material(
-      color: _homeFieldColor(context),
+      color: backgroundColor,
       borderRadius: BorderRadius.circular(12),
       elevation: 2,
       child: InkWell(
@@ -526,7 +539,7 @@ class _SquareIconButton extends StatelessWidget {
               width: 22,
               height: 22,
               colorFilter: ColorFilter.mode(
-                theme.colorScheme.onSurface,
+                iconColor,
                 BlendMode.srcIn,
               ),
               semanticsLabel: tooltip,
