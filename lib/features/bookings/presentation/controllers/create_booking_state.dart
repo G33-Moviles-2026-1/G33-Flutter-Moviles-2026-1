@@ -9,6 +9,7 @@ class CreateBookingState {
   final BookingPurpose selectedPurpose;
   final bool isSubmitting;
   final bool isLoadingAvailability;
+  final bool isPendingSync;
   final String? errorMessage;
   final String? availabilityErrorMessage;
   final Booking? created;
@@ -20,6 +21,7 @@ class CreateBookingState {
     required this.selectedPurpose,
     required this.isSubmitting,
     required this.isLoadingAvailability,
+    required this.isPendingSync,
     required this.errorMessage,
     required this.availabilityErrorMessage,
     required this.created,
@@ -34,6 +36,7 @@ class CreateBookingState {
       selectedPurpose: BookingPurpose.studyAlone,
       isSubmitting: false,
       isLoadingAvailability: true,
+      isPendingSync: false,
       errorMessage: null,
       availabilityErrorMessage: null,
       created: null,
@@ -48,6 +51,7 @@ class CreateBookingState {
     BookingPurpose? selectedPurpose,
     bool? isSubmitting,
     bool? isLoadingAvailability,
+    bool? isPendingSync,
     String? errorMessage,
     bool clearErrorMessage = false,
     String? availabilityErrorMessage,
@@ -63,8 +67,8 @@ class CreateBookingState {
           : (selectedTimeRange ?? this.selectedTimeRange),
       selectedPurpose: selectedPurpose ?? this.selectedPurpose,
       isSubmitting: isSubmitting ?? this.isSubmitting,
-      isLoadingAvailability:
-          isLoadingAvailability ?? this.isLoadingAvailability,
+      isLoadingAvailability: isLoadingAvailability ?? this.isLoadingAvailability,
+      isPendingSync: isPendingSync ?? this.isPendingSync,
       errorMessage: clearErrorMessage ? null : (errorMessage ?? this.errorMessage),
       availabilityErrorMessage: clearAvailabilityErrorMessage
           ? null
