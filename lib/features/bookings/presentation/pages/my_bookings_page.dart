@@ -74,6 +74,15 @@ class MyBookingsPage extends ConsumerWidget {
                   return MyBookingCard(
                     booking: booking,
                     isDeleting: isDeleting,
+                    onTap: () {
+                      final seed = booking.toRoomSearchItem();
+
+                      Navigator.pushNamed(
+                        context,
+                        AppRoutes.roomDetail,
+                        arguments: seed,
+                      );
+                    },
                     onDeleteTap: () async {
                       final confirmed = await showDialog<bool>(
                         context: context,
