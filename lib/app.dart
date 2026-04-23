@@ -47,7 +47,7 @@ class _AndespaceAppState extends ConsumerState<AndespaceApp> {
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       themeMode: themeState.effectiveMode,
-      initialRoute: AppRoutes.login,
+      initialRoute: AppRoutes.authGate,
       routes: AppRoutes.routes,
     );
   }

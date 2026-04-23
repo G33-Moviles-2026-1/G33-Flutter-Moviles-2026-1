@@ -2,7 +2,6 @@ import 'package:andespace/core/analytics/analytics_service.dart';
 import 'package:andespace/core/session/session_controller.dart';
 export 'package:andespace/core/session/session_controller.dart'
     show SessionNotifier, SessionState, SessionLocation, UserSearchSelection;
-
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

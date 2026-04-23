@@ -1,4 +1,5 @@
 import 'package:andespace/core/navigation/app_tab.dart';
+import 'package:andespace/features/auth/presentation/pages/auth_gate_page.dart';
 import 'package:andespace/features/auth/presentation/pages/login_page.dart';
 import 'package:andespace/features/auth/presentation/pages/signup_page.dart';
 import 'package:andespace/features/bookings/presentation/pages/create_booking_page.dart';
@@ -14,6 +15,7 @@ import 'package:andespace/features/rooms/presentation/pages/no_internet_page.dar
 import 'package:flutter/material.dart';
 
 class AppRoutes {
+  static const String authGate = '/';
   static const String home = '/home';
   static const String login = '/login';
   static const String signup = '/signup';
@@ -27,6 +29,7 @@ class AppRoutes {
   static const String noInternet = '/no-internet';
 
   static Map<String, WidgetBuilder> routes = {
+    authGate: (context) => const AuthGatePage(),
     home: (context) => const HomePage(),
     login: (context) => const LoginPage(),
     signup: (context) => const SignUpPage(),
