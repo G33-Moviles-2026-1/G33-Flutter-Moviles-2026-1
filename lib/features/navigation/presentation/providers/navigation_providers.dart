@@ -1,6 +1,7 @@
 import 'package:andespace/core/di/core_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../data/local/path_local_data_source.dart';
 import '../../data/remote/navigation_api.dart';
 import '../../data/repositories/navigation_repository_impl.dart';
 import '../../domain/repositories/navigation_repository.dart';
@@ -23,4 +24,8 @@ final getNearestNodeUseCaseProvider = Provider<GetNearestNode>((ref) {
 
 final getNavigationPathUseCaseProvider = Provider<GetNavigationPath>((ref) {
   return GetNavigationPath(ref.watch(navigationRepositoryProvider));
+});
+
+final pathLocalDataSourceProvider = Provider<PathLocalDataSource>((ref) {
+  throw UnimplementedError('pathLocalDataSourceProvider not overridden');
 });
