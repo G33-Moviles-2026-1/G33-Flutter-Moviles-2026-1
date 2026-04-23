@@ -1,18 +1,20 @@
-import 'package:andespace/features/schedule/domain/usecases/get_recommended_rooms_for_day.dart';
+import 'package:andespace/core/di/auth_providers.dart';
+import 'package:andespace/features/schedule/domain/usecases/delete_full_schedule_for_current_user_usecase.dart';
+import 'package:andespace/features/schedule/domain/usecases/delete_schedule_class_for_current_user_usecase.dart';
+import 'package:andespace/features/schedule/domain/usecases/delete_schedule_occurrence_for_current_user_usecase.dart';
+import 'package:andespace/features/schedule/domain/usecases/get_authenticated_user_email_usecase.dart';
+import 'package:andespace/features/schedule/domain/usecases/get_recommended_rooms_for_current_user_usecase.dart';
+import 'package:andespace/features/schedule/domain/usecases/get_schedule_classes_for_current_user_usecase.dart';
+import 'package:andespace/features/schedule/domain/usecases/import_ics_for_current_user_usecase.dart';
+import 'package:andespace/features/schedule/domain/usecases/load_week_for_current_user_usecase.dart';
+import 'package:andespace/features/schedule/domain/usecases/save_manual_class_for_current_user_usecase.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:andespace/core/di/core_provider.dart';
 
-import '../../data/datasources/schedule_remote_data_source.dart';
+import '../../data/remote/schedule_remote_data_source.dart';
 import '../../data/repositories/schedule_repository_impl.dart';
 import '../../domain/repositories/schedule_repository.dart';
-import '../../domain/usecases/delete_full_schedule.dart';
-import '../../domain/usecases/delete_schedule_class.dart';
-import '../../domain/usecases/delete_schedule_occurrence.dart';
-import '../../domain/usecases/get_schedule_classes.dart';
-import '../../domain/usecases/get_weekly_schedule.dart';
-import '../../domain/usecases/upload_ics_schedule.dart';
-import '../../domain/usecases/upload_manual_schedule.dart';
 
 final scheduleRemoteDataSourceProvider = Provider<ScheduleRemoteDataSource>((ref) {
   final dio = ref.watch(dioProvider);
@@ -28,43 +30,75 @@ final scheduleRepositoryProvider = Provider<ScheduleRepository>((ref) {
   );
 });
 
-final uploadIcsScheduleProvider = Provider<UploadIcsSchedule>((ref) {
-  final repository = ref.watch(scheduleRepositoryProvider);
-  return UploadIcsSchedule(repository);
+final getAuthenticatedUserEmailProvider =
+    Provider<GetAuthenticatedUserEmailUseCase>((ref) {
+  return GetAuthenticatedUserEmailUseCase(
+    ref.watch(getCurrentUserUseCaseProvider),
+  );
 });
 
-final uploadManualScheduleProvider = Provider<UploadManualSchedule>((ref) {
-  final repository = ref.watch(scheduleRepositoryProvider);
-  return UploadManualSchedule(repository);
+final loadWeekForCurrentUserProvider =
+    Provider<LoadWeekForCurrentUserUseCase>((ref) {
+  return LoadWeekForCurrentUserUseCase(
+    repository: ref.watch(scheduleRepositoryProvider),
+    getAuthenticatedUserEmail: ref.watch(getAuthenticatedUserEmailProvider),
+  );
 });
 
-final getWeeklyScheduleProvider = Provider<GetWeeklySchedule>((ref) {
-  final repository = ref.watch(scheduleRepositoryProvider);
-  return GetWeeklySchedule(repository);
+final importIcsForCurrentUserProvider =
+    Provider<ImportIcsForCurrentUserUseCase>((ref) {
+  return ImportIcsForCurrentUserUseCase(
+    repository: ref.watch(scheduleRepositoryProvider),
+    getAuthenticatedUserEmail: ref.watch(getAuthenticatedUserEmailProvider),
+  );
 });
 
-final getScheduleClassesProvider = Provider<GetScheduleClasses>((ref) {
-  final repository = ref.watch(scheduleRepositoryProvider);
-  return GetScheduleClasses(repository);
+final getScheduleClassesForCurrentUserProvider =
+    Provider<GetScheduleClassesForCurrentUserUseCase>((ref) {
+  return GetScheduleClassesForCurrentUserUseCase(
+    repository: ref.watch(scheduleRepositoryProvider),
+    getAuthenticatedUserEmail: ref.watch(getAuthenticatedUserEmailProvider),
+  );
 });
 
-final deleteFullScheduleProvider = Provider<DeleteFullSchedule>((ref) {
-  final repository = ref.watch(scheduleRepositoryProvider);
-  return DeleteFullSchedule(repository);
+final saveManualClassForCurrentUserProvider =
+    Provider<SaveManualClassForCurrentUserUseCase>((ref) {
+  return SaveManualClassForCurrentUserUseCase(
+    repository: ref.watch(scheduleRepositoryProvider),
+    getAuthenticatedUserEmail: ref.watch(getAuthenticatedUserEmailProvider),
+    getScheduleClassesForCurrentUser:
+        ref.watch(getScheduleClassesForCurrentUserProvider),
+  );
 });
 
-final deleteScheduleClassProvider = Provider<DeleteScheduleClass>((ref) {
-  final repository = ref.watch(scheduleRepositoryProvider);
-  return DeleteScheduleClass(repository);
+final deleteFullScheduleForCurrentUserProvider =
+    Provider<DeleteFullScheduleForCurrentUserUseCase>((ref) {
+  return DeleteFullScheduleForCurrentUserUseCase(
+    repository: ref.watch(scheduleRepositoryProvider),
+    getAuthenticatedUserEmail: ref.watch(getAuthenticatedUserEmailProvider),
+  );
 });
 
-final deleteScheduleOccurrenceProvider = Provider<DeleteScheduleOccurrence>((ref) {
-  final repository = ref.watch(scheduleRepositoryProvider);
-  return DeleteScheduleOccurrence(repository);
+final deleteScheduleClassForCurrentUserProvider =
+    Provider<DeleteScheduleClassForCurrentUserUseCase>((ref) {
+  return DeleteScheduleClassForCurrentUserUseCase(
+    repository: ref.watch(scheduleRepositoryProvider),
+    getAuthenticatedUserEmail: ref.watch(getAuthenticatedUserEmailProvider),
+  );
 });
 
-final getRecommendedRoomsForDayProvider = Provider<GetRecommendedRoomsForDay>((ref) {
-  final repository = ref.watch(scheduleRepositoryProvider);
-  return GetRecommendedRoomsForDay(repository);
+final deleteScheduleOccurrenceForCurrentUserProvider =
+    Provider<DeleteScheduleOccurrenceForCurrentUserUseCase>((ref) {
+  return DeleteScheduleOccurrenceForCurrentUserUseCase(
+    repository: ref.watch(scheduleRepositoryProvider),
+    getAuthenticatedUserEmail: ref.watch(getAuthenticatedUserEmailProvider),
+  );
 });
 
+final getRecommendedRoomsForCurrentUserProvider =
+    Provider<GetRecommendedRoomsForCurrentUserUseCase>((ref) {
+  return GetRecommendedRoomsForCurrentUserUseCase(
+    repository: ref.watch(scheduleRepositoryProvider),
+    getAuthenticatedUserEmail: ref.watch(getAuthenticatedUserEmailProvider),
+  );
+});
