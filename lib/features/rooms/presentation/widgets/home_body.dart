@@ -117,6 +117,21 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
     );
   }
 
+void _restoreDefaults() {
+  final now = TimeOfDay.now();
+
+  setState(() {
+    _roomInputCtrl.text = '';
+    _selectedUtilities.clear();
+    _selectedDate = DateTime.now();
+    _since = now;
+    _until = _addMinutes(now, 90);
+    _closeToMe = false;
+  });
+
+  _persistCurrentParams();
+}
+
   Future<void> _pickTime({required bool isSince}) async {
     final fallback = TimeOfDay.now();
     final initial = isSince
@@ -462,6 +477,17 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
               onPressed: state.isLoading ? null : _onSearch,
             ),
           ),
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: state.isLoading ? null : _restoreDefaults,
+            child: Text(
+              'Reset filters',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                decoration: TextDecoration.underline,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -515,14 +541,13 @@ class _SquareIconButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final brand = theme.extension<BrandColors>()!;
 
     final backgroundColor = isHighlighted
-        ? Color(0xFFFFFBA9)
+        ? const Color(0xFFFFFBA9)
         : _homeFieldColor(context);
 
     final iconColor = isHighlighted
-        ? Color(0xFF000000)
+        ? const Color(0xFF000000)
         : theme.colorScheme.onSurface;
 
     return Material(
@@ -698,7 +723,6 @@ class _CtaButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final brand = theme.extension<BrandColors>()!;
-    final isEnabled = onPressed != null;
 
     return ElevatedButton(
       onPressed: onPressed,
@@ -758,9 +782,7 @@ class _CtaButton extends StatelessWidget {
                 key: const ValueKey('idle'),
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w700,
-                  color: isEnabled
-                      ? theme.colorScheme.onSecondary
-                      : theme.colorScheme.onSecondary,
+                  color: theme.colorScheme.onSecondary,
                 ),
               ),
       ),

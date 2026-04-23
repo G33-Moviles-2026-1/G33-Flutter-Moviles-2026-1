@@ -1,5 +1,36 @@
 import 'package:flutter/material.dart';
 
+enum HomeSearchParamKey {
+  rawRoomInput,
+  selectedUtilities,
+  selectedDate,
+  since,
+  until,
+  nearMe,
+}
+
+class HomeSearchParamsArrayMap {
+  const HomeSearchParamsArrayMap._(this._values);
+
+  factory HomeSearchParamsArrayMap.empty() {
+    return const HomeSearchParamsArrayMap._({});
+  }
+
+  final Map<HomeSearchParamKey, Object?> _values;
+
+  T? getValue<T>(HomeSearchParamKey key) {
+    final value = _values[key];
+    if (value is T) return value;
+    return null;
+  }
+
+  HomeSearchParamsArrayMap put(HomeSearchParamKey key, Object? value) {
+    final next = Map<HomeSearchParamKey, Object?>.from(_values);
+    next[key] = value;
+    return HomeSearchParamsArrayMap._(next);
+  }
+}
+
 class HomeSearchParamsSnapshot {
   const HomeSearchParamsSnapshot({
     required this.rawRoomInput,
@@ -16,6 +47,52 @@ class HomeSearchParamsSnapshot {
   final TimeOfDay? since;
   final TimeOfDay? until;
   final bool nearMe;
+
+  factory HomeSearchParamsSnapshot.fromArrayMap(HomeSearchParamsArrayMap map) {
+    return HomeSearchParamsSnapshot(
+      rawRoomInput:
+          map.getValue<String>(HomeSearchParamKey.rawRoomInput) ?? '',
+      selectedUtilities:
+          map.getValue<Set<String>>(HomeSearchParamKey.selectedUtilities) ??
+              <String>{},
+      selectedDate: map.getValue<DateTime>(HomeSearchParamKey.selectedDate),
+      since: map.getValue<TimeOfDay>(HomeSearchParamKey.since),
+      until: map.getValue<TimeOfDay>(HomeSearchParamKey.until),
+      nearMe: map.getValue<bool>(HomeSearchParamKey.nearMe) ?? false,
+    );
+  }
+
+  HomeSearchParamsArrayMap toArrayMap() {
+    return HomeSearchParamsArrayMap.empty()
+        .put(HomeSearchParamKey.rawRoomInput, rawRoomInput)
+        .put(
+          HomeSearchParamKey.selectedUtilities,
+          Set<String>.from(selectedUtilities),
+        )
+        .put(
+          HomeSearchParamKey.selectedDate,
+          selectedDate == null
+              ? null
+              : DateTime(
+                  selectedDate!.year,
+                  selectedDate!.month,
+                  selectedDate!.day,
+                ),
+        )
+        .put(
+          HomeSearchParamKey.since,
+          since == null
+              ? null
+              : TimeOfDay(hour: since!.hour, minute: since!.minute),
+        )
+        .put(
+          HomeSearchParamKey.until,
+          until == null
+              ? null
+              : TimeOfDay(hour: until!.hour, minute: until!.minute),
+        )
+        .put(HomeSearchParamKey.nearMe, nearMe);
+  }
 
   HomeSearchParamsSnapshot copyWith({
     String? rawRoomInput,
@@ -37,40 +114,28 @@ class HomeSearchParamsSnapshot {
 }
 
 class HomeSearchParamsMemoryCache {
-  HomeSearchParamsSnapshot? _snapshot;
+  HomeSearchParamsArrayMap _arrayMap = HomeSearchParamsArrayMap.empty();
 
-  HomeSearchParamsSnapshot? get snapshot => _snapshot;
+  HomeSearchParamsSnapshot? get snapshot {
+    final hasAnyValue = _arrayMap.getValue<String>(HomeSearchParamKey.rawRoomInput) != null ||
+        _arrayMap.getValue<Set<String>>(HomeSearchParamKey.selectedUtilities) != null ||
+        _arrayMap.getValue<DateTime>(HomeSearchParamKey.selectedDate) != null ||
+        _arrayMap.getValue<TimeOfDay>(HomeSearchParamKey.since) != null ||
+        _arrayMap.getValue<TimeOfDay>(HomeSearchParamKey.until) != null ||
+        _arrayMap.getValue<bool>(HomeSearchParamKey.nearMe) != null;
 
-  bool get hasSnapshot => _snapshot != null;
+    if (!hasAnyValue) return null;
+
+    return HomeSearchParamsSnapshot.fromArrayMap(_arrayMap);
+  }
+
+  bool get hasSnapshot => snapshot != null;
 
   void save(HomeSearchParamsSnapshot snapshot) {
-    _snapshot = HomeSearchParamsSnapshot(
-      rawRoomInput: snapshot.rawRoomInput,
-      selectedUtilities: Set<String>.from(snapshot.selectedUtilities),
-      selectedDate: snapshot.selectedDate == null
-          ? null
-          : DateTime(
-              snapshot.selectedDate!.year,
-              snapshot.selectedDate!.month,
-              snapshot.selectedDate!.day,
-            ),
-      since: snapshot.since == null
-          ? null
-          : TimeOfDay(
-              hour: snapshot.since!.hour,
-              minute: snapshot.since!.minute,
-            ),
-      until: snapshot.until == null
-          ? null
-          : TimeOfDay(
-              hour: snapshot.until!.hour,
-              minute: snapshot.until!.minute,
-            ),
-      nearMe: snapshot.nearMe,
-    );
+    _arrayMap = snapshot.toArrayMap();
   }
 
   void clear() {
-    _snapshot = null;
+    _arrayMap = HomeSearchParamsArrayMap.empty();
   }
 }

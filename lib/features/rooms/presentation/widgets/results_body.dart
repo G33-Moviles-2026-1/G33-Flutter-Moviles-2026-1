@@ -7,6 +7,7 @@ import 'package:andespace/shared/theme/app_theme_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:andespace/features/favorites/presentation/providers/favorites_providers.dart';
+import 'package:andespace/shared/widgets/room_card_bits.dart';
 
 class ResultsBody extends ConsumerStatefulWidget {
   final HomeSearchState state;
@@ -252,191 +253,131 @@ class _RoomCard extends ConsumerWidget {
         ? 'FREE IN YOUR TIME'
         : 'AVAILABLE LATER';
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(18),
-        onTap: () {
-          Navigator.pushNamed(context, AppRoutes.roomDetail, arguments: room);
-        },
-        child: Ink(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: theme.cardColor,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: theme.dividerColor.withValues(alpha: .18),
-            ),
+    return RoomCardContainer(
+      onTap: () {
+        Navigator.pushNamed(context, AppRoutes.roomDetail, arguments: room);
+      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          RoomCardHeaderRow(
+            roomId: room.roomId,
+            trailing: [
+              if (isFavoritePending)
+                const SizedBox(
+                  width: 22,
+                  height: 22,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              else
+                IconButton(
+                  onPressed: () async {
+                    if (!authState.hasActiveSession) {
+                      Navigator.pushNamed(context, AppRoutes.favorites);
+                      return;
+                    }
+
+                    await favoritesNotifier.toggleFromSearch(room);
+                  },
+                  icon: OutlinedHeartIcon(
+                    isFilled: isFavorite,
+                    fillColor: isFavorite
+                        ? brand.accentYellow
+                        : colorScheme.onSurface,
+                  ),
+                  color: null,
+                  tooltip: isFavorite ? 'Remove favorite' : 'Save favorite',
+                ),
+              if (room.distanceSeconds != null)
+                RoomCardBadge(
+                  label: '${room.distanceSeconds!.toStringAsFixed(0)} sec',
+                  backgroundColor: theme.brightness == Brightness.dark
+                      ? const Color(0xFF2D220C)
+                      : brand.softYellow,
+                  foregroundColor: colorScheme.onSurface,
+                  borderColor: theme.dividerColor.withValues(alpha: .18),
+                ),
+            ],
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      room.roomId,
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
-                  if (isFavoritePending)
-                    const SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  else
-                    IconButton(
-                      onPressed: () async {
-                        if (!authState.hasActiveSession) {
-                          Navigator.pushNamed(context, AppRoutes.favorites);
-                          return;
-                        }
-
-                        await favoritesNotifier.toggleFromSearch(room);
-                      },
-                      icon: _OutlinedHeartIcon(
-                        isFilled: isFavorite,
-                        fillColor: isFavorite
-                            ? brand.accentYellow
-                            : colorScheme.onSurface,
-                      ),
-                      color: null,
-                      tooltip: isFavorite ? 'Remove favorite' : 'Save favorite',
-                    ),
-                  if (room.distanceSeconds != null)
-                    _Badge(
-                      label: '${room.distanceSeconds!.toStringAsFixed(0)} sec',
-                      backgroundColor: theme.brightness == Brightness.dark
-                          ? const Color(0xFF2D220C)
-                          : brand.softYellow,
-                      foregroundColor: colorScheme.onSurface,
-                      borderColor: theme.dividerColor.withValues(alpha: .18),
-                    ),
-                ],
+          const SizedBox(height: 6),
+          Text(
+            '${room.buildingName ?? room.buildingCode} • Room ${room.roomNumber}',
+            style: theme.textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 14),
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 10,
+            ),
+            decoration: BoxDecoration(
+              color: statusBg,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: theme.dividerColor.withValues(alpha: .18),
               ),
-              const SizedBox(height: 6),
-              Text(
-                '${room.buildingName ?? room.buildingCode} • Room ${room.roomNumber}',
-                style: theme.textTheme.bodyMedium,
-              ),
-              const SizedBox(height: 14),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 10,
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  isAvailableInQuery
+                      ? Icons.check_circle_outline
+                      : Icons.schedule_outlined,
+                  size: 18,
+                  color: statusColor,
                 ),
-                decoration: BoxDecoration(
-                  color: statusBg,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: theme.dividerColor.withValues(alpha: .18),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      isAvailableInQuery
-                          ? Icons.check_circle_outline
-                          : Icons.schedule_outlined,
-                      size: 18,
-                      color: statusColor,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            statusLabel,
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              fontWeight: FontWeight.w900,
-                              color: statusColor,
-                              letterSpacing: 0.4,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            room.availabilityStatusText(referenceTime),
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 14),
-
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  _Badge(
-                    label: 'Cap: ${room.capacity}',
-                    backgroundColor: theme.brightness == Brightness.dark
-                        ? const Color(0xFF2D220C)
-                        : brand.softYellow,
-                    foregroundColor: colorScheme.onSurface,
-                    borderColor: theme.dividerColor.withValues(alpha: .18),
-                  ),
-                  ...room.utilities
-                      .take(2)
-                      .map(
-                        (u) => _Badge(
-                          label: u.toTitleCase(),
-                          backgroundColor: theme.brightness == Brightness.dark
-                              ? theme.cardColor
-                              : colorScheme.surface,
-                          foregroundColor: colorScheme.onSurface,
-                          borderColor: theme.dividerColor.withValues(
-                            alpha: .18,
-                          ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        statusLabel,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          fontWeight: FontWeight.w900,
+                          color: statusColor,
+                          letterSpacing: 0.4,
                         ),
                       ),
-                ],
+                      const SizedBox(height: 2),
+                      Text(
+                        room.availabilityStatusText(referenceTime),
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              RoomCardBadge(
+                label: 'Cap: ${room.capacity}',
+                backgroundColor: theme.brightness == Brightness.dark
+                    ? const Color(0xFF2D220C)
+                    : brand.softYellow,
+                foregroundColor: colorScheme.onSurface,
+                borderColor: theme.dividerColor.withValues(alpha: .18),
+              ),
+              ...room.utilities.take(2).map(
+                (u) => RoomCardBadge(
+                  label: u.toTitleCase(),
+                  backgroundColor: theme.brightness == Brightness.dark
+                      ? theme.cardColor
+                      : colorScheme.surface,
+                  foregroundColor: colorScheme.onSurface,
+                  borderColor: theme.dividerColor.withValues(alpha: .18),
+                ),
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _Badge extends StatelessWidget {
-  final String label;
-  final Color backgroundColor;
-  final Color foregroundColor;
-  final Color borderColor;
-
-  const _Badge({
-    required this.label,
-    required this.backgroundColor,
-    required this.foregroundColor,
-    required this.borderColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: borderColor),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w700,
-          color: foregroundColor,
-        ),
+        ],
       ),
     );
   }
@@ -525,35 +466,5 @@ extension RoomAvailabilityX on RoomSearchItem {
     }
 
     return 'No availability for this time';
-  }
-}
-
-class _OutlinedHeartIcon extends StatelessWidget {
-  const _OutlinedHeartIcon({required this.isFilled, required this.fillColor});
-
-  final bool isFilled;
-  final Color fillColor;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 24,
-      height: 24,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Icon(
-            isFilled ? Icons.favorite : Icons.favorite_border,
-            size: 23,
-            color:Colors.black,
-          ),
-          Icon(
-            isFilled ? Icons.favorite : Icons.favorite_border,
-            size: 18,
-            color: fillColor,
-          ),
-        ],
-      ),
-    );
   }
 }

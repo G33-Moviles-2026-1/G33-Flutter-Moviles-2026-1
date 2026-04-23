@@ -2,6 +2,40 @@ import 'dart:async';
 
 import '../../domain/entities/room_search.dart';
 
+class RoomSearchPageSparseArray {
+  const RoomSearchPageSparseArray._(this._values);
+
+  factory RoomSearchPageSparseArray.empty() {
+    return const RoomSearchPageSparseArray._({});
+  }
+
+  final Map<int, RoomSearchResponse> _values;
+
+  RoomSearchResponse? operator [](int pageNumber) => _values[pageNumber];
+
+  bool containsPage(int pageNumber) => _values.containsKey(pageNumber);
+
+  Map<int, RoomSearchResponse> toMap() => Map<int, RoomSearchResponse>.from(_values);
+
+  RoomSearchPageSparseArray put(int pageNumber, RoomSearchResponse response) {
+    final next = Map<int, RoomSearchResponse>.from(_values);
+    next[pageNumber] = response;
+    return RoomSearchPageSparseArray._(next);
+  }
+
+  RoomSearchPageSparseArray keepOnlyFirstThreePages() {
+    final next = <int, RoomSearchResponse>{};
+
+    for (final entry in _values.entries) {
+      if (entry.key >= 1 && entry.key <= 3) {
+        next[entry.key] = entry.value;
+      }
+    }
+
+    return RoomSearchPageSparseArray._(next);
+  }
+}
+
 class RoomSearchMemorySnapshot {
   const RoomSearchMemorySnapshot({
     required this.baseQuery,
@@ -9,7 +43,7 @@ class RoomSearchMemorySnapshot {
   });
 
   final RoomSearchRequest baseQuery;
-  final Map<int, RoomSearchResponse> pages;
+  final RoomSearchPageSparseArray pages;
 
   RoomSearchResponse? page(int pageNumber) => pages[pageNumber];
 }
@@ -32,13 +66,28 @@ class RoomSearchMemoryCache {
     return _snapshot?.page(pageNumber);
   }
 
+  RoomSearchItem? findCachedRoomById(String roomId) {
+    final snapshot = _snapshot;
+    if (snapshot == null) return null;
+
+    for (final response in snapshot.pages.toMap().values) {
+      for (final item in response.items) {
+        if (item.roomId == roomId) {
+          return item;
+        }
+      }
+    }
+
+    return null;
+  }
+
   void replaceWithFirstPage({
     required RoomSearchRequest baseQuery,
     required RoomSearchResponse firstPage,
   }) {
     _snapshot = RoomSearchMemorySnapshot(
       baseQuery: baseQuery.copyWith(offset: 0),
-      pages: {1: firstPage},
+      pages: RoomSearchPageSparseArray.empty().put(1, firstPage),
     );
     _emit();
   }
@@ -51,12 +100,9 @@ class RoomSearchMemoryCache {
     if (current == null) return;
     if (pageNumber < 1 || pageNumber > 3) return;
 
-    final updatedPages = Map<int, RoomSearchResponse>.from(current.pages);
-    updatedPages[pageNumber] = response;
-
     _snapshot = RoomSearchMemorySnapshot(
       baseQuery: current.baseQuery,
-      pages: updatedPages,
+      pages: current.pages.put(pageNumber, response).keepOnlyFirstThreePages(),
     );
     _emit();
   }

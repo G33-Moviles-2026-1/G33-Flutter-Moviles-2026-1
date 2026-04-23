@@ -6,6 +6,8 @@ import 'package:andespace/shared/widgets/auth_required_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../rooms/presentation/providers/rooms_providers.dart';
+import '../../../../shared/widgets/section_page_layout.dart';
 import '../../../../shared/widgets/app_scaffold.dart';
 import '../controllers/my_bookings_state.dart';
 import '../widgets/my_booking_card.dart';
@@ -52,94 +54,85 @@ class MyBookingsPage extends ConsumerWidget {
     return AppScaffold(
       currentTab: AppTab.bookings,
       onTabSelected: (tab) => AppRoutes.handleTabSelection(context, tab),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(18, 18, 18, 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'My Bookings',
-                style: Theme.of(
-                  context,
-                ).textTheme.headlineLarge?.copyWith(fontSize: 32),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Bookings created in the last 30 days',
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
-              const SizedBox(height: 20),
-              Expanded(
-                child: Builder(
-                  builder: (context) {
-                    if (state.isLoading) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
+      body: SectionPageLayout(
+        title: 'My Bookings',
+        subtitle: 'Bookings created in the last 30 days',
+        child: Builder(
+          builder: (context) {
+            if (state.isLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-                    if (state.items.isEmpty) {
-                      return Center(
-                        child: Text(
-                          'You have no recent bookings.',
-                          style: Theme.of(context).textTheme.bodyLarge,
-                        ),
+            if (state.items.isEmpty) {
+              return Center(
+                child: Text(
+                  'You have no recent bookings.',
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+              );
+            }
+
+            return RefreshIndicator(
+              onRefresh: controller.load,
+              child: ListView.builder(
+                physics: const AlwaysScrollableScrollPhysics(),
+                itemCount: state.items.length,
+                itemBuilder: (context, index) {
+                  final booking = state.items[index];
+                  final isDeleting = state.deletingIds.contains(booking.id);
+
+                  return MyBookingCard(
+                    booking: booking,
+                    isDeleting: isDeleting,
+                    onTap: () {
+                      final cachedRoom = ref
+                          .read(roomSearchMemoryCacheProvider)
+                          .findCachedRoomById(booking.roomId);
+
+                      final seed = cachedRoom ?? booking.toRoomSearchItem();
+
+                      Navigator.pushNamed(
+                        context,
+                        AppRoutes.roomDetail,
+                        arguments: seed,
                       );
-                    }
-
-                    return RefreshIndicator(
-                      onRefresh: controller.load,
-                      child: ListView.builder(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        itemCount: state.items.length,
-                        itemBuilder: (context, index) {
-                          final booking = state.items[index];
-                          final isDeleting = state.deletingIds.contains(
-                            booking.id,
-                          );
-
-                          return MyBookingCard(
-                            booking: booking,
-                            isDeleting: isDeleting,
-                            onDeleteTap: () async {
-                              final confirmed = await showDialog<bool>(
-                                context: context,
-                                builder: (dialogContext) {
-                                  return AlertDialog(
-                                    title: const Text('Delete booking?'),
-                                    content: const Text(
-                                      'This booking will disappear from your bookings list. Are you sure you want to continue?',
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.pop(dialogContext, false);
-                                        },
-                                        child: const Text('Cancel'),
-                                      ),
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.pop(dialogContext, true);
-                                        },
-                                        child: const Text('Delete'),
-                                      ),
-                                    ],
-                                  );
+                    },
+                    onDeleteTap: () async {
+                      final confirmed = await showDialog<bool>(
+                        context: context,
+                        builder: (dialogContext) {
+                          return AlertDialog(
+                            title: const Text('Delete booking?'),
+                            content: const Text(
+                              'This booking will disappear from your bookings list. Are you sure you want to continue?',
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(dialogContext, false);
                                 },
-                              );
-
-                              if (confirmed == true) {
-                                await controller.deleteBooking(booking.id);
-                              }
-                            },
+                                child: const Text('Cancel'),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(dialogContext, true);
+                                },
+                                child: const Text('Delete'),
+                              ),
+                            ],
                           );
                         },
-                      ),
-                    );
-                  },
-                ),
+                      );
+
+                      if (confirmed == true) {
+                        await controller.deleteBooking(booking.id);
+                      }
+                    },
+                  );
+                },
               ),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );

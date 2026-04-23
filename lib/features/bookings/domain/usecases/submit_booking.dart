@@ -84,23 +84,26 @@ class SubmitBooking {
   }
 
   String _mapError(Object error) {
-    if (error is DioException) {
-      return DioErrorMapper.map(
-        error,
-        onBadResponse: (statusCode, detail) {
-          if (detail != null) return detail;
-          if (statusCode >= 400) {
-            return 'We could not complete your booking. Please try again.';
-          }
-          return 'Something went wrong. Please try again.';
-        },
-      );
+    if (error is Exception && error is! DioException) {
+      final message = error.toString().replaceFirst('Exception: ', '').trim();
+      if (message.isNotEmpty) {
+        return message;
+      }
     }
 
-    if (error is Exception) {
-      return error.toString().replaceFirst('Exception: ', '');
-    }
+    return DioErrorMapper.map(
+      error,
+      onBadResponse: (statusCode, detail) {
+        if (detail != null && detail.trim().isNotEmpty) {
+          return detail.trim();
+        }
 
-    return 'Something went wrong. Please try again.';
+        if (statusCode >= 500) {
+          return 'The server is currently unavailable. Please try again later.';
+        }
+
+        return 'We could not complete your booking. Please try again.';
+      },
+    );
   }
 }
