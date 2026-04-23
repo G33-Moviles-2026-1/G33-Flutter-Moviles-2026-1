@@ -1,7 +1,8 @@
 import 'package:andespace/features/auth/presentation/controllers/auth_notifier.dart';
 import 'package:andespace/core/navigation/app_routes.dart';
 import 'package:andespace/core/navigation/app_tab.dart';
-import 'package:andespace/shared/widgets/app_scaffold.dart';
+import 'package:andespace/features/schedule/presentation/widgets/schedule_page_scaffold.dart';
+import 'package:andespace/features/schedule/presentation/widgets/schedule_status_card.dart';
 import 'package:andespace/shared/widgets/auth_required_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -48,7 +49,6 @@ class _ScheduleEntryPageState extends ConsumerState<ScheduleEntryPage> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authControllerProvider);
     final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
 
     if (authState.isAuthenticated && !_requestedInitialLoad) {
       _tryInitialLoad();
@@ -70,47 +70,11 @@ class _ScheduleEntryPageState extends ConsumerState<ScheduleEntryPage> {
         state.status == ScheduleStatus.initial ||
         (state.status == ScheduleStatus.loading &&
             state.weeklySchedule == null)) {
-      return AppScaffold(
-        //title: 'My Schedule',
-        currentTab: AppTab.schedule,
-        onTabSelected: (tab) => _onTabSelected(context, tab),
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 360),
-              child: Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: theme.cardColor,
-                  borderRadius: BorderRadius.circular(22),
-                  border: Border.all(
-                    color: theme.dividerColor.withValues(alpha: 0.18),
-                  ),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const CircularProgressIndicator(),
-                    const SizedBox(height: 18),
-                    Text(
-                      'Loading your schedule...',
-                      textAlign: TextAlign.center,
-                      style: textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Please wait while we prepare your weekly view.',
-                      textAlign: TextAlign.center,
-                      style: textTheme.bodyMedium,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
+      return const SchedulePageScaffold(
+        body: ScheduleStatusCard(
+          leading: CircularProgressIndicator(),
+          title: 'Loading your schedule...',
+          message: 'Please wait while we prepare your weekly view.',
         ),
       );
     }
@@ -120,63 +84,25 @@ class _ScheduleEntryPageState extends ConsumerState<ScheduleEntryPage> {
     }
 
     if (state.status == ScheduleStatus.error) {
-      return AppScaffold(
-        //title: 'My Schedule',
-        currentTab: AppTab.schedule,
-        onTabSelected: (tab) => _onTabSelected(context, tab),
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 430),
-              child: Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: theme.cardColor,
-                  borderRadius: BorderRadius.circular(22),
-                  border: Border.all(
-                    color: theme.dividerColor.withValues(alpha: 0.18),
-                  ),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.error_outline_rounded,
-                      size: 56,
-                      color: theme.colorScheme.error,
-                    ),
-                    const SizedBox(height: 18),
-                    Text(
-                      'Something went wrong',
-                      textAlign: TextAlign.center,
-                      style: textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      'We could not load your schedule right now. Please check your connection and try again.',
-                      textAlign: TextAlign.center,
-                      style: textTheme.bodyMedium,
-                    ),
-                    const SizedBox(height: 22),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 56,
-                      child: ElevatedButton.icon(
-                        onPressed: () {
-                          ref
-                              .read(scheduleControllerProvider.notifier)
-                              .loadWeek();
-                        },
-                        icon: const Icon(Icons.refresh),
-                        label: const Text('Retry'),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+      return SchedulePageScaffold(
+        body: ScheduleStatusCard(
+          leading: Icon(
+            Icons.error_outline_rounded,
+            size: 56,
+            color: theme.colorScheme.error,
+          ),
+          title: 'Something went wrong',
+          message:
+              'We could not load your schedule right now. Please check your connection and try again.',
+          footer: SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                ref.read(scheduleControllerProvider.notifier).loadWeek();
+              },
+              icon: const Icon(Icons.refresh),
+              label: const Text('Retry'),
             ),
           ),
         ),

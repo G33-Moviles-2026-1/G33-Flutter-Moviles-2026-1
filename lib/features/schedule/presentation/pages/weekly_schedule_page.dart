@@ -1,11 +1,10 @@
 import 'package:andespace/core/di/core_provider.dart';
-import 'package:andespace/core/navigation/app_routes.dart';
 import 'package:andespace/features/schedule/presentation/pages/recommended_rooms_page.dart';
+import 'package:andespace/features/schedule/presentation/widgets/schedule_confirm_dialog.dart';
+import 'package:andespace/features/schedule/presentation/widgets/schedule_page_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:andespace/core/navigation/app_tab.dart';
-import 'package:andespace/shared/widgets/app_scaffold.dart';
 import 'package:uuid/uuid.dart';
 
 import '../controllers/schedule_state.dart';
@@ -34,10 +33,6 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
     }
   }
 
-  void _onTabSelected(BuildContext context, AppTab tab) {
-    AppRoutes.handleTabSelection(context, tab);
-  }
-
   String _monthName(int month) {
     const months = [
       'January',
@@ -64,26 +59,11 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
     required String classId,
     required DateTime date,
   }) async {
-    final confirmed = await showDialog<bool>(
-          context: context,
-          builder: (context) {
-            return AlertDialog(
-              title: const Text('Delete occurrence'),
-              content: const Text('Do you want to delete this class occurrence?'),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context, false),
-                  child: const Text('Cancel'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.pop(context, true),
-                  child: const Text('Delete'),
-                ),
-              ],
-            );
-          },
-        ) ??
-        false;
+    final confirmed = await showScheduleConfirmDialog(
+      context: context,
+      title: 'Delete occurrence',
+      message: 'Do you want to delete this class occurrence?',
+    );
 
     if (!confirmed) return;
 
@@ -94,26 +74,11 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
   }
 
   Future<void> _confirmDeleteFullSchedule() async {
-    final confirmed = await showDialog<bool>(
-          context: context,
-          builder: (context) {
-            return AlertDialog(
-              title: const Text('Delete full schedule'),
-              content: const Text('This will remove your entire schedule. Continue?'),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context, false),
-                  child: const Text('Cancel'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.pop(context, true),
-                  child: const Text('Delete'),
-                ),
-              ],
-            );
-          },
-        ) ??
-        false;
+    final confirmed = await showScheduleConfirmDialog(
+      context: context,
+      title: 'Delete full schedule',
+      message: 'This will remove your entire schedule. Continue?',
+    );
 
     if (!confirmed) return;
 
@@ -145,10 +110,7 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
 
-    return AppScaffold(
-      //title: 'My Schedule',
-      currentTab: AppTab.schedule,
-      onTabSelected: (tab) => _onTabSelected(context, tab),
+    return SchedulePageScaffold(
       body: Builder(
         builder: (context) {
           if (state.status == ScheduleStatus.loading &&
