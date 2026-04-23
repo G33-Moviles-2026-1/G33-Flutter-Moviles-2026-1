@@ -3,6 +3,7 @@ import 'package:andespace/core/di/core_provider.dart';
 import 'package:dio/dio.dart' show DioException;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/error/dio_error_mapper.dart';
 import '../../../rooms/domain/entities/room_search.dart';
 import '../../../rooms/domain/entities/time_range.dart';
 import '../../data/actions/create_booking_action.dart';
@@ -125,7 +126,7 @@ class CreateBookingNotifier
       } else {
         state = state.copyWith(
           isSubmitting: false,
-          errorMessage: error.toString().replaceFirst('Exception: ', ''),
+          errorMessage: _mapBookingError(error),
           clearCreated: true,
         );
       }
@@ -161,11 +162,35 @@ class CreateBookingNotifier
     } catch (error) {
       state = state.copyWith(
         isLoadingAvailability: false,
-        availabilityErrorMessage: error.toString().replaceFirst('Exception: ', ''),
+        availabilityErrorMessage: _mapBookingError(error),
         availableTimeRanges: const [],
         clearSelectedTimeRange: true,
       );
     }
+  }
+
+  String _mapBookingError(Object error) {
+    if (error is Exception && error is! DioException) {
+      final message = error.toString().replaceFirst('Exception: ', '').trim();
+      if (message.isNotEmpty) {
+        return message;
+      }
+    }
+
+    return DioErrorMapper.map(
+      error,
+      onBadResponse: (statusCode, detail) {
+        if (detail != null && detail.trim().isNotEmpty) {
+          return detail.trim();
+        }
+
+        if (statusCode >= 500) {
+          return 'The server is currently unavailable. Please try again later.';
+        }
+
+        return 'We could not complete your booking. Please try again.';
+      },
+    );
   }
 }
 

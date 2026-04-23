@@ -6,6 +6,7 @@ import 'package:andespace/shared/widgets/auth_required_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../rooms/presentation/providers/rooms_providers.dart';
 import '../../../../shared/widgets/section_page_layout.dart';
 import '../../../../shared/widgets/app_scaffold.dart';
 import '../controllers/my_bookings_state.dart';
@@ -75,7 +76,11 @@ class MyBookingsPage extends ConsumerWidget {
                     booking: booking,
                     isDeleting: isDeleting,
                     onTap: () {
-                      final seed = booking.toRoomSearchItem();
+                      final cachedRoom = ref
+                          .read(roomSearchMemoryCacheProvider)
+                          .findCachedRoomById(booking.roomId);
+
+                      final seed = cachedRoom ?? booking.toRoomSearchItem();
 
                       Navigator.pushNamed(
                         context,

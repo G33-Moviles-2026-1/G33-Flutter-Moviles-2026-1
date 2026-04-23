@@ -66,6 +66,21 @@ class RoomSearchMemoryCache {
     return _snapshot?.page(pageNumber);
   }
 
+  RoomSearchItem? findCachedRoomById(String roomId) {
+    final snapshot = _snapshot;
+    if (snapshot == null) return null;
+
+    for (final response in snapshot.pages.toMap().values) {
+      for (final item in response.items) {
+        if (item.roomId == roomId) {
+          return item;
+        }
+      }
+    }
+
+    return null;
+  }
+
   void replaceWithFirstPage({
     required RoomSearchRequest baseQuery,
     required RoomSearchResponse firstPage,
