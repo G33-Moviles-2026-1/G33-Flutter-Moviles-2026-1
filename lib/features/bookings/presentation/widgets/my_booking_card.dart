@@ -9,11 +9,13 @@ class MyBookingCard extends StatelessWidget {
     super.key,
     required this.booking,
     required this.isDeleting,
+    required this.onTap,
     required this.onDeleteTap,
   });
 
   final MyBooking booking;
   final bool isDeleting;
+  final VoidCallback onTap;
   final VoidCallback onDeleteTap;
 
   @override
@@ -31,104 +33,111 @@ class MyBookingCard extends StatelessWidget {
         ? Colors.black.withValues(alpha: 0.18)
         : Colors.black.withValues(alpha: 0.22);
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 14),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: cardColor,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: isDeleting ? null : onTap,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: borderColor,
-          width: isDark ? 1.0 : 1.4,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: shadowColor,
-            blurRadius: isDark ? 12 : 0,
-            spreadRadius: 0,
-            offset: isDark ? const Offset(0, 4) : const Offset(3, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(
-                child: Text(
-                  booking.roomId,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w900,
-                    color: theme.colorScheme.onSurface,
-                  ),
-                  softWrap: true,
-                ),
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 14),
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: cardColor,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: borderColor,
+              width: isDark ? 1.0 : 1.4,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: shadowColor,
+                blurRadius: isDark ? 12 : 0,
+                spreadRadius: 0,
+                offset: isDark ? const Offset(0, 4) : const Offset(3, 3),
               ),
-              if (isDeleting)
-                SizedBox(
-                  width: 22,
-                  height: 22,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      brand?.accentYellow ?? theme.colorScheme.secondary,
-                    ),
-                  ),
-                )
-              else
-                IconButton(
-                  onPressed: onDeleteTap,
-                  icon: const Icon(Icons.delete_outline),
-                  color: theme.colorScheme.onSurface,
-                  tooltip: 'Delete booking',
-                ),
             ],
           ),
-          const SizedBox(height: 6),
-          Text(
-            'Date: ${_formatDate(booking.date)}',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurface,
-            ),
-            softWrap: true,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Slot: ${booking.timeRange.start} - ${booking.timeRange.end}',
-            style: theme.textTheme.bodyLarge?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: theme.colorScheme.onSurface,
-            ),
-            softWrap: true,
-          ),
-          const SizedBox(height: 10),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 7,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Text(
+                      booking.roomId,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w900,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                      softWrap: true,
+                    ),
+                  ),
+                  if (isDeleting)
+                    SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          brand?.accentYellow ?? theme.colorScheme.secondary,
+                        ),
+                      ),
+                    )
+                  else
+                    IconButton(
+                      onPressed: onDeleteTap,
+                      icon: const Icon(Icons.delete_outline),
+                      color: theme.colorScheme.onSurface,
+                      tooltip: 'Delete booking',
+                    ),
+                ],
               ),
-              decoration: BoxDecoration(
-                color: _statusColor(context, booking.status, brand),
-                borderRadius: BorderRadius.circular(999),
-                border: Border.all(
-                  color: _statusBorderColor(context),
-                  width: 1,
+              const SizedBox(height: 6),
+              Text(
+                'Date: ${_formatDate(booking.date)}',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurface,
+                ),
+                softWrap: true,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Slot: ${booking.timeRange.start} - ${booking.timeRange.end}',
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: theme.colorScheme.onSurface,
+                ),
+                softWrap: true,
+              ),
+              const SizedBox(height: 10),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 7,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _statusColor(context, booking.status, brand),
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(
+                      color: _statusBorderColor(context),
+                      width: 1,
+                    ),
+                  ),
+                  child: Text(
+                    _statusLabel(booking.status),
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: _statusTextColor(context, booking.status),
+                    ),
+                  ),
                 ),
               ),
-              child: Text(
-                _statusLabel(booking.status),
-                style: theme.textTheme.labelLarge?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: _statusTextColor(context, booking.status),
-                ),
-              ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
