@@ -54,7 +54,6 @@ class _PathBodyState extends ConsumerState<PathBody> {
 
     return Column(
       children: [
-        // ── fixed top: fields + steps header ─────────────────────────────
         Padding(
           padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
           child: Column(
@@ -109,7 +108,6 @@ class _PathBodyState extends ConsumerState<PathBody> {
           ),
         ),
 
-        // ── scrollable steps ──────────────────────────────────────────────
         Expanded(
           child: state.hasPath
               ? ListView.builder(
@@ -126,7 +124,6 @@ class _PathBodyState extends ConsumerState<PathBody> {
               : const SizedBox.shrink(),
         ),
 
-        // ── fixed bottom: cache nav + submit ──────────────────────────────
         Padding(
           padding: const EdgeInsets.fromLTRB(24, 8, 24, 20),
           child: Column(
@@ -187,7 +184,6 @@ class _PathBodyState extends ConsumerState<PathBody> {
   }
 }
 
-// ── Private widgets ───────────────────────────────────────────────────────────
 
 class _SectionTitle extends StatelessWidget {
   const _SectionTitle(this.title, this.t);

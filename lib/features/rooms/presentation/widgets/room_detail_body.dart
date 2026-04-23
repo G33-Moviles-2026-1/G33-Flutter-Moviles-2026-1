@@ -116,10 +116,8 @@ class _RoomDetailBodyState extends ConsumerState<RoomDetailBody> {
       SnackBar(
         content: Text(
           "$feature is currently in development",
-          style: TextStyle(
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.black
-                : Colors.white,
+          style: const TextStyle(
+            color: Colors.white,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -390,7 +388,7 @@ class _RoomDetailBodyState extends ConsumerState<RoomDetailBody> {
             Text(
               state.error!,
               style: t.textTheme.bodyMedium?.copyWith(
-                color: t.colorScheme.error,
+                color: t.colorScheme.onSurface,
               ),
               textAlign: TextAlign.center,
             ),
