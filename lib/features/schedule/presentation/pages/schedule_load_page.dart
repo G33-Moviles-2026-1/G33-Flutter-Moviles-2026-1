@@ -238,8 +238,8 @@ class ScheduleLoadPage extends ConsumerWidget {
                         color: theme.dividerColor.withValues(alpha: 0.18),
                       ),
                     ),
-                    child: Column(
-                      children: const [
+                    child: const Column(
+                      children: [
                         LinearProgressIndicator(),
                         SizedBox(height: 12),
                         Text('Uploading and processing ICS file...'),
