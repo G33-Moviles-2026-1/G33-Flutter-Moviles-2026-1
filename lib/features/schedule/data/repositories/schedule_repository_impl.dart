@@ -3,11 +3,14 @@ import 'package:andespace/features/rooms/domain/entities/room_search.dart';
 import '../../domain/entities/free_rooms_for_day.dart';
 import '../../domain/entities/manual_class.dart';
 import '../../domain/entities/schedule_class.dart';
-import '../../domain/entities/schedule_occurrence.dart';
 import '../../domain/entities/weekly_schedule.dart';
 import '../../domain/repositories/schedule_repository.dart';
-import '../datasources/schedule_remote_data_source.dart';
-import '../models/manual_class_dto.dart';
+import '../mappers/free_rooms_mapper.dart';
+import '../mappers/manual_class_mapper.dart';
+import '../mappers/recommended_rooms_mapper.dart';
+import '../mappers/schedule_class_mapper.dart';
+import '../mappers/weekly_schedule_mapper.dart';
+import '../remote/schedule_remote_data_source.dart';
 
 class ScheduleRepositoryImpl implements ScheduleRepository {
   final ScheduleRemoteDataSource remoteDataSource;
@@ -32,20 +35,7 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
     required String userEmail,
     required List<ManualClass> classes,
   }) async {
-    final models = classes
-        .map(
-          (e) => ManualClassModel(
-            title: e.title,
-            locationText: e.locationText,
-            roomId: e.roomId,
-            startDate: e.startDate,
-            endDate: e.endDate,
-            startTime: e.startTime,
-            endTime: e.endTime,
-            weekdays: e.weekdays,
-          ),
-        )
-        .toList();
+    final models = ManualClassMapper.toModelList(classes);
 
     await remoteDataSource.uploadManualSchedule(
       userEmail: userEmail,
@@ -63,26 +53,7 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
       date: date,
     );
 
-    return WeeklySchedule(
-      weekStart: model.weekStart,
-      weekEnd: model.weekEnd,
-      occurrences: model.occurrences
-          .map(
-            (e) => ScheduleOccurrence(
-              classId: e.classId,
-              title: e.title,
-              locationText: e.locationText,
-              roomId: (e.roomId != null && e.roomId!.trim().isNotEmpty)
-                  ? e.roomId
-                  : e.locationText,
-              date: e.date,
-              weekday: e.weekday,
-              startTime: e.startTime,
-              endTime: e.endTime,
-            ),
-          )
-          .toList(),
-    );
+    return WeeklyScheduleMapper.toEntity(model);
   }
 
   @override
@@ -93,23 +64,7 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
       userEmail: userEmail,
     );
 
-    return models
-        .map(
-          (e) => ScheduleClass(
-            classId: e.classId,
-            title: e.title,
-            locationText: e.locationText,
-            roomId: (e.roomId != null && e.roomId!.trim().isNotEmpty)
-              ? e.roomId
-              : e.locationText,
-            startDate: e.startDate,
-            endDate: e.endDate,
-            startTime: e.startTime,
-            endTime: e.endTime,
-            weekdays: e.weekdays,
-          ),
-        )
-        .toList();
+    return ScheduleClassMapper.toEntityList(models);
   }
 
   @override
@@ -122,36 +77,7 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
       date: date,
     );
 
-    return FreeRoomsForDay(
-      date: model.date,
-      weekday: model.weekday,
-      freeSlots: model.freeSlots
-          .map(
-            (e) => FreeSlot(
-              startTime: e.startTime,
-              endTime: e.endTime,
-            ),
-          )
-          .toList(),
-      slotsWithRooms: model.slotsWithRooms
-          .map(
-            (slot) => SlotWithRooms(
-              slotStart: slot.slotStart,
-              slotEnd: slot.slotEnd,
-              availableRooms: slot.availableRooms
-                  .map(
-                    (room) => RoomInSlot(
-                      roomId: room.roomId,
-                      buildingName: room.buildingName,
-                      capacity: room.capacity,
-                      reliability: room.reliability,
-                    ),
-                  )
-                  .toList(),
-            ),
-          )
-          .toList(),
-    );
+    return FreeRoomsForDayMapper.toEntity(model);
   }
 
   @override
@@ -196,58 +122,6 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
       date: date,
     );
 
-    final slots = raw['slots'] as List<dynamic>? ?? [];
-    final items = <RoomSearchItem>[];
-
-    for (final slot in slots) {
-      final slotMap = Map<String, dynamic>.from(slot as Map);
-      final slotStart = slotMap['slot_start'] as String? ?? '';
-      final slotEnd = slotMap['slot_end'] as String? ?? '';
-
-      final recommendedRooms =
-          slotMap['recommended_rooms'] as List<dynamic>? ?? [];
-
-      for (final room in recommendedRooms) {
-        final roomMap = Map<String, dynamic>.from(room as Map);
-
-        final roomId = roomMap['room_id'] as String? ?? '';
-        final buildingName = roomMap['building_name'] as String?;
-        final capacity = roomMap['capacity'] as int? ?? 0;
-        final reliability =
-            (roomMap['reliability'] as num?)?.toDouble() ?? 0.0;
-
-        final score = (roomMap['score'] as num?)?.toDouble();
-        final fromPrevious =
-            (roomMap['from_previous_seconds'] as num?)?.toDouble();
-        final toNext =
-            (roomMap['to_next_seconds'] as num?)?.toDouble();
-
-        final parts = roomId.split(' ');
-        final buildingCode = parts.isNotEmpty ? parts.first : '';
-        final roomNumber = parts.length > 1 ? parts.sublist(1).join(' ') : '';
-
-        items.add(
-          RoomSearchItem(
-            roomId: roomId,
-            buildingCode: buildingCode,
-            buildingName: buildingName,
-            roomNumber: roomNumber,
-            capacity: capacity,
-            reliability: reliability,
-            utilities: [
-              if (score != null) 'score ${score.toStringAsFixed(2)}',
-              if (fromPrevious != null) 'prev ${(fromPrevious / 60).round()} min',
-              if (toNext != null) 'next ${(toNext / 60).round()} min',
-            ],
-            distanceSeconds: toNext ?? fromPrevious,
-            matchingWindows: [
-              MatchingWindow(start: slotStart, end: slotEnd),
-            ],
-          ),
-        );
-      }
-    }
-
-    return items;
+    return RecommendedRoomsMapper.fromRaw(raw);
   }
 }

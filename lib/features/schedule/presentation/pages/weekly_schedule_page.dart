@@ -249,6 +249,9 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
                         height: 56,
                         child: ElevatedButton.icon(
                           onPressed: () async {
+                            final messenger = ScaffoldMessenger.of(context);
+                            final navigator = Navigator.of(context);
+
                             final now = DateTime.now();
                             final today = DateTime(now.year, now.month, now.day);
                             final maxDate = today.add(const Duration(days: 7));
@@ -263,7 +266,7 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
                             final isAfterMaxDate = selected.isAfter(maxDate);
 
                             if (isBeforeToday || isAfterMaxDate) {
-                              ScaffoldMessenger.of(context).showSnackBar(
+                              messenger.showSnackBar(
                                 const SnackBar(
                                   content: Text(
                                     'You can only filter schedule from today up to 7 days ahead.',
@@ -287,8 +290,7 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
 
                             if (!mounted) return;
 
-                            Navigator.push(
-                              context,
+                            navigator.push(
                               MaterialPageRoute(
                                 builder: (_) => RecommendedRoomsPage(items: items),
                               ),

@@ -61,6 +61,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
     final colorScheme = theme.colorScheme;
+    final passwordVisibilityIcon =
+    _obscurePassword ? Icons.visibility_off : Icons.visibility;
 
     return AppScaffold(
       currentTab: AppTab.rooms,
@@ -113,11 +115,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     hintText: 'Password',
                     suffixIcon: _passwordFocusNode.hasFocus
                         ? IconButton(
-                            icon: Icon(
-                              _obscurePassword
-                                  ? Icons.visibility_off
-                                  : Icons.visibility,
-                            ),
+                            icon: Icon(passwordVisibilityIcon),
                             onPressed: () {
                               setState(() {
                                 _obscurePassword = !_obscurePassword;

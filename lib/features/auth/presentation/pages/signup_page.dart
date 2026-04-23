@@ -78,6 +78,11 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
     final colorScheme = theme.colorScheme;
+    final passwordVisibilityIcon =
+        _obscurePassword ? Icons.visibility_off : Icons.visibility;
+
+    final confirmPasswordVisibilityIcon =
+        _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility;
 
     return AppScaffold(
       currentTab: AppTab.rooms,
@@ -132,11 +137,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                     hintText: 'Password',
                     suffixIcon: _passwordFocusNode.hasFocus
                         ? IconButton(
-                            icon: Icon(
-                              _obscurePassword
-                                  ? Icons.visibility_off
-                                  : Icons.visibility,
-                            ),
+                            icon: Icon(passwordVisibilityIcon),
                             onPressed: () {
                               setState(() {
                                 _obscurePassword = !_obscurePassword;
@@ -168,11 +169,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                     hintText: 'Repeat Password',
                     suffixIcon: _confirmPasswordFocusNode.hasFocus
                         ? IconButton(
-                            icon: Icon(
-                              _obscureConfirmPassword
-                                  ? Icons.visibility_off
-                                  : Icons.visibility,
-                            ),
+                            icon: Icon(confirmPasswordVisibilityIcon),
                             onPressed: () {
                               setState(() {
                                 _obscureConfirmPassword =

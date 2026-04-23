@@ -37,7 +37,7 @@ Future<void> main() async {
 
   final cookieJar = PersistCookieJar(
     storage: FileStorage(cookiesPath),
-    ignoreExpires: false,
+    ignoreExpires: true,
   );
 
   final dio = Dio(
