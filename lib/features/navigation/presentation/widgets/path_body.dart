@@ -5,84 +5,149 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../shared/theme/app_theme_extension.dart';
 import '../../../rooms/domain/entities/room_search.dart';
 import '../controllers/path_notifier.dart';
+import '../controllers/path_state.dart';
 
-class PathBody extends ConsumerWidget {
+class PathBody extends ConsumerStatefulWidget {
   const PathBody({super.key, this.initialDestination});
 
   final RoomSearchItem? initialDestination;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(pathControllerProvider(initialDestination));
-    final notifier = ref.read(pathControllerProvider(initialDestination).notifier);
+  ConsumerState<PathBody> createState() => _PathBodyState();
+}
 
-    ref.listen(pathControllerProvider(initialDestination), (prev, next) {
-    });
+class _PathBodyState extends ConsumerState<PathBody> {
+  final _originFocus = FocusNode();
+  final _destFocus = FocusNode();
+  bool _isEditing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _originFocus.addListener(_onFocusChange);
+    _destFocus.addListener(_onFocusChange);
+  }
+
+  void _onFocusChange() {
+    final editing = _originFocus.hasFocus || _destFocus.hasFocus;
+    if (editing != _isEditing) setState(() => _isEditing = editing);
+  }
+
+  @override
+  void dispose() {
+    _originFocus.removeListener(_onFocusChange);
+    _destFocus.removeListener(_onFocusChange);
+    _originFocus.dispose();
+    _destFocus.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final state = ref.watch(pathControllerProvider(widget.initialDestination));
+    final notifier =
+        ref.read(pathControllerProvider(widget.initialDestination).notifier);
 
     final t = Theme.of(context);
     final brand = t.extension<BrandColors>()!;
     final isDark = t.brightness == Brightness.dark;
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _SectionTitle('Where Are You?', t),
-          const SizedBox(height: 8),
-          _LocationField(
-            value: state.originText,
-            validationError: state.originValidationError,
-            isLocating: state.isLocatingOrigin,
-            onChanged: notifier.updateOriginText,
-            onLocate: () => _handleLocate(context, notifier),
-            showGpsButton: true,
-            isDark: isDark,
-            t: t,
-            brand: brand,
-          ),
-          const SizedBox(height: 24),
-          _SectionTitle('Where Do You Want to Go?', t),
-          const SizedBox(height: 8),
-          _LocationField(
-            value: state.destText,
-            validationError: state.destValidationError,
-            isLocating: false,
-            onChanged: notifier.updateDestText,
-            onLocate: () {},
-            showGpsButton: false,
-            isDark: isDark,
-            t: t,
-            brand: brand,
-          ),
-          const SizedBox(height: 32),
-          if (state.hasPath) ...[
-            _SectionTitle('Follow these steps:', t),
-            const SizedBox(height: 4),
-            Text(
-              'Estimated time: ${state.path!.formattedDuration}',
-              style: t.textTheme.bodyMedium?.copyWith(
-                color: t.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 12),
-            _StepsContainer(
-                steps: state.path!.steps,
-                brand: brand,
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _SectionTitle('Where Are You?', t),
+              const SizedBox(height: 8),
+              _LocationField(
+                value: state.originText,
+                validationError: state.originValidationError,
+                isLocating: state.isLocatingOrigin,
+                focusNode: _originFocus,
+                onChanged: notifier.updateOriginText,
+                onLocate: () => _handleLocate(context, notifier),
+                showGpsButton: true,
                 isDark: isDark,
-                t: t),
-            const SizedBox(height: 40),
-          ] else
-            const SizedBox(height: 40),
-          _SubmitButton(
-            isLoading: state.isLoadingPath,
-            onPressed: () => _handleSubmit(context, notifier),
-            brand: brand,
-            t: t,
+                t: t,
+                brand: brand,
+              ),
+              const SizedBox(height: 20),
+              _SectionTitle('Where Do You Want to Go?', t),
+              const SizedBox(height: 8),
+              _LocationField(
+                value: state.destText,
+                validationError: state.destValidationError,
+                isLocating: false,
+                focusNode: _destFocus,
+                onChanged: notifier.updateDestText,
+                onLocate: () {},
+                showGpsButton: false,
+                isDark: isDark,
+                t: t,
+                brand: brand,
+              ),
+              if (state.hasPath) ...[
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Expanded(child: _SectionTitle('Follow these steps:', t)),
+                    Text(
+                      'Est. ${state.path!.formattedDuration}',
+                      style: t.textTheme.bodyMedium?.copyWith(
+                        color: t.colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+              ],
+            ],
           ),
-          const SizedBox(height: 24),
-        ],
-      ),
+        ),
+
+        Expanded(
+          child: state.hasPath
+              ? ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+                  itemCount: state.path!.steps.length,
+                  itemBuilder: (_, i) => _StepCard(
+                    index: i,
+                    step: state.path!.steps[i],
+                    brand: brand,
+                    isDark: isDark,
+                    t: t,
+                  ),
+                )
+              : const SizedBox.shrink(),
+        ),
+
+        Padding(
+          padding: const EdgeInsets.fromLTRB(24, 8, 24, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _CacheNavRow(
+                state: state,
+                isEditing: _isEditing,
+                onPrev: notifier.goToPrevious,
+                onNext: notifier.goToNext,
+                brand: brand,
+                t: t,
+              ),
+              const SizedBox(height: 12),
+              _SubmitButton(
+                isLoading: state.isLoadingPath,
+                onPressed: () => _handleSubmit(context, notifier),
+                brand: brand,
+                t: t,
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -103,6 +168,8 @@ class PathBody extends ConsumerWidget {
 
   Future<void> _handleSubmit(
       BuildContext context, PathNotifier notifier) async {
+    _originFocus.unfocus();
+    _destFocus.unfocus();
     try {
       await notifier.submit();
     } catch (e) {
@@ -116,6 +183,7 @@ class PathBody extends ConsumerWidget {
     }
   }
 }
+
 
 class _SectionTitle extends StatelessWidget {
   const _SectionTitle(this.title, this.t);
@@ -139,6 +207,7 @@ class _LocationField extends StatefulWidget {
     required this.value,
     required this.validationError,
     required this.isLocating,
+    required this.focusNode,
     required this.onChanged,
     required this.onLocate,
     required this.showGpsButton,
@@ -151,6 +220,7 @@ class _LocationField extends StatefulWidget {
   final String? validationError;
   final bool isLocating;
   final bool showGpsButton;
+  final FocusNode focusNode;
   final ValueChanged<String> onChanged;
   final VoidCallback onLocate;
   final bool isDark;
@@ -191,7 +261,8 @@ class _LocationFieldState extends State<_LocationField> {
   Widget build(BuildContext context) {
     final hasError = widget.validationError != null;
     final defaultBorderColor = widget.isDark ? Colors.white24 : Colors.black;
-    final borderColor = hasError ? widget.t.colorScheme.error : defaultBorderColor;
+    final borderColor =
+        hasError ? widget.t.colorScheme.error : defaultBorderColor;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -214,6 +285,7 @@ class _LocationFieldState extends State<_LocationField> {
               Expanded(
                 child: TextField(
                   controller: _controller,
+                  focusNode: widget.focusNode,
                   onChanged: widget.onChanged,
                   maxLength: 50,
                   maxLengthEnforcement: MaxLengthEnforcement.enforced,
@@ -270,67 +342,125 @@ class _LocationFieldState extends State<_LocationField> {
   }
 }
 
-class _StepsContainer extends StatelessWidget {
-  const _StepsContainer({
-    required this.steps,
+class _StepCard extends StatelessWidget {
+  const _StepCard({
+    required this.index,
+    required this.step,
     required this.brand,
     required this.isDark,
     required this.t,
   });
 
-  final List<String> steps;
+  final int index;
+  final String step;
   final BrandColors brand;
   final bool isDark;
   final ThemeData t;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: isDark
-            ? brand.accentYellow.withValues(alpha: 0.15)
-            : const Color(0xFFFFF9C4),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Container(
+        decoration: BoxDecoration(
           color: isDark
-              ? brand.accentYellow
-              : Colors.black.withValues(alpha: 0.1),
-          width: 1,
+              ? brand.accentYellow.withValues(alpha: 0.10)
+              : const Color(0xFFFFF9C4),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: isDark
+                ? brand.accentYellow.withValues(alpha: 0.4)
+                : Colors.black.withValues(alpha: 0.12),
+            width: 1,
+          ),
         ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: steps
-            .asMap()
-            .entries
-            .map(
-              (e) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${e.key + 1}. ',
-                      style:
-                          t.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
-                    ),
-                    Expanded(
-                      child: Text(
-                        e.value,
-                        style: t.textTheme.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          height: 1.3,
-                        ),
-                      ),
-                    ),
-                  ],
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 28,
+              height: 28,
+              margin: const EdgeInsets.only(right: 12, top: 1),
+              decoration: BoxDecoration(
+                color: brand.accentYellow,
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Text(
+                  '${index + 1}',
+                  style: t.textTheme.labelMedium?.copyWith(
+                    fontWeight: FontWeight.w900,
+                    color: Colors.black,
+                  ),
                 ),
               ),
-            )
-            .toList(),
+            ),
+            Expanded(
+              child: Text(
+                step,
+                style: t.textTheme.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  height: 1.4,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
+    );
+  }
+}
+
+class _CacheNavRow extends StatelessWidget {
+  const _CacheNavRow({
+    required this.state,
+    required this.isEditing,
+    required this.onPrev,
+    required this.onNext,
+    required this.brand,
+    required this.t,
+  });
+
+  final PathState state;
+  final bool isEditing;
+  final VoidCallback onPrev;
+  final VoidCallback onNext;
+  final BrandColors brand;
+  final ThemeData t;
+
+  @override
+  Widget build(BuildContext context) {
+    final canPrev = !isEditing && state.canGoPrev;
+    final canNext = !isEditing && state.canGoNext;
+    final dimColor = t.colorScheme.onSurface.withValues(alpha: 0.3);
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        IconButton(
+          onPressed: canPrev ? onPrev : null,
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+          style: IconButton.styleFrom(
+            foregroundColor: canPrev ? t.colorScheme.onSurface : dimColor,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          state.cacheSize > 0
+              ? '${state.cacheIndex + 1} / ${state.cacheSize}'
+              : '- / -',
+          style: t.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
+        ),
+        const SizedBox(width: 8),
+        IconButton(
+          onPressed: canNext ? onNext : null,
+          icon: const Icon(Icons.arrow_forward_ios_rounded, size: 18),
+          style: IconButton.styleFrom(
+            foregroundColor: canNext ? t.colorScheme.onSurface : dimColor,
+          ),
+        ),
+      ],
     );
   }
 }

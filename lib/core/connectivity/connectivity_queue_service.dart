@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 
+import '../error/dio_error_mapper.dart';
 import 'pending_action.dart';
 import 'pending_action_event.dart';
 
@@ -31,7 +32,7 @@ class ConnectivityQueueService {
         if (_isConnectivityError(e)) {
           _queue.insert(0, action);
         } else {
-          _events.add(PendingActionFailed(action, e.toString()));
+          _events.add(PendingActionFailed(action, DioErrorMapper.map(e)));
         }
       }
     }

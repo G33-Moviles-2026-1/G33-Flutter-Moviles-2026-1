@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../domain/entities/room_date_availability.dart';
 import '../../domain/entities/room_search.dart';
@@ -53,8 +54,11 @@ class RoomRepositoryImpl implements RoomRepository {
       date: date,
     );
 
-    final responseDto = RoomDateAvailabilityDto.fromJson(raw);
-    return responseDto.toDomain();
+    return compute(_parseAvailability, raw);
+  }
+
+  static RoomDateAvailability _parseAvailability(Map<String, dynamic> json) {
+    return RoomDateAvailabilityDto.fromJson(json).toDomain();
   }
 
   @override

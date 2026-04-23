@@ -35,12 +35,12 @@ class RoomDetailNotifier extends AutoDisposeNotifier<RoomDetailState> {
   }
 
   Future<void> loadAvailability(String roomId, DateTime date) async {
-    state = state.copyWith(isLoading: true, error: null);
+    state = RoomDetailState(isLoading: true);
     try {
       final result = await _fetchRoomDateAvailability(roomId: roomId, date: date);
-      state = state.copyWith(availability: result, isLoading: false);
+      state = RoomDetailState(availability: result);
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: DioErrorMapper.map(e));
+      state = RoomDetailState(error: DioErrorMapper.map(e));
     }
   }
 }

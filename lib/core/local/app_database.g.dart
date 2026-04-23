@@ -1667,6 +1667,437 @@ class FavoriteMutationsTableCompanion
   }
 }
 
+class $CachedPathsTableTable extends CachedPathsTable
+    with TableInfo<$CachedPathsTableTable, CachedPathsTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CachedPathsTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _cacheKeyMeta = const VerificationMeta(
+    'cacheKey',
+  );
+  @override
+  late final GeneratedColumn<String> cacheKey = GeneratedColumn<String>(
+    'cache_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _originTextMeta = const VerificationMeta(
+    'originText',
+  );
+  @override
+  late final GeneratedColumn<String> originText = GeneratedColumn<String>(
+    'origin_text',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _destTextMeta = const VerificationMeta(
+    'destText',
+  );
+  @override
+  late final GeneratedColumn<String> destText = GeneratedColumn<String>(
+    'dest_text',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _stepsJsonMeta = const VerificationMeta(
+    'stepsJson',
+  );
+  @override
+  late final GeneratedColumn<String> stepsJson = GeneratedColumn<String>(
+    'steps_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _totalTimeSecondsMeta = const VerificationMeta(
+    'totalTimeSeconds',
+  );
+  @override
+  late final GeneratedColumn<int> totalTimeSeconds = GeneratedColumn<int>(
+    'total_time_seconds',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _accessedAtMeta = const VerificationMeta(
+    'accessedAt',
+  );
+  @override
+  late final GeneratedColumn<int> accessedAt = GeneratedColumn<int>(
+    'accessed_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    cacheKey,
+    originText,
+    destText,
+    stepsJson,
+    totalTimeSeconds,
+    accessedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'cached_paths';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CachedPathsTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('cache_key')) {
+      context.handle(
+        _cacheKeyMeta,
+        cacheKey.isAcceptableOrUnknown(data['cache_key']!, _cacheKeyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_cacheKeyMeta);
+    }
+    if (data.containsKey('origin_text')) {
+      context.handle(
+        _originTextMeta,
+        originText.isAcceptableOrUnknown(data['origin_text']!, _originTextMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_originTextMeta);
+    }
+    if (data.containsKey('dest_text')) {
+      context.handle(
+        _destTextMeta,
+        destText.isAcceptableOrUnknown(data['dest_text']!, _destTextMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_destTextMeta);
+    }
+    if (data.containsKey('steps_json')) {
+      context.handle(
+        _stepsJsonMeta,
+        stepsJson.isAcceptableOrUnknown(data['steps_json']!, _stepsJsonMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_stepsJsonMeta);
+    }
+    if (data.containsKey('total_time_seconds')) {
+      context.handle(
+        _totalTimeSecondsMeta,
+        totalTimeSeconds.isAcceptableOrUnknown(
+          data['total_time_seconds']!,
+          _totalTimeSecondsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_totalTimeSecondsMeta);
+    }
+    if (data.containsKey('accessed_at')) {
+      context.handle(
+        _accessedAtMeta,
+        accessedAt.isAcceptableOrUnknown(data['accessed_at']!, _accessedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_accessedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {cacheKey};
+  @override
+  CachedPathsTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CachedPathsTableData(
+      cacheKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}cache_key'],
+      )!,
+      originText: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}origin_text'],
+      )!,
+      destText: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}dest_text'],
+      )!,
+      stepsJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}steps_json'],
+      )!,
+      totalTimeSeconds: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}total_time_seconds'],
+      )!,
+      accessedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}accessed_at'],
+      )!,
+    );
+  }
+
+  @override
+  $CachedPathsTableTable createAlias(String alias) {
+    return $CachedPathsTableTable(attachedDatabase, alias);
+  }
+}
+
+class CachedPathsTableData extends DataClass
+    implements Insertable<CachedPathsTableData> {
+  final String cacheKey;
+  final String originText;
+  final String destText;
+  final String stepsJson;
+  final int totalTimeSeconds;
+  final int accessedAt;
+  const CachedPathsTableData({
+    required this.cacheKey,
+    required this.originText,
+    required this.destText,
+    required this.stepsJson,
+    required this.totalTimeSeconds,
+    required this.accessedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['cache_key'] = Variable<String>(cacheKey);
+    map['origin_text'] = Variable<String>(originText);
+    map['dest_text'] = Variable<String>(destText);
+    map['steps_json'] = Variable<String>(stepsJson);
+    map['total_time_seconds'] = Variable<int>(totalTimeSeconds);
+    map['accessed_at'] = Variable<int>(accessedAt);
+    return map;
+  }
+
+  CachedPathsTableCompanion toCompanion(bool nullToAbsent) {
+    return CachedPathsTableCompanion(
+      cacheKey: Value(cacheKey),
+      originText: Value(originText),
+      destText: Value(destText),
+      stepsJson: Value(stepsJson),
+      totalTimeSeconds: Value(totalTimeSeconds),
+      accessedAt: Value(accessedAt),
+    );
+  }
+
+  factory CachedPathsTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CachedPathsTableData(
+      cacheKey: serializer.fromJson<String>(json['cacheKey']),
+      originText: serializer.fromJson<String>(json['originText']),
+      destText: serializer.fromJson<String>(json['destText']),
+      stepsJson: serializer.fromJson<String>(json['stepsJson']),
+      totalTimeSeconds: serializer.fromJson<int>(json['totalTimeSeconds']),
+      accessedAt: serializer.fromJson<int>(json['accessedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'cacheKey': serializer.toJson<String>(cacheKey),
+      'originText': serializer.toJson<String>(originText),
+      'destText': serializer.toJson<String>(destText),
+      'stepsJson': serializer.toJson<String>(stepsJson),
+      'totalTimeSeconds': serializer.toJson<int>(totalTimeSeconds),
+      'accessedAt': serializer.toJson<int>(accessedAt),
+    };
+  }
+
+  CachedPathsTableData copyWith({
+    String? cacheKey,
+    String? originText,
+    String? destText,
+    String? stepsJson,
+    int? totalTimeSeconds,
+    int? accessedAt,
+  }) => CachedPathsTableData(
+    cacheKey: cacheKey ?? this.cacheKey,
+    originText: originText ?? this.originText,
+    destText: destText ?? this.destText,
+    stepsJson: stepsJson ?? this.stepsJson,
+    totalTimeSeconds: totalTimeSeconds ?? this.totalTimeSeconds,
+    accessedAt: accessedAt ?? this.accessedAt,
+  );
+  CachedPathsTableData copyWithCompanion(CachedPathsTableCompanion data) {
+    return CachedPathsTableData(
+      cacheKey: data.cacheKey.present ? data.cacheKey.value : this.cacheKey,
+      originText: data.originText.present
+          ? data.originText.value
+          : this.originText,
+      destText: data.destText.present ? data.destText.value : this.destText,
+      stepsJson: data.stepsJson.present ? data.stepsJson.value : this.stepsJson,
+      totalTimeSeconds: data.totalTimeSeconds.present
+          ? data.totalTimeSeconds.value
+          : this.totalTimeSeconds,
+      accessedAt: data.accessedAt.present
+          ? data.accessedAt.value
+          : this.accessedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CachedPathsTableData(')
+          ..write('cacheKey: $cacheKey, ')
+          ..write('originText: $originText, ')
+          ..write('destText: $destText, ')
+          ..write('stepsJson: $stepsJson, ')
+          ..write('totalTimeSeconds: $totalTimeSeconds, ')
+          ..write('accessedAt: $accessedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    cacheKey,
+    originText,
+    destText,
+    stepsJson,
+    totalTimeSeconds,
+    accessedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CachedPathsTableData &&
+          other.cacheKey == this.cacheKey &&
+          other.originText == this.originText &&
+          other.destText == this.destText &&
+          other.stepsJson == this.stepsJson &&
+          other.totalTimeSeconds == this.totalTimeSeconds &&
+          other.accessedAt == this.accessedAt);
+}
+
+class CachedPathsTableCompanion extends UpdateCompanion<CachedPathsTableData> {
+  final Value<String> cacheKey;
+  final Value<String> originText;
+  final Value<String> destText;
+  final Value<String> stepsJson;
+  final Value<int> totalTimeSeconds;
+  final Value<int> accessedAt;
+  final Value<int> rowid;
+  const CachedPathsTableCompanion({
+    this.cacheKey = const Value.absent(),
+    this.originText = const Value.absent(),
+    this.destText = const Value.absent(),
+    this.stepsJson = const Value.absent(),
+    this.totalTimeSeconds = const Value.absent(),
+    this.accessedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  CachedPathsTableCompanion.insert({
+    required String cacheKey,
+    required String originText,
+    required String destText,
+    required String stepsJson,
+    required int totalTimeSeconds,
+    required int accessedAt,
+    this.rowid = const Value.absent(),
+  }) : cacheKey = Value(cacheKey),
+       originText = Value(originText),
+       destText = Value(destText),
+       stepsJson = Value(stepsJson),
+       totalTimeSeconds = Value(totalTimeSeconds),
+       accessedAt = Value(accessedAt);
+  static Insertable<CachedPathsTableData> custom({
+    Expression<String>? cacheKey,
+    Expression<String>? originText,
+    Expression<String>? destText,
+    Expression<String>? stepsJson,
+    Expression<int>? totalTimeSeconds,
+    Expression<int>? accessedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (cacheKey != null) 'cache_key': cacheKey,
+      if (originText != null) 'origin_text': originText,
+      if (destText != null) 'dest_text': destText,
+      if (stepsJson != null) 'steps_json': stepsJson,
+      if (totalTimeSeconds != null) 'total_time_seconds': totalTimeSeconds,
+      if (accessedAt != null) 'accessed_at': accessedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  CachedPathsTableCompanion copyWith({
+    Value<String>? cacheKey,
+    Value<String>? originText,
+    Value<String>? destText,
+    Value<String>? stepsJson,
+    Value<int>? totalTimeSeconds,
+    Value<int>? accessedAt,
+    Value<int>? rowid,
+  }) {
+    return CachedPathsTableCompanion(
+      cacheKey: cacheKey ?? this.cacheKey,
+      originText: originText ?? this.originText,
+      destText: destText ?? this.destText,
+      stepsJson: stepsJson ?? this.stepsJson,
+      totalTimeSeconds: totalTimeSeconds ?? this.totalTimeSeconds,
+      accessedAt: accessedAt ?? this.accessedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (cacheKey.present) {
+      map['cache_key'] = Variable<String>(cacheKey.value);
+    }
+    if (originText.present) {
+      map['origin_text'] = Variable<String>(originText.value);
+    }
+    if (destText.present) {
+      map['dest_text'] = Variable<String>(destText.value);
+    }
+    if (stepsJson.present) {
+      map['steps_json'] = Variable<String>(stepsJson.value);
+    }
+    if (totalTimeSeconds.present) {
+      map['total_time_seconds'] = Variable<int>(totalTimeSeconds.value);
+    }
+    if (accessedAt.present) {
+      map['accessed_at'] = Variable<int>(accessedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CachedPathsTableCompanion(')
+          ..write('cacheKey: $cacheKey, ')
+          ..write('originText: $originText, ')
+          ..write('destText: $destText, ')
+          ..write('stepsJson: $stepsJson, ')
+          ..write('totalTimeSeconds: $totalTimeSeconds, ')
+          ..write('accessedAt: $accessedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -1677,6 +2108,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $FavoriteRoomsTableTable(this);
   late final $FavoriteMutationsTableTable favoriteMutationsTable =
       $FavoriteMutationsTableTable(this);
+  late final $CachedPathsTableTable cachedPathsTable = $CachedPathsTableTable(
+    this,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1685,6 +2119,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     myBookingsTable,
     favoriteRoomsTable,
     favoriteMutationsTable,
+    cachedPathsTable,
   ];
 }
 
@@ -2551,6 +2986,241 @@ typedef $$FavoriteMutationsTableTableProcessedTableManager =
       FavoriteMutationsTableData,
       PrefetchHooks Function()
     >;
+typedef $$CachedPathsTableTableCreateCompanionBuilder =
+    CachedPathsTableCompanion Function({
+      required String cacheKey,
+      required String originText,
+      required String destText,
+      required String stepsJson,
+      required int totalTimeSeconds,
+      required int accessedAt,
+      Value<int> rowid,
+    });
+typedef $$CachedPathsTableTableUpdateCompanionBuilder =
+    CachedPathsTableCompanion Function({
+      Value<String> cacheKey,
+      Value<String> originText,
+      Value<String> destText,
+      Value<String> stepsJson,
+      Value<int> totalTimeSeconds,
+      Value<int> accessedAt,
+      Value<int> rowid,
+    });
+
+class $$CachedPathsTableTableFilterComposer
+    extends Composer<_$AppDatabase, $CachedPathsTableTable> {
+  $$CachedPathsTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get cacheKey => $composableBuilder(
+    column: $table.cacheKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get originText => $composableBuilder(
+    column: $table.originText,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get destText => $composableBuilder(
+    column: $table.destText,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get stepsJson => $composableBuilder(
+    column: $table.stepsJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get totalTimeSeconds => $composableBuilder(
+    column: $table.totalTimeSeconds,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get accessedAt => $composableBuilder(
+    column: $table.accessedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$CachedPathsTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $CachedPathsTableTable> {
+  $$CachedPathsTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get cacheKey => $composableBuilder(
+    column: $table.cacheKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get originText => $composableBuilder(
+    column: $table.originText,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get destText => $composableBuilder(
+    column: $table.destText,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get stepsJson => $composableBuilder(
+    column: $table.stepsJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get totalTimeSeconds => $composableBuilder(
+    column: $table.totalTimeSeconds,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get accessedAt => $composableBuilder(
+    column: $table.accessedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$CachedPathsTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CachedPathsTableTable> {
+  $$CachedPathsTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get cacheKey =>
+      $composableBuilder(column: $table.cacheKey, builder: (column) => column);
+
+  GeneratedColumn<String> get originText => $composableBuilder(
+    column: $table.originText,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get destText =>
+      $composableBuilder(column: $table.destText, builder: (column) => column);
+
+  GeneratedColumn<String> get stepsJson =>
+      $composableBuilder(column: $table.stepsJson, builder: (column) => column);
+
+  GeneratedColumn<int> get totalTimeSeconds => $composableBuilder(
+    column: $table.totalTimeSeconds,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get accessedAt => $composableBuilder(
+    column: $table.accessedAt,
+    builder: (column) => column,
+  );
+}
+
+class $$CachedPathsTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CachedPathsTableTable,
+          CachedPathsTableData,
+          $$CachedPathsTableTableFilterComposer,
+          $$CachedPathsTableTableOrderingComposer,
+          $$CachedPathsTableTableAnnotationComposer,
+          $$CachedPathsTableTableCreateCompanionBuilder,
+          $$CachedPathsTableTableUpdateCompanionBuilder,
+          (
+            CachedPathsTableData,
+            BaseReferences<
+              _$AppDatabase,
+              $CachedPathsTableTable,
+              CachedPathsTableData
+            >,
+          ),
+          CachedPathsTableData,
+          PrefetchHooks Function()
+        > {
+  $$CachedPathsTableTableTableManager(
+    _$AppDatabase db,
+    $CachedPathsTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CachedPathsTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CachedPathsTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CachedPathsTableTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> cacheKey = const Value.absent(),
+                Value<String> originText = const Value.absent(),
+                Value<String> destText = const Value.absent(),
+                Value<String> stepsJson = const Value.absent(),
+                Value<int> totalTimeSeconds = const Value.absent(),
+                Value<int> accessedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CachedPathsTableCompanion(
+                cacheKey: cacheKey,
+                originText: originText,
+                destText: destText,
+                stepsJson: stepsJson,
+                totalTimeSeconds: totalTimeSeconds,
+                accessedAt: accessedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String cacheKey,
+                required String originText,
+                required String destText,
+                required String stepsJson,
+                required int totalTimeSeconds,
+                required int accessedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => CachedPathsTableCompanion.insert(
+                cacheKey: cacheKey,
+                originText: originText,
+                destText: destText,
+                stepsJson: stepsJson,
+                totalTimeSeconds: totalTimeSeconds,
+                accessedAt: accessedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$CachedPathsTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CachedPathsTableTable,
+      CachedPathsTableData,
+      $$CachedPathsTableTableFilterComposer,
+      $$CachedPathsTableTableOrderingComposer,
+      $$CachedPathsTableTableAnnotationComposer,
+      $$CachedPathsTableTableCreateCompanionBuilder,
+      $$CachedPathsTableTableUpdateCompanionBuilder,
+      (
+        CachedPathsTableData,
+        BaseReferences<
+          _$AppDatabase,
+          $CachedPathsTableTable,
+          CachedPathsTableData
+        >,
+      ),
+      CachedPathsTableData,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -2564,4 +3234,6 @@ class $AppDatabaseManager {
         _db,
         _db.favoriteMutationsTable,
       );
+  $$CachedPathsTableTableTableManager get cachedPathsTable =>
+      $$CachedPathsTableTableTableManager(_db, _db.cachedPathsTable);
 }

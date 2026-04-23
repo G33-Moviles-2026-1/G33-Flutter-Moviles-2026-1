@@ -45,7 +45,7 @@ class FavoriteMutationsTable extends Table {
 
   TextColumn get opId => text()();
   TextColumn get roomId => text()();
-  TextColumn get operation => text()(); // add | remove
+  TextColumn get operation => text()();
   IntColumn get attemptCount => integer().withDefault(const Constant(0))();
   TextColumn get lastError => text().nullable()();
   DateTimeColumn get createdAt => dateTime()();
@@ -55,18 +55,34 @@ class FavoriteMutationsTable extends Table {
   Set<Column> get primaryKey => {opId};
 }
 
+class CachedPathsTable extends Table {
+  @override
+  String get tableName => 'cached_paths';
+
+  TextColumn get cacheKey => text()();
+  TextColumn get originText => text()();
+  TextColumn get destText => text()();
+  TextColumn get stepsJson => text()();
+  IntColumn get totalTimeSeconds => integer()();
+  IntColumn get accessedAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {cacheKey};
+}
+
 @DriftDatabase(
   tables: [
     MyBookingsTable,
     FavoriteRoomsTable,
     FavoriteMutationsTable,
+    CachedPathsTable,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(driftDatabase(name: 'andespace_db'));
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -157,6 +173,17 @@ class AppDatabase extends _$AppDatabase {
 
   Future<void> deleteFavoriteMutationsForRoom(String roomId) =>
       (delete(favoriteMutationsTable)..where((t) => t.roomId.equals(roomId))).go();
+
+  Future<List<CachedPathsTableData>> getCachedPaths() =>
+      (select(cachedPathsTable)
+            ..orderBy([(t) => OrderingTerm.asc(t.accessedAt)]))
+          .get();
+
+  Future<void> replaceCachedPaths(List<CachedPathsTableCompanion> rows) =>
+      transaction(() async {
+        await delete(cachedPathsTable).go();
+        if (rows.isNotEmpty) await batch((b) => b.insertAll(cachedPathsTable, rows));
+      });
 
   Future<void> clearAllLocalUserData() => transaction(() async {
         await delete(myBookingsTable).go();
