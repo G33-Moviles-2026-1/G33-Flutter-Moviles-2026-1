@@ -1,8 +1,8 @@
 import '../../domain/entities/auth_user.dart';
 import '../../domain/repositories/auth_repository.dart';
-import '../datasources/auth_api.dart';
 import '../models/auth_request_dto.dart';
 import '../models/auth_user_dto.dart';
+import '../remote/auth_api.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final AuthApi api;
@@ -14,7 +14,12 @@ class AuthRepositoryImpl implements AuthRepository {
     required String email,
     required String password,
   }) async {
-    await api.login(LoginRequestDto(email: email, password: password));
+    await api.login(
+      LoginRequestDto(
+        email: email,
+        password: password,
+      ),
+    );
   }
 
   @override
@@ -42,7 +47,9 @@ class AuthRepositoryImpl implements AuthRepository {
     final data = await api.me();
 
     final activeUser = data['active_user'];
-    if (activeUser == null) return null;
+    if (activeUser == null) {
+      return null;
+    }
 
     final model = AuthUserModel.fromMeResponse(data);
     return model.toEntity();

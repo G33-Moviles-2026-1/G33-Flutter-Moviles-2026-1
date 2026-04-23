@@ -1,0 +1,20 @@
+import '../entities/auth_user.dart';
+import '../repositories/auth_repository.dart';
+
+class LoginAndFetchCurrentUserUseCase {
+  final AuthRepository repository;
+
+  LoginAndFetchCurrentUserUseCase(this.repository);
+
+  Future<AuthUser?> call({
+    required String email,
+    required String password,
+  }) async {
+    await repository.login(
+      email: email,
+      password: password,
+    );
+
+    return repository.getCurrentUser();
+  }
+}
