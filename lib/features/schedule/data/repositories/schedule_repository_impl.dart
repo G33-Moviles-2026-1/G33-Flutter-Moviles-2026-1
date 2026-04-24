@@ -1,4 +1,8 @@
+import 'package:andespace/core/connectivity/connectivity_queue_service.dart';
+import 'package:andespace/core/connectivity/pending_action.dart';
 import 'package:andespace/features/rooms/domain/entities/room_search.dart';
+import 'package:andespace/features/schedule/data/local/schedule_local_data_source.dart';
+import 'package:dio/dio.dart';
 
 import '../../domain/entities/free_rooms_for_day.dart';
 import '../../domain/entities/manual_class.dart';
@@ -14,10 +18,18 @@ import '../remote/schedule_remote_data_source.dart';
 
 class ScheduleRepositoryImpl implements ScheduleRepository {
   final ScheduleRemoteDataSource remoteDataSource;
+  final ScheduleLocalDataSource localDataSource;
+  final ConnectivityQueueService connectivityQueueService;
 
   const ScheduleRepositoryImpl({
     required this.remoteDataSource,
+    required this.localDataSource,
+    required this.connectivityQueueService,
   });
+
+  bool _isConnectivityError(Object e) {
+    return e is DioException && e.response == null;
+  }
 
   @override
   Future<void> uploadIcsSchedule({
@@ -37,10 +49,36 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   }) async {
     final models = ManualClassMapper.toModelList(classes);
 
-    await remoteDataSource.uploadManualSchedule(
-      userEmail: userEmail,
-      classes: models,
-    );
+    try {
+      await remoteDataSource.uploadManualSchedule(
+        userEmail: userEmail,
+        classes: models,
+      );
+
+      final remoteClasses = await remoteDataSource.getScheduleClasses(
+        userEmail: userEmail,
+      );
+
+      await localDataSource.replaceClasses(
+        userEmail: userEmail,
+        classes: ScheduleClassMapper.toEntityList(remoteClasses),
+      );
+    } catch (e) {
+      if (!_isConnectivityError(e)) rethrow;
+
+      await localDataSource.saveManualClasses(
+        userEmail: userEmail,
+        classes: classes,
+      );
+
+      connectivityQueueService.enqueue(
+        _UploadManualSchedulePendingAction(
+          remoteDataSource: remoteDataSource,
+          userEmail: userEmail,
+          classes: models,
+        ),
+      );
+    }
   }
 
   @override
@@ -48,23 +86,54 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
     required String userEmail,
     required DateTime date,
   }) async {
-    final model = await remoteDataSource.getWeeklySchedule(
-      userEmail: userEmail,
-      date: date,
-    );
+    try {
+      final model = await remoteDataSource.getWeeklySchedule(
+        userEmail: userEmail,
+        date: date,
+      );
 
-    return WeeklyScheduleMapper.toEntity(model);
+      final remoteClasses = await remoteDataSource.getScheduleClasses(
+        userEmail: userEmail,
+      );
+
+      await localDataSource.replaceClasses(
+        userEmail: userEmail,
+        classes: ScheduleClassMapper.toEntityList(remoteClasses),
+      );
+
+      return WeeklyScheduleMapper.toEntity(model);
+    } catch (e) {
+      if (!_isConnectivityError(e)) rethrow;
+
+      return localDataSource.getWeeklySchedule(
+        userEmail: userEmail,
+        date: date,
+      );
+    }
   }
 
   @override
   Future<List<ScheduleClass>> getScheduleClasses({
     required String userEmail,
   }) async {
-    final models = await remoteDataSource.getScheduleClasses(
-      userEmail: userEmail,
-    );
+    try {
+      final models = await remoteDataSource.getScheduleClasses(
+        userEmail: userEmail,
+      );
 
-    return ScheduleClassMapper.toEntityList(models);
+      final classes = ScheduleClassMapper.toEntityList(models);
+
+      await localDataSource.replaceClasses(
+        userEmail: userEmail,
+        classes: classes,
+      );
+
+      return classes;
+    } catch (e) {
+      if (!_isConnectivityError(e)) rethrow;
+
+      return localDataSource.getClasses(userEmail: userEmail);
+    }
   }
 
   @override
@@ -81,12 +150,21 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   }
 
   @override
-  Future<void> deleteFullSchedule({
-    required String userEmail,
-  }) async {
-    await remoteDataSource.deleteFullSchedule(
-      userEmail: userEmail,
-    );
+  Future<void> deleteFullSchedule({required String userEmail}) async {
+    await localDataSource.clearSchedule(userEmail: userEmail);
+
+    try {
+      await remoteDataSource.deleteFullSchedule(userEmail: userEmail);
+    } catch (e) {
+      if (!_isConnectivityError(e)) rethrow;
+
+      connectivityQueueService.enqueue(
+        _DeleteFullSchedulePendingAction(
+          remoteDataSource: remoteDataSource,
+          userEmail: userEmail,
+        ),
+      );
+    }
   }
 
   @override
@@ -118,10 +196,56 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
     required String userEmail,
     required DateTime date,
   }) async {
-    final raw = await remoteDataSource.getRecommendedRoomsForDay(
-      date: date,
-    );
+    final raw = await remoteDataSource.getRecommendedRoomsForDay(date: date);
 
     return RecommendedRoomsMapper.fromRaw(raw);
+  }
+}
+
+class _UploadManualSchedulePendingAction implements PendingAction {
+  final ScheduleRemoteDataSource remoteDataSource;
+  final String userEmail;
+  final List<dynamic> classes;
+
+  const _UploadManualSchedulePendingAction({
+    required this.remoteDataSource,
+    required this.userEmail,
+    required this.classes,
+  });
+
+  @override
+  String get successMessage => 'Horario sincronizado correctamente.';
+
+  @override
+  String get failureMessage => 'No pudimos sincronizar el horario.';
+
+  @override
+  Future<void> execute() {
+    return remoteDataSource.uploadManualSchedule(
+      userEmail: userEmail,
+      classes: classes.cast(),
+    );
+  }
+}
+
+class _DeleteFullSchedulePendingAction implements PendingAction {
+  final ScheduleRemoteDataSource remoteDataSource;
+  final String userEmail;
+
+  const _DeleteFullSchedulePendingAction({
+    required this.remoteDataSource,
+    required this.userEmail,
+  });
+
+  @override
+  String get successMessage => 'Horario eliminado correctamente.';
+
+  @override
+  String get failureMessage =>
+      'No pudimos sincronizar la eliminación del horario.';
+
+  @override
+  Future<void> execute() {
+    return remoteDataSource.deleteFullSchedule(userEmail: userEmail);
   }
 }

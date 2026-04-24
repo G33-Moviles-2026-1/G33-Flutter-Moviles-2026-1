@@ -1,4 +1,5 @@
 import 'package:andespace/core/di/auth_providers.dart';
+import 'package:andespace/features/schedule/data/local/schedule_local_data_source.dart';
 import 'package:andespace/features/schedule/domain/usecases/delete_full_schedule_for_current_user_usecase.dart';
 import 'package:andespace/features/schedule/domain/usecases/delete_schedule_class_for_current_user_usecase.dart';
 import 'package:andespace/features/schedule/domain/usecases/delete_schedule_occurrence_for_current_user_usecase.dart';
@@ -24,9 +25,13 @@ final scheduleRemoteDataSourceProvider = Provider<ScheduleRemoteDataSource>((ref
 
 final scheduleRepositoryProvider = Provider<ScheduleRepository>((ref) {
   final remoteDataSource = ref.watch(scheduleRemoteDataSourceProvider);
+  final localDataSource = ref.watch(scheduleLocalDataSourceProvider);
+  final connectivityQueueService = ref.watch(connectivityQueueServiceProvider);
 
   return ScheduleRepositoryImpl(
     remoteDataSource: remoteDataSource,
+    localDataSource: localDataSource,
+    connectivityQueueService: connectivityQueueService,
   );
 });
 
@@ -101,4 +106,10 @@ final getRecommendedRoomsForCurrentUserProvider =
     repository: ref.watch(scheduleRepositoryProvider),
     getAuthenticatedUserEmail: ref.watch(getAuthenticatedUserEmailProvider),
   );
+});
+
+final scheduleLocalDataSourceProvider = Provider<ScheduleLocalDataSource>((ref) {
+  final db = ref.watch(appDatabaseProvider);
+
+  return ScheduleLocalDataSourceImpl(db: db);
 });

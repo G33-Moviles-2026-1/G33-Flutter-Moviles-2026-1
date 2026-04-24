@@ -1191,6 +1191,729 @@ class FavoriteRoomsTableCompanion
   }
 }
 
+class $ScheduleClassesTableTable extends ScheduleClassesTable
+    with TableInfo<$ScheduleClassesTableTable, ScheduleClassesTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ScheduleClassesTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _classIdMeta = const VerificationMeta(
+    'classId',
+  );
+  @override
+  late final GeneratedColumn<String> classId = GeneratedColumn<String>(
+    'class_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _userEmailMeta = const VerificationMeta(
+    'userEmail',
+  );
+  @override
+  late final GeneratedColumn<String> userEmail = GeneratedColumn<String>(
+    'user_email',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _locationTextMeta = const VerificationMeta(
+    'locationText',
+  );
+  @override
+  late final GeneratedColumn<String> locationText = GeneratedColumn<String>(
+    'location_text',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _roomIdMeta = const VerificationMeta('roomId');
+  @override
+  late final GeneratedColumn<String> roomId = GeneratedColumn<String>(
+    'room_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _startDateMeta = const VerificationMeta(
+    'startDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> startDate = GeneratedColumn<DateTime>(
+    'start_date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _endDateMeta = const VerificationMeta(
+    'endDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> endDate = GeneratedColumn<DateTime>(
+    'end_date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _startTimeMeta = const VerificationMeta(
+    'startTime',
+  );
+  @override
+  late final GeneratedColumn<String> startTime = GeneratedColumn<String>(
+    'start_time',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _endTimeMeta = const VerificationMeta(
+    'endTime',
+  );
+  @override
+  late final GeneratedColumn<String> endTime = GeneratedColumn<String>(
+    'end_time',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _weekdaysJsonMeta = const VerificationMeta(
+    'weekdaysJson',
+  );
+  @override
+  late final GeneratedColumn<String> weekdaysJson = GeneratedColumn<String>(
+    'weekdays_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _syncStateMeta = const VerificationMeta(
+    'syncState',
+  );
+  @override
+  late final GeneratedColumn<String> syncState = GeneratedColumn<String>(
+    'sync_state',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('synced'),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    classId,
+    userEmail,
+    title,
+    locationText,
+    roomId,
+    startDate,
+    endDate,
+    startTime,
+    endTime,
+    weekdaysJson,
+    syncState,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'schedule_classes';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ScheduleClassesTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('class_id')) {
+      context.handle(
+        _classIdMeta,
+        classId.isAcceptableOrUnknown(data['class_id']!, _classIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_classIdMeta);
+    }
+    if (data.containsKey('user_email')) {
+      context.handle(
+        _userEmailMeta,
+        userEmail.isAcceptableOrUnknown(data['user_email']!, _userEmailMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_userEmailMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    }
+    if (data.containsKey('location_text')) {
+      context.handle(
+        _locationTextMeta,
+        locationText.isAcceptableOrUnknown(
+          data['location_text']!,
+          _locationTextMeta,
+        ),
+      );
+    }
+    if (data.containsKey('room_id')) {
+      context.handle(
+        _roomIdMeta,
+        roomId.isAcceptableOrUnknown(data['room_id']!, _roomIdMeta),
+      );
+    }
+    if (data.containsKey('start_date')) {
+      context.handle(
+        _startDateMeta,
+        startDate.isAcceptableOrUnknown(data['start_date']!, _startDateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_startDateMeta);
+    }
+    if (data.containsKey('end_date')) {
+      context.handle(
+        _endDateMeta,
+        endDate.isAcceptableOrUnknown(data['end_date']!, _endDateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_endDateMeta);
+    }
+    if (data.containsKey('start_time')) {
+      context.handle(
+        _startTimeMeta,
+        startTime.isAcceptableOrUnknown(data['start_time']!, _startTimeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_startTimeMeta);
+    }
+    if (data.containsKey('end_time')) {
+      context.handle(
+        _endTimeMeta,
+        endTime.isAcceptableOrUnknown(data['end_time']!, _endTimeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_endTimeMeta);
+    }
+    if (data.containsKey('weekdays_json')) {
+      context.handle(
+        _weekdaysJsonMeta,
+        weekdaysJson.isAcceptableOrUnknown(
+          data['weekdays_json']!,
+          _weekdaysJsonMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_weekdaysJsonMeta);
+    }
+    if (data.containsKey('sync_state')) {
+      context.handle(
+        _syncStateMeta,
+        syncState.isAcceptableOrUnknown(data['sync_state']!, _syncStateMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {classId};
+  @override
+  ScheduleClassesTableData map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ScheduleClassesTableData(
+      classId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}class_id'],
+      )!,
+      userEmail: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_email'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      ),
+      locationText: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}location_text'],
+      ),
+      roomId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}room_id'],
+      ),
+      startDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}start_date'],
+      )!,
+      endDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}end_date'],
+      )!,
+      startTime: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}start_time'],
+      )!,
+      endTime: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}end_time'],
+      )!,
+      weekdaysJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}weekdays_json'],
+      )!,
+      syncState: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sync_state'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $ScheduleClassesTableTable createAlias(String alias) {
+    return $ScheduleClassesTableTable(attachedDatabase, alias);
+  }
+}
+
+class ScheduleClassesTableData extends DataClass
+    implements Insertable<ScheduleClassesTableData> {
+  final String classId;
+  final String userEmail;
+  final String? title;
+  final String? locationText;
+  final String? roomId;
+  final DateTime startDate;
+  final DateTime endDate;
+  final String startTime;
+  final String endTime;
+  final String weekdaysJson;
+  final String syncState;
+  final DateTime updatedAt;
+  const ScheduleClassesTableData({
+    required this.classId,
+    required this.userEmail,
+    this.title,
+    this.locationText,
+    this.roomId,
+    required this.startDate,
+    required this.endDate,
+    required this.startTime,
+    required this.endTime,
+    required this.weekdaysJson,
+    required this.syncState,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['class_id'] = Variable<String>(classId);
+    map['user_email'] = Variable<String>(userEmail);
+    if (!nullToAbsent || title != null) {
+      map['title'] = Variable<String>(title);
+    }
+    if (!nullToAbsent || locationText != null) {
+      map['location_text'] = Variable<String>(locationText);
+    }
+    if (!nullToAbsent || roomId != null) {
+      map['room_id'] = Variable<String>(roomId);
+    }
+    map['start_date'] = Variable<DateTime>(startDate);
+    map['end_date'] = Variable<DateTime>(endDate);
+    map['start_time'] = Variable<String>(startTime);
+    map['end_time'] = Variable<String>(endTime);
+    map['weekdays_json'] = Variable<String>(weekdaysJson);
+    map['sync_state'] = Variable<String>(syncState);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  ScheduleClassesTableCompanion toCompanion(bool nullToAbsent) {
+    return ScheduleClassesTableCompanion(
+      classId: Value(classId),
+      userEmail: Value(userEmail),
+      title: title == null && nullToAbsent
+          ? const Value.absent()
+          : Value(title),
+      locationText: locationText == null && nullToAbsent
+          ? const Value.absent()
+          : Value(locationText),
+      roomId: roomId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(roomId),
+      startDate: Value(startDate),
+      endDate: Value(endDate),
+      startTime: Value(startTime),
+      endTime: Value(endTime),
+      weekdaysJson: Value(weekdaysJson),
+      syncState: Value(syncState),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory ScheduleClassesTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ScheduleClassesTableData(
+      classId: serializer.fromJson<String>(json['classId']),
+      userEmail: serializer.fromJson<String>(json['userEmail']),
+      title: serializer.fromJson<String?>(json['title']),
+      locationText: serializer.fromJson<String?>(json['locationText']),
+      roomId: serializer.fromJson<String?>(json['roomId']),
+      startDate: serializer.fromJson<DateTime>(json['startDate']),
+      endDate: serializer.fromJson<DateTime>(json['endDate']),
+      startTime: serializer.fromJson<String>(json['startTime']),
+      endTime: serializer.fromJson<String>(json['endTime']),
+      weekdaysJson: serializer.fromJson<String>(json['weekdaysJson']),
+      syncState: serializer.fromJson<String>(json['syncState']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'classId': serializer.toJson<String>(classId),
+      'userEmail': serializer.toJson<String>(userEmail),
+      'title': serializer.toJson<String?>(title),
+      'locationText': serializer.toJson<String?>(locationText),
+      'roomId': serializer.toJson<String?>(roomId),
+      'startDate': serializer.toJson<DateTime>(startDate),
+      'endDate': serializer.toJson<DateTime>(endDate),
+      'startTime': serializer.toJson<String>(startTime),
+      'endTime': serializer.toJson<String>(endTime),
+      'weekdaysJson': serializer.toJson<String>(weekdaysJson),
+      'syncState': serializer.toJson<String>(syncState),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  ScheduleClassesTableData copyWith({
+    String? classId,
+    String? userEmail,
+    Value<String?> title = const Value.absent(),
+    Value<String?> locationText = const Value.absent(),
+    Value<String?> roomId = const Value.absent(),
+    DateTime? startDate,
+    DateTime? endDate,
+    String? startTime,
+    String? endTime,
+    String? weekdaysJson,
+    String? syncState,
+    DateTime? updatedAt,
+  }) => ScheduleClassesTableData(
+    classId: classId ?? this.classId,
+    userEmail: userEmail ?? this.userEmail,
+    title: title.present ? title.value : this.title,
+    locationText: locationText.present ? locationText.value : this.locationText,
+    roomId: roomId.present ? roomId.value : this.roomId,
+    startDate: startDate ?? this.startDate,
+    endDate: endDate ?? this.endDate,
+    startTime: startTime ?? this.startTime,
+    endTime: endTime ?? this.endTime,
+    weekdaysJson: weekdaysJson ?? this.weekdaysJson,
+    syncState: syncState ?? this.syncState,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  ScheduleClassesTableData copyWithCompanion(
+    ScheduleClassesTableCompanion data,
+  ) {
+    return ScheduleClassesTableData(
+      classId: data.classId.present ? data.classId.value : this.classId,
+      userEmail: data.userEmail.present ? data.userEmail.value : this.userEmail,
+      title: data.title.present ? data.title.value : this.title,
+      locationText: data.locationText.present
+          ? data.locationText.value
+          : this.locationText,
+      roomId: data.roomId.present ? data.roomId.value : this.roomId,
+      startDate: data.startDate.present ? data.startDate.value : this.startDate,
+      endDate: data.endDate.present ? data.endDate.value : this.endDate,
+      startTime: data.startTime.present ? data.startTime.value : this.startTime,
+      endTime: data.endTime.present ? data.endTime.value : this.endTime,
+      weekdaysJson: data.weekdaysJson.present
+          ? data.weekdaysJson.value
+          : this.weekdaysJson,
+      syncState: data.syncState.present ? data.syncState.value : this.syncState,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ScheduleClassesTableData(')
+          ..write('classId: $classId, ')
+          ..write('userEmail: $userEmail, ')
+          ..write('title: $title, ')
+          ..write('locationText: $locationText, ')
+          ..write('roomId: $roomId, ')
+          ..write('startDate: $startDate, ')
+          ..write('endDate: $endDate, ')
+          ..write('startTime: $startTime, ')
+          ..write('endTime: $endTime, ')
+          ..write('weekdaysJson: $weekdaysJson, ')
+          ..write('syncState: $syncState, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    classId,
+    userEmail,
+    title,
+    locationText,
+    roomId,
+    startDate,
+    endDate,
+    startTime,
+    endTime,
+    weekdaysJson,
+    syncState,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ScheduleClassesTableData &&
+          other.classId == this.classId &&
+          other.userEmail == this.userEmail &&
+          other.title == this.title &&
+          other.locationText == this.locationText &&
+          other.roomId == this.roomId &&
+          other.startDate == this.startDate &&
+          other.endDate == this.endDate &&
+          other.startTime == this.startTime &&
+          other.endTime == this.endTime &&
+          other.weekdaysJson == this.weekdaysJson &&
+          other.syncState == this.syncState &&
+          other.updatedAt == this.updatedAt);
+}
+
+class ScheduleClassesTableCompanion
+    extends UpdateCompanion<ScheduleClassesTableData> {
+  final Value<String> classId;
+  final Value<String> userEmail;
+  final Value<String?> title;
+  final Value<String?> locationText;
+  final Value<String?> roomId;
+  final Value<DateTime> startDate;
+  final Value<DateTime> endDate;
+  final Value<String> startTime;
+  final Value<String> endTime;
+  final Value<String> weekdaysJson;
+  final Value<String> syncState;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const ScheduleClassesTableCompanion({
+    this.classId = const Value.absent(),
+    this.userEmail = const Value.absent(),
+    this.title = const Value.absent(),
+    this.locationText = const Value.absent(),
+    this.roomId = const Value.absent(),
+    this.startDate = const Value.absent(),
+    this.endDate = const Value.absent(),
+    this.startTime = const Value.absent(),
+    this.endTime = const Value.absent(),
+    this.weekdaysJson = const Value.absent(),
+    this.syncState = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ScheduleClassesTableCompanion.insert({
+    required String classId,
+    required String userEmail,
+    this.title = const Value.absent(),
+    this.locationText = const Value.absent(),
+    this.roomId = const Value.absent(),
+    required DateTime startDate,
+    required DateTime endDate,
+    required String startTime,
+    required String endTime,
+    required String weekdaysJson,
+    this.syncState = const Value.absent(),
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : classId = Value(classId),
+       userEmail = Value(userEmail),
+       startDate = Value(startDate),
+       endDate = Value(endDate),
+       startTime = Value(startTime),
+       endTime = Value(endTime),
+       weekdaysJson = Value(weekdaysJson),
+       updatedAt = Value(updatedAt);
+  static Insertable<ScheduleClassesTableData> custom({
+    Expression<String>? classId,
+    Expression<String>? userEmail,
+    Expression<String>? title,
+    Expression<String>? locationText,
+    Expression<String>? roomId,
+    Expression<DateTime>? startDate,
+    Expression<DateTime>? endDate,
+    Expression<String>? startTime,
+    Expression<String>? endTime,
+    Expression<String>? weekdaysJson,
+    Expression<String>? syncState,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (classId != null) 'class_id': classId,
+      if (userEmail != null) 'user_email': userEmail,
+      if (title != null) 'title': title,
+      if (locationText != null) 'location_text': locationText,
+      if (roomId != null) 'room_id': roomId,
+      if (startDate != null) 'start_date': startDate,
+      if (endDate != null) 'end_date': endDate,
+      if (startTime != null) 'start_time': startTime,
+      if (endTime != null) 'end_time': endTime,
+      if (weekdaysJson != null) 'weekdays_json': weekdaysJson,
+      if (syncState != null) 'sync_state': syncState,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ScheduleClassesTableCompanion copyWith({
+    Value<String>? classId,
+    Value<String>? userEmail,
+    Value<String?>? title,
+    Value<String?>? locationText,
+    Value<String?>? roomId,
+    Value<DateTime>? startDate,
+    Value<DateTime>? endDate,
+    Value<String>? startTime,
+    Value<String>? endTime,
+    Value<String>? weekdaysJson,
+    Value<String>? syncState,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return ScheduleClassesTableCompanion(
+      classId: classId ?? this.classId,
+      userEmail: userEmail ?? this.userEmail,
+      title: title ?? this.title,
+      locationText: locationText ?? this.locationText,
+      roomId: roomId ?? this.roomId,
+      startDate: startDate ?? this.startDate,
+      endDate: endDate ?? this.endDate,
+      startTime: startTime ?? this.startTime,
+      endTime: endTime ?? this.endTime,
+      weekdaysJson: weekdaysJson ?? this.weekdaysJson,
+      syncState: syncState ?? this.syncState,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (classId.present) {
+      map['class_id'] = Variable<String>(classId.value);
+    }
+    if (userEmail.present) {
+      map['user_email'] = Variable<String>(userEmail.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (locationText.present) {
+      map['location_text'] = Variable<String>(locationText.value);
+    }
+    if (roomId.present) {
+      map['room_id'] = Variable<String>(roomId.value);
+    }
+    if (startDate.present) {
+      map['start_date'] = Variable<DateTime>(startDate.value);
+    }
+    if (endDate.present) {
+      map['end_date'] = Variable<DateTime>(endDate.value);
+    }
+    if (startTime.present) {
+      map['start_time'] = Variable<String>(startTime.value);
+    }
+    if (endTime.present) {
+      map['end_time'] = Variable<String>(endTime.value);
+    }
+    if (weekdaysJson.present) {
+      map['weekdays_json'] = Variable<String>(weekdaysJson.value);
+    }
+    if (syncState.present) {
+      map['sync_state'] = Variable<String>(syncState.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ScheduleClassesTableCompanion(')
+          ..write('classId: $classId, ')
+          ..write('userEmail: $userEmail, ')
+          ..write('title: $title, ')
+          ..write('locationText: $locationText, ')
+          ..write('roomId: $roomId, ')
+          ..write('startDate: $startDate, ')
+          ..write('endDate: $endDate, ')
+          ..write('startTime: $startTime, ')
+          ..write('endTime: $endTime, ')
+          ..write('weekdaysJson: $weekdaysJson, ')
+          ..write('syncState: $syncState, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $FavoriteMutationsTableTable extends FavoriteMutationsTable
     with TableInfo<$FavoriteMutationsTableTable, FavoriteMutationsTableData> {
   @override
@@ -2106,6 +2829,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   );
   late final $FavoriteRoomsTableTable favoriteRoomsTable =
       $FavoriteRoomsTableTable(this);
+  late final $ScheduleClassesTableTable scheduleClassesTable =
+      $ScheduleClassesTableTable(this);
   late final $FavoriteMutationsTableTable favoriteMutationsTable =
       $FavoriteMutationsTableTable(this);
   late final $CachedPathsTableTable cachedPathsTable = $CachedPathsTableTable(
@@ -2118,6 +2843,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   List<DatabaseSchemaEntity> get allSchemaEntities => [
     myBookingsTable,
     favoriteRoomsTable,
+    scheduleClassesTable,
     favoriteMutationsTable,
     cachedPathsTable,
   ];
@@ -2727,6 +3453,359 @@ typedef $$FavoriteRoomsTableTableProcessedTableManager =
       FavoriteRoomsTableData,
       PrefetchHooks Function()
     >;
+typedef $$ScheduleClassesTableTableCreateCompanionBuilder =
+    ScheduleClassesTableCompanion Function({
+      required String classId,
+      required String userEmail,
+      Value<String?> title,
+      Value<String?> locationText,
+      Value<String?> roomId,
+      required DateTime startDate,
+      required DateTime endDate,
+      required String startTime,
+      required String endTime,
+      required String weekdaysJson,
+      Value<String> syncState,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$ScheduleClassesTableTableUpdateCompanionBuilder =
+    ScheduleClassesTableCompanion Function({
+      Value<String> classId,
+      Value<String> userEmail,
+      Value<String?> title,
+      Value<String?> locationText,
+      Value<String?> roomId,
+      Value<DateTime> startDate,
+      Value<DateTime> endDate,
+      Value<String> startTime,
+      Value<String> endTime,
+      Value<String> weekdaysJson,
+      Value<String> syncState,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$ScheduleClassesTableTableFilterComposer
+    extends Composer<_$AppDatabase, $ScheduleClassesTableTable> {
+  $$ScheduleClassesTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get classId => $composableBuilder(
+    column: $table.classId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get userEmail => $composableBuilder(
+    column: $table.userEmail,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get locationText => $composableBuilder(
+    column: $table.locationText,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get roomId => $composableBuilder(
+    column: $table.roomId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get startDate => $composableBuilder(
+    column: $table.startDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get endDate => $composableBuilder(
+    column: $table.endDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get startTime => $composableBuilder(
+    column: $table.startTime,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get endTime => $composableBuilder(
+    column: $table.endTime,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get weekdaysJson => $composableBuilder(
+    column: $table.weekdaysJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get syncState => $composableBuilder(
+    column: $table.syncState,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ScheduleClassesTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $ScheduleClassesTableTable> {
+  $$ScheduleClassesTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get classId => $composableBuilder(
+    column: $table.classId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get userEmail => $composableBuilder(
+    column: $table.userEmail,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get locationText => $composableBuilder(
+    column: $table.locationText,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get roomId => $composableBuilder(
+    column: $table.roomId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get startDate => $composableBuilder(
+    column: $table.startDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get endDate => $composableBuilder(
+    column: $table.endDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get startTime => $composableBuilder(
+    column: $table.startTime,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get endTime => $composableBuilder(
+    column: $table.endTime,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get weekdaysJson => $composableBuilder(
+    column: $table.weekdaysJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get syncState => $composableBuilder(
+    column: $table.syncState,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ScheduleClassesTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ScheduleClassesTableTable> {
+  $$ScheduleClassesTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get classId =>
+      $composableBuilder(column: $table.classId, builder: (column) => column);
+
+  GeneratedColumn<String> get userEmail =>
+      $composableBuilder(column: $table.userEmail, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get locationText => $composableBuilder(
+    column: $table.locationText,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get roomId =>
+      $composableBuilder(column: $table.roomId, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get startDate =>
+      $composableBuilder(column: $table.startDate, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get endDate =>
+      $composableBuilder(column: $table.endDate, builder: (column) => column);
+
+  GeneratedColumn<String> get startTime =>
+      $composableBuilder(column: $table.startTime, builder: (column) => column);
+
+  GeneratedColumn<String> get endTime =>
+      $composableBuilder(column: $table.endTime, builder: (column) => column);
+
+  GeneratedColumn<String> get weekdaysJson => $composableBuilder(
+    column: $table.weekdaysJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get syncState =>
+      $composableBuilder(column: $table.syncState, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$ScheduleClassesTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ScheduleClassesTableTable,
+          ScheduleClassesTableData,
+          $$ScheduleClassesTableTableFilterComposer,
+          $$ScheduleClassesTableTableOrderingComposer,
+          $$ScheduleClassesTableTableAnnotationComposer,
+          $$ScheduleClassesTableTableCreateCompanionBuilder,
+          $$ScheduleClassesTableTableUpdateCompanionBuilder,
+          (
+            ScheduleClassesTableData,
+            BaseReferences<
+              _$AppDatabase,
+              $ScheduleClassesTableTable,
+              ScheduleClassesTableData
+            >,
+          ),
+          ScheduleClassesTableData,
+          PrefetchHooks Function()
+        > {
+  $$ScheduleClassesTableTableTableManager(
+    _$AppDatabase db,
+    $ScheduleClassesTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ScheduleClassesTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ScheduleClassesTableTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$ScheduleClassesTableTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> classId = const Value.absent(),
+                Value<String> userEmail = const Value.absent(),
+                Value<String?> title = const Value.absent(),
+                Value<String?> locationText = const Value.absent(),
+                Value<String?> roomId = const Value.absent(),
+                Value<DateTime> startDate = const Value.absent(),
+                Value<DateTime> endDate = const Value.absent(),
+                Value<String> startTime = const Value.absent(),
+                Value<String> endTime = const Value.absent(),
+                Value<String> weekdaysJson = const Value.absent(),
+                Value<String> syncState = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ScheduleClassesTableCompanion(
+                classId: classId,
+                userEmail: userEmail,
+                title: title,
+                locationText: locationText,
+                roomId: roomId,
+                startDate: startDate,
+                endDate: endDate,
+                startTime: startTime,
+                endTime: endTime,
+                weekdaysJson: weekdaysJson,
+                syncState: syncState,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String classId,
+                required String userEmail,
+                Value<String?> title = const Value.absent(),
+                Value<String?> locationText = const Value.absent(),
+                Value<String?> roomId = const Value.absent(),
+                required DateTime startDate,
+                required DateTime endDate,
+                required String startTime,
+                required String endTime,
+                required String weekdaysJson,
+                Value<String> syncState = const Value.absent(),
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => ScheduleClassesTableCompanion.insert(
+                classId: classId,
+                userEmail: userEmail,
+                title: title,
+                locationText: locationText,
+                roomId: roomId,
+                startDate: startDate,
+                endDate: endDate,
+                startTime: startTime,
+                endTime: endTime,
+                weekdaysJson: weekdaysJson,
+                syncState: syncState,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ScheduleClassesTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ScheduleClassesTableTable,
+      ScheduleClassesTableData,
+      $$ScheduleClassesTableTableFilterComposer,
+      $$ScheduleClassesTableTableOrderingComposer,
+      $$ScheduleClassesTableTableAnnotationComposer,
+      $$ScheduleClassesTableTableCreateCompanionBuilder,
+      $$ScheduleClassesTableTableUpdateCompanionBuilder,
+      (
+        ScheduleClassesTableData,
+        BaseReferences<
+          _$AppDatabase,
+          $ScheduleClassesTableTable,
+          ScheduleClassesTableData
+        >,
+      ),
+      ScheduleClassesTableData,
+      PrefetchHooks Function()
+    >;
 typedef $$FavoriteMutationsTableTableCreateCompanionBuilder =
     FavoriteMutationsTableCompanion Function({
       required String opId,
@@ -3229,6 +4308,8 @@ class $AppDatabaseManager {
       $$MyBookingsTableTableTableManager(_db, _db.myBookingsTable);
   $$FavoriteRoomsTableTableTableManager get favoriteRoomsTable =>
       $$FavoriteRoomsTableTableTableManager(_db, _db.favoriteRoomsTable);
+  $$ScheduleClassesTableTableTableManager get scheduleClassesTable =>
+      $$ScheduleClassesTableTableTableManager(_db, _db.scheduleClassesTable);
   $$FavoriteMutationsTableTableTableManager get favoriteMutationsTable =>
       $$FavoriteMutationsTableTableTableManager(
         _db,
