@@ -17,11 +17,6 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
     return ScheduleState.initial();
   }
 
-  Future<String> getUserEmail() {
-    final useCase = ref.read(getAuthenticatedUserEmailProvider);
-    return useCase();
-  }
-
   void resetState() {
     state = ScheduleState.initial();
   }
@@ -34,43 +29,27 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
     String? errorMessage,
   }) async {
     try {
-      final userEmail = await getUserEmail();
       final analyticsService = ref.read(analyticsServiceProvider);
 
       await analyticsService.trackScheduleImportStep(
         sessionId: importSessionId,
         deviceId: 'mobile',
-        userEmail: userEmail,
+        userEmail: 'current_user',
         method: method,
         step: step,
         stepNumber: stepNumber,
         propsJson: {if (errorMessage != null) 'error_message': errorMessage},
       );
-    } catch (_) {
-      // No bloqueamos el flujo principal por analytics
-    }
+    } catch (_) {}
   }
 
   bool _isMissingScheduleError(Object error) {
     if (error is! DioException) return false;
-
-    final statusCode = error.response?.statusCode;
-    return statusCode == 404;
+    return error.response?.statusCode == 404;
   }
 
   Future<void> loadWeek({DateTime? date}) async {
     final targetDate = date ?? state.selectedDate;
-    final userEmail = await getUserEmail();
-
-    // Si cambió el usuario, limpiamos el estado visible para no mezclar sesiones
-    if (state.ownerEmail != null && state.ownerEmail != userEmail) {
-      state = ScheduleState.initial().copyWith(
-        selectedDate: targetDate,
-        ownerEmail: userEmail,
-      );
-    } else if (state.ownerEmail == null) {
-      state = state.copyWith(ownerEmail: userEmail);
-    }
 
     state = state.copyWith(
       status: ScheduleStatus.loading,
@@ -80,16 +59,13 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
     );
 
     try {
-      final loadWeekForCurrentUser = ref.read(loadWeekForCurrentUserProvider);
-      final schedule = await loadWeekForCurrentUser(date: targetDate);
+      final loadWeek = ref.read(loadWeekForCurrentUserProvider);
+      final schedule = await loadWeek(date: targetDate);
 
       if (schedule.occurrences.isEmpty) {
         state = state.copyWith(
           status: ScheduleStatus.empty,
           weeklySchedule: schedule,
-          ownerEmail: userEmail,
-          clearErrorMessage: true,
-          clearInfoMessage: true,
         );
         return;
       }
@@ -97,20 +73,12 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
       state = state.copyWith(
         status: ScheduleStatus.loaded,
         weeklySchedule: schedule,
-        ownerEmail: userEmail,
-        clearErrorMessage: true,
-        clearInfoMessage: true,
       );
     } catch (error) {
-      // ESTE es el comportamiento viejo que sí funcionaba:
-      // si el backend responde 404 porque no hay horario, no es error; es estado vacío.
       if (_isMissingScheduleError(error)) {
         state = state.copyWith(
           status: ScheduleStatus.empty,
           clearWeeklySchedule: true,
-          clearErrorMessage: true,
-          clearInfoMessage: true,
-          ownerEmail: userEmail,
         );
         return;
       }
@@ -119,8 +87,6 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
         status: ScheduleStatus.error,
         errorMessage: mapScheduleErrorMessage(error),
         clearWeeklySchedule: true,
-        clearInfoMessage: true,
-        ownerEmail: userEmail,
       );
     }
   }
@@ -154,8 +120,8 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
     );
 
     try {
-      final importIcsForCurrentUser = ref.read(importIcsForCurrentUserProvider);
-      await importIcsForCurrentUser(filePath: filePath);
+      final importIcs = ref.read(importIcsForCurrentUserProvider);
+      await importIcs(filePath: filePath);
 
       await _trackScheduleImportStep(
         importSessionId: importSessionId,
@@ -183,11 +149,8 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
     );
 
     try {
-      final saveManualClassForCurrentUser = ref.read(
-        saveManualClassForCurrentUserProvider,
-      );
-
-      await saveManualClassForCurrentUser(manualClass: manualClass);
+      final saveManual = ref.read(saveManualClassForCurrentUserProvider);
+      await saveManual(manualClass: manualClass);
 
       state = state.copyWith(
         infoMessage:
@@ -217,22 +180,14 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
     );
 
     try {
-      final deleteFullScheduleForCurrentUser = ref.read(
-        deleteFullScheduleForCurrentUserProvider,
-      );
-
-      await deleteFullScheduleForCurrentUser();
+      final deleteFull = ref.read(deleteFullScheduleForCurrentUserProvider);
+      await deleteFull();
 
       state = state.copyWith(
         infoMessage:
             'Schedule deleted locally. If you are offline, the change will sync later.',
-      );
-
-      state = state.copyWith(
         status: ScheduleStatus.empty,
         clearWeeklySchedule: true,
-        clearErrorMessage: true,
-        clearOwnerEmail: true,
       );
     } catch (error) {
       state = state.copyWith(
@@ -249,11 +204,11 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
     );
 
     try {
-      final deleteScheduleClassForCurrentUser = ref.read(
+      final deleteClass = ref.read(
         deleteScheduleClassForCurrentUserProvider,
       );
 
-      await deleteScheduleClassForCurrentUser(classId: classId);
+      await deleteClass(classId: classId);
       await loadWeek(date: state.selectedDate);
     } catch (error) {
       state = state.copyWith(
@@ -273,11 +228,11 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
     );
 
     try {
-      final deleteScheduleOccurrenceForCurrentUser = ref.read(
+      final deleteOccurrence = ref.read(
         deleteScheduleOccurrenceForCurrentUserProvider,
       );
 
-      await deleteScheduleOccurrenceForCurrentUser(
+      await deleteOccurrence(
         classId: classId,
         date: date,
       );
@@ -292,20 +247,20 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
   }
 
   Future<List<ScheduleClass>> getExistingClassesForValidation() {
-    final getScheduleClassesForCurrentUser = ref.read(
+    final getScheduleClasses = ref.read(
       getScheduleClassesForCurrentUserProvider,
     );
 
-    return getScheduleClassesForCurrentUser();
+    return getScheduleClasses();
   }
 
   Future<List<RoomSearchItem>> loadRecommendedRoomsForSelectedDay() async {
     try {
-      final getRecommendedRoomsForCurrentUser = ref.read(
+      final getRecommendedRooms = ref.read(
         getRecommendedRoomsForCurrentUserProvider,
       );
 
-      return await getRecommendedRoomsForCurrentUser(date: state.selectedDate);
+      return await getRecommendedRooms(date: state.selectedDate);
     } catch (error) {
       state = state.copyWith(
         status: ScheduleStatus.error,
@@ -344,4 +299,6 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
 }
 
 final scheduleControllerProvider =
-    NotifierProvider<ScheduleNotifier, ScheduleState>(ScheduleNotifier.new);
+    NotifierProvider<ScheduleNotifier, ScheduleState>(
+  ScheduleNotifier.new,
+);

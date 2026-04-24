@@ -22,12 +22,10 @@ class ScheduleLoadPage extends ConsumerWidget {
     final controller = ref.read(scheduleControllerProvider.notifier);
     final importSessionId = const Uuid().v4();
 
-    final userEmail = await controller.getUserEmail();
-
     await analytics.trackScheduleImportStep(
       sessionId: importSessionId,
       deviceId: 'mobile',
-      userEmail: userEmail,
+      userEmail: 'current_user',
       method: 'ics',
       step: 'started',
       stepNumber: 1,
@@ -45,7 +43,7 @@ class ScheduleLoadPage extends ConsumerWidget {
     await analytics.trackScheduleImportStep(
       sessionId: importSessionId,
       deviceId: 'mobile',
-      userEmail: userEmail,
+      userEmail: 'current_user',
       method: 'ics',
       step: 'file_selected',
       stepNumber: 2,
@@ -55,7 +53,7 @@ class ScheduleLoadPage extends ConsumerWidget {
     await analytics.trackScheduleImportStep(
       sessionId: importSessionId,
       deviceId: 'mobile',
-      userEmail: userEmail,
+      userEmail: 'current_user',
       method: 'ics',
       step: 'parsed',
       stepNumber: 3,
@@ -70,7 +68,7 @@ class ScheduleLoadPage extends ConsumerWidget {
     await analytics.trackScheduleImportStep(
       sessionId: importSessionId,
       deviceId: 'mobile',
-      userEmail: userEmail,
+      userEmail: 'current_user',
       method: 'ics',
       step: 'confirmed',
       stepNumber: 4,
@@ -197,16 +195,13 @@ class ScheduleLoadPage extends ConsumerWidget {
                   icon: Icons.edit_calendar_outlined,
                   onTap: () async {
                     final analytics = ref.read(analyticsServiceProvider);
-                    final controller = ref.read(
-                      scheduleControllerProvider.notifier,
-                    );
-                    final userEmail = await controller.getUserEmail();
+  
                     final importSessionId = const Uuid().v4();
 
                     await analytics.trackScheduleImportStep(
                       sessionId: importSessionId,
                       deviceId: 'mobile',
-                      userEmail: userEmail,
+                      userEmail: 'current_user',
                       method: 'manual',
                       step: 'started',
                       stepNumber: 1,

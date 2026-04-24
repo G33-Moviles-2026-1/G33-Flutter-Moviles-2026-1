@@ -1208,17 +1208,6 @@ class $ScheduleClassesTableTable extends ScheduleClassesTable
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _userEmailMeta = const VerificationMeta(
-    'userEmail',
-  );
-  @override
-  late final GeneratedColumn<String> userEmail = GeneratedColumn<String>(
-    'user_email',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
   static const VerificationMeta _titleMeta = const VerificationMeta('title');
   @override
   late final GeneratedColumn<String> title = GeneratedColumn<String>(
@@ -1329,7 +1318,6 @@ class $ScheduleClassesTableTable extends ScheduleClassesTable
   @override
   List<GeneratedColumn> get $columns => [
     classId,
-    userEmail,
     title,
     locationText,
     roomId,
@@ -1360,14 +1348,6 @@ class $ScheduleClassesTableTable extends ScheduleClassesTable
       );
     } else if (isInserting) {
       context.missing(_classIdMeta);
-    }
-    if (data.containsKey('user_email')) {
-      context.handle(
-        _userEmailMeta,
-        userEmail.isAcceptableOrUnknown(data['user_email']!, _userEmailMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_userEmailMeta);
     }
     if (data.containsKey('title')) {
       context.handle(
@@ -1463,10 +1443,6 @@ class $ScheduleClassesTableTable extends ScheduleClassesTable
         DriftSqlType.string,
         data['${effectivePrefix}class_id'],
       )!,
-      userEmail: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}user_email'],
-      )!,
       title: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}title'],
@@ -1519,7 +1495,6 @@ class $ScheduleClassesTableTable extends ScheduleClassesTable
 class ScheduleClassesTableData extends DataClass
     implements Insertable<ScheduleClassesTableData> {
   final String classId;
-  final String userEmail;
   final String? title;
   final String? locationText;
   final String? roomId;
@@ -1532,7 +1507,6 @@ class ScheduleClassesTableData extends DataClass
   final DateTime updatedAt;
   const ScheduleClassesTableData({
     required this.classId,
-    required this.userEmail,
     this.title,
     this.locationText,
     this.roomId,
@@ -1548,7 +1522,6 @@ class ScheduleClassesTableData extends DataClass
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['class_id'] = Variable<String>(classId);
-    map['user_email'] = Variable<String>(userEmail);
     if (!nullToAbsent || title != null) {
       map['title'] = Variable<String>(title);
     }
@@ -1571,7 +1544,6 @@ class ScheduleClassesTableData extends DataClass
   ScheduleClassesTableCompanion toCompanion(bool nullToAbsent) {
     return ScheduleClassesTableCompanion(
       classId: Value(classId),
-      userEmail: Value(userEmail),
       title: title == null && nullToAbsent
           ? const Value.absent()
           : Value(title),
@@ -1598,7 +1570,6 @@ class ScheduleClassesTableData extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return ScheduleClassesTableData(
       classId: serializer.fromJson<String>(json['classId']),
-      userEmail: serializer.fromJson<String>(json['userEmail']),
       title: serializer.fromJson<String?>(json['title']),
       locationText: serializer.fromJson<String?>(json['locationText']),
       roomId: serializer.fromJson<String?>(json['roomId']),
@@ -1616,7 +1587,6 @@ class ScheduleClassesTableData extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'classId': serializer.toJson<String>(classId),
-      'userEmail': serializer.toJson<String>(userEmail),
       'title': serializer.toJson<String?>(title),
       'locationText': serializer.toJson<String?>(locationText),
       'roomId': serializer.toJson<String?>(roomId),
@@ -1632,7 +1602,6 @@ class ScheduleClassesTableData extends DataClass
 
   ScheduleClassesTableData copyWith({
     String? classId,
-    String? userEmail,
     Value<String?> title = const Value.absent(),
     Value<String?> locationText = const Value.absent(),
     Value<String?> roomId = const Value.absent(),
@@ -1645,7 +1614,6 @@ class ScheduleClassesTableData extends DataClass
     DateTime? updatedAt,
   }) => ScheduleClassesTableData(
     classId: classId ?? this.classId,
-    userEmail: userEmail ?? this.userEmail,
     title: title.present ? title.value : this.title,
     locationText: locationText.present ? locationText.value : this.locationText,
     roomId: roomId.present ? roomId.value : this.roomId,
@@ -1662,7 +1630,6 @@ class ScheduleClassesTableData extends DataClass
   ) {
     return ScheduleClassesTableData(
       classId: data.classId.present ? data.classId.value : this.classId,
-      userEmail: data.userEmail.present ? data.userEmail.value : this.userEmail,
       title: data.title.present ? data.title.value : this.title,
       locationText: data.locationText.present
           ? data.locationText.value
@@ -1684,7 +1651,6 @@ class ScheduleClassesTableData extends DataClass
   String toString() {
     return (StringBuffer('ScheduleClassesTableData(')
           ..write('classId: $classId, ')
-          ..write('userEmail: $userEmail, ')
           ..write('title: $title, ')
           ..write('locationText: $locationText, ')
           ..write('roomId: $roomId, ')
@@ -1702,7 +1668,6 @@ class ScheduleClassesTableData extends DataClass
   @override
   int get hashCode => Object.hash(
     classId,
-    userEmail,
     title,
     locationText,
     roomId,
@@ -1719,7 +1684,6 @@ class ScheduleClassesTableData extends DataClass
       identical(this, other) ||
       (other is ScheduleClassesTableData &&
           other.classId == this.classId &&
-          other.userEmail == this.userEmail &&
           other.title == this.title &&
           other.locationText == this.locationText &&
           other.roomId == this.roomId &&
@@ -1735,7 +1699,6 @@ class ScheduleClassesTableData extends DataClass
 class ScheduleClassesTableCompanion
     extends UpdateCompanion<ScheduleClassesTableData> {
   final Value<String> classId;
-  final Value<String> userEmail;
   final Value<String?> title;
   final Value<String?> locationText;
   final Value<String?> roomId;
@@ -1749,7 +1712,6 @@ class ScheduleClassesTableCompanion
   final Value<int> rowid;
   const ScheduleClassesTableCompanion({
     this.classId = const Value.absent(),
-    this.userEmail = const Value.absent(),
     this.title = const Value.absent(),
     this.locationText = const Value.absent(),
     this.roomId = const Value.absent(),
@@ -1764,7 +1726,6 @@ class ScheduleClassesTableCompanion
   });
   ScheduleClassesTableCompanion.insert({
     required String classId,
-    required String userEmail,
     this.title = const Value.absent(),
     this.locationText = const Value.absent(),
     this.roomId = const Value.absent(),
@@ -1777,7 +1738,6 @@ class ScheduleClassesTableCompanion
     required DateTime updatedAt,
     this.rowid = const Value.absent(),
   }) : classId = Value(classId),
-       userEmail = Value(userEmail),
        startDate = Value(startDate),
        endDate = Value(endDate),
        startTime = Value(startTime),
@@ -1786,7 +1746,6 @@ class ScheduleClassesTableCompanion
        updatedAt = Value(updatedAt);
   static Insertable<ScheduleClassesTableData> custom({
     Expression<String>? classId,
-    Expression<String>? userEmail,
     Expression<String>? title,
     Expression<String>? locationText,
     Expression<String>? roomId,
@@ -1801,7 +1760,6 @@ class ScheduleClassesTableCompanion
   }) {
     return RawValuesInsertable({
       if (classId != null) 'class_id': classId,
-      if (userEmail != null) 'user_email': userEmail,
       if (title != null) 'title': title,
       if (locationText != null) 'location_text': locationText,
       if (roomId != null) 'room_id': roomId,
@@ -1818,7 +1776,6 @@ class ScheduleClassesTableCompanion
 
   ScheduleClassesTableCompanion copyWith({
     Value<String>? classId,
-    Value<String>? userEmail,
     Value<String?>? title,
     Value<String?>? locationText,
     Value<String?>? roomId,
@@ -1833,7 +1790,6 @@ class ScheduleClassesTableCompanion
   }) {
     return ScheduleClassesTableCompanion(
       classId: classId ?? this.classId,
-      userEmail: userEmail ?? this.userEmail,
       title: title ?? this.title,
       locationText: locationText ?? this.locationText,
       roomId: roomId ?? this.roomId,
@@ -1853,9 +1809,6 @@ class ScheduleClassesTableCompanion
     final map = <String, Expression>{};
     if (classId.present) {
       map['class_id'] = Variable<String>(classId.value);
-    }
-    if (userEmail.present) {
-      map['user_email'] = Variable<String>(userEmail.value);
     }
     if (title.present) {
       map['title'] = Variable<String>(title.value);
@@ -1897,7 +1850,6 @@ class ScheduleClassesTableCompanion
   String toString() {
     return (StringBuffer('ScheduleClassesTableCompanion(')
           ..write('classId: $classId, ')
-          ..write('userEmail: $userEmail, ')
           ..write('title: $title, ')
           ..write('locationText: $locationText, ')
           ..write('roomId: $roomId, ')
@@ -3456,7 +3408,6 @@ typedef $$FavoriteRoomsTableTableProcessedTableManager =
 typedef $$ScheduleClassesTableTableCreateCompanionBuilder =
     ScheduleClassesTableCompanion Function({
       required String classId,
-      required String userEmail,
       Value<String?> title,
       Value<String?> locationText,
       Value<String?> roomId,
@@ -3472,7 +3423,6 @@ typedef $$ScheduleClassesTableTableCreateCompanionBuilder =
 typedef $$ScheduleClassesTableTableUpdateCompanionBuilder =
     ScheduleClassesTableCompanion Function({
       Value<String> classId,
-      Value<String> userEmail,
       Value<String?> title,
       Value<String?> locationText,
       Value<String?> roomId,
@@ -3497,11 +3447,6 @@ class $$ScheduleClassesTableTableFilterComposer
   });
   ColumnFilters<String> get classId => $composableBuilder(
     column: $table.classId,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get userEmail => $composableBuilder(
-    column: $table.userEmail,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3570,11 +3515,6 @@ class $$ScheduleClassesTableTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get userEmail => $composableBuilder(
-    column: $table.userEmail,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<String> get title => $composableBuilder(
     column: $table.title,
     builder: (column) => ColumnOrderings(column),
@@ -3637,9 +3577,6 @@ class $$ScheduleClassesTableTableAnnotationComposer
   });
   GeneratedColumn<String> get classId =>
       $composableBuilder(column: $table.classId, builder: (column) => column);
-
-  GeneratedColumn<String> get userEmail =>
-      $composableBuilder(column: $table.userEmail, builder: (column) => column);
 
   GeneratedColumn<String> get title =>
       $composableBuilder(column: $table.title, builder: (column) => column);
@@ -3720,7 +3657,6 @@ class $$ScheduleClassesTableTableTableManager
           updateCompanionCallback:
               ({
                 Value<String> classId = const Value.absent(),
-                Value<String> userEmail = const Value.absent(),
                 Value<String?> title = const Value.absent(),
                 Value<String?> locationText = const Value.absent(),
                 Value<String?> roomId = const Value.absent(),
@@ -3734,7 +3670,6 @@ class $$ScheduleClassesTableTableTableManager
                 Value<int> rowid = const Value.absent(),
               }) => ScheduleClassesTableCompanion(
                 classId: classId,
-                userEmail: userEmail,
                 title: title,
                 locationText: locationText,
                 roomId: roomId,
@@ -3750,7 +3685,6 @@ class $$ScheduleClassesTableTableTableManager
           createCompanionCallback:
               ({
                 required String classId,
-                required String userEmail,
                 Value<String?> title = const Value.absent(),
                 Value<String?> locationText = const Value.absent(),
                 Value<String?> roomId = const Value.absent(),
@@ -3764,7 +3698,6 @@ class $$ScheduleClassesTableTableTableManager
                 Value<int> rowid = const Value.absent(),
               }) => ScheduleClassesTableCompanion.insert(
                 classId: classId,
-                userEmail: userEmail,
                 title: title,
                 locationText: locationText,
                 roomId: roomId,

@@ -1,9 +1,7 @@
-import 'package:andespace/core/di/auth_providers.dart';
 import 'package:andespace/features/schedule/data/local/schedule_local_data_source.dart';
 import 'package:andespace/features/schedule/domain/usecases/delete_full_schedule_for_current_user_usecase.dart';
 import 'package:andespace/features/schedule/domain/usecases/delete_schedule_class_for_current_user_usecase.dart';
 import 'package:andespace/features/schedule/domain/usecases/delete_schedule_occurrence_for_current_user_usecase.dart';
-import 'package:andespace/features/schedule/domain/usecases/get_authenticated_user_email_usecase.dart';
 import 'package:andespace/features/schedule/domain/usecases/get_recommended_rooms_for_current_user_usecase.dart';
 import 'package:andespace/features/schedule/domain/usecases/get_schedule_classes_for_current_user_usecase.dart';
 import 'package:andespace/features/schedule/domain/usecases/import_ics_for_current_user_usecase.dart';
@@ -35,18 +33,11 @@ final scheduleRepositoryProvider = Provider<ScheduleRepository>((ref) {
   );
 });
 
-final getAuthenticatedUserEmailProvider =
-    Provider<GetAuthenticatedUserEmailUseCase>((ref) {
-  return GetAuthenticatedUserEmailUseCase(
-    ref.watch(getCurrentUserUseCaseProvider),
-  );
-});
 
 final loadWeekForCurrentUserProvider =
     Provider<LoadWeekForCurrentUserUseCase>((ref) {
   return LoadWeekForCurrentUserUseCase(
     repository: ref.watch(scheduleRepositoryProvider),
-    getAuthenticatedUserEmail: ref.watch(getAuthenticatedUserEmailProvider),
   );
 });
 
@@ -54,7 +45,6 @@ final importIcsForCurrentUserProvider =
     Provider<ImportIcsForCurrentUserUseCase>((ref) {
   return ImportIcsForCurrentUserUseCase(
     repository: ref.watch(scheduleRepositoryProvider),
-    getAuthenticatedUserEmail: ref.watch(getAuthenticatedUserEmailProvider),
   );
 });
 
@@ -62,7 +52,6 @@ final getScheduleClassesForCurrentUserProvider =
     Provider<GetScheduleClassesForCurrentUserUseCase>((ref) {
   return GetScheduleClassesForCurrentUserUseCase(
     repository: ref.watch(scheduleRepositoryProvider),
-    getAuthenticatedUserEmail: ref.watch(getAuthenticatedUserEmailProvider),
   );
 });
 
@@ -70,7 +59,6 @@ final saveManualClassForCurrentUserProvider =
     Provider<SaveManualClassForCurrentUserUseCase>((ref) {
   return SaveManualClassForCurrentUserUseCase(
     repository: ref.watch(scheduleRepositoryProvider),
-    getAuthenticatedUserEmail: ref.watch(getAuthenticatedUserEmailProvider),
     getScheduleClassesForCurrentUser:
         ref.watch(getScheduleClassesForCurrentUserProvider),
   );
@@ -80,7 +68,6 @@ final deleteFullScheduleForCurrentUserProvider =
     Provider<DeleteFullScheduleForCurrentUserUseCase>((ref) {
   return DeleteFullScheduleForCurrentUserUseCase(
     repository: ref.watch(scheduleRepositoryProvider),
-    getAuthenticatedUserEmail: ref.watch(getAuthenticatedUserEmailProvider),
   );
 });
 
@@ -88,7 +75,6 @@ final deleteScheduleClassForCurrentUserProvider =
     Provider<DeleteScheduleClassForCurrentUserUseCase>((ref) {
   return DeleteScheduleClassForCurrentUserUseCase(
     repository: ref.watch(scheduleRepositoryProvider),
-    getAuthenticatedUserEmail: ref.watch(getAuthenticatedUserEmailProvider),
   );
 });
 
@@ -96,7 +82,6 @@ final deleteScheduleOccurrenceForCurrentUserProvider =
     Provider<DeleteScheduleOccurrenceForCurrentUserUseCase>((ref) {
   return DeleteScheduleOccurrenceForCurrentUserUseCase(
     repository: ref.watch(scheduleRepositoryProvider),
-    getAuthenticatedUserEmail: ref.watch(getAuthenticatedUserEmailProvider),
   );
 });
 
@@ -104,7 +89,6 @@ final getRecommendedRoomsForCurrentUserProvider =
     Provider<GetRecommendedRoomsForCurrentUserUseCase>((ref) {
   return GetRecommendedRoomsForCurrentUserUseCase(
     repository: ref.watch(scheduleRepositoryProvider),
-    getAuthenticatedUserEmail: ref.watch(getAuthenticatedUserEmailProvider),
   );
 });
 

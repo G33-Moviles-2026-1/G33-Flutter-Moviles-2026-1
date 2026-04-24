@@ -9,27 +9,20 @@ import 'package:drift/drift.dart';
 
 abstract class ScheduleLocalDataSource {
   Future<void> replaceClasses({
-    required String userEmail,
     required List<ScheduleClass> classes,
   });
 
   Future<void> saveManualClasses({
-    required String userEmail,
     required List<ManualClass> classes,
   });
 
-  Future<List<ScheduleClass>> getClasses({
-    required String userEmail,
-  });
+  Future<List<ScheduleClass>> getClasses();
 
   Future<WeeklySchedule> getWeeklySchedule({
-    required String userEmail,
     required DateTime date,
   });
 
-  Future<void> clearSchedule({
-    required String userEmail,
-  });
+  Future<void> clearSchedule();
 }
 
 class ScheduleLocalDataSourceImpl implements ScheduleLocalDataSource {
@@ -41,30 +34,26 @@ class ScheduleLocalDataSourceImpl implements ScheduleLocalDataSource {
 
   @override
   Future<void> replaceClasses({
-    required String userEmail,
     required List<ScheduleClass> classes,
   }) {
-    return db.replaceScheduleClassesForUser(
-      userEmail,
-      classes.map((e) => _classToCompanion(userEmail, e)).toList(),
+    return db.replaceScheduleClasses(
+      classes.map((e) => _classToCompanion(e)).toList(),
     );
   }
 
   @override
   Future<void> saveManualClasses({
-    required String userEmail,
     required List<ManualClass> classes,
   }) {
     final now = DateTime.now();
 
     final rows = classes.map((e) {
       final classId =
-          'manual_${userEmail}_${e.title}_${e.startDate.toIso8601String()}_${e.startTime}'
+          'manual_${e.title}_${e.startDate.toIso8601String()}_${e.startTime}'
               .replaceAll(RegExp(r'\s+'), '_');
 
       return ScheduleClassesTableCompanion(
         classId: Value(classId),
-        userEmail: Value(userEmail),
         title: Value(e.title),
         locationText: Value(e.locationText),
         roomId: Value(e.roomId),
@@ -82,19 +71,16 @@ class ScheduleLocalDataSourceImpl implements ScheduleLocalDataSource {
   }
 
   @override
-  Future<List<ScheduleClass>> getClasses({
-    required String userEmail,
-  }) async {
-    final rows = await db.getScheduleClassesByUser(userEmail);
+  Future<List<ScheduleClass>> getClasses() async {
+    final rows = await db.getScheduleClasses();
     return rows.map(_rowToClass).toList();
   }
 
   @override
   Future<WeeklySchedule> getWeeklySchedule({
-    required String userEmail,
     required DateTime date,
   }) async {
-    final classes = await getClasses(userEmail: userEmail);
+    final classes = await getClasses();
     final weekStart = _startOfWeek(date);
     final weekEnd = weekStart.add(const Duration(days: 6));
 
@@ -144,19 +130,15 @@ class ScheduleLocalDataSourceImpl implements ScheduleLocalDataSource {
   }
 
   @override
-  Future<void> clearSchedule({
-    required String userEmail,
-  }) {
-    return db.clearScheduleForUser(userEmail);
+  Future<void> clearSchedule() {
+    return db.clearSchedule();
   }
 
   ScheduleClassesTableCompanion _classToCompanion(
-    String userEmail,
     ScheduleClass entity,
   ) {
     return ScheduleClassesTableCompanion(
       classId: Value(entity.classId),
-      userEmail: Value(userEmail),
       title: Value(entity.title),
       locationText: Value(entity.locationText),
       roomId: Value(entity.roomId),

@@ -198,12 +198,11 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
 
     final controller = ref.read(scheduleControllerProvider.notifier);
     final analytics = ref.read(analyticsServiceProvider);
-    final userEmail = await controller.getUserEmail();
 
     await analytics.trackScheduleImportStep(
       sessionId: widget.importSessionId,
       deviceId: 'mobile',
-      userEmail: userEmail,
+      userEmail: 'current_user',
       method: 'manual',
       step: 'first_class_added',
       stepNumber: 2,
@@ -262,7 +261,7 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
     await analytics.trackScheduleImportStep(
       sessionId: widget.importSessionId,
       deviceId: 'mobile',
-      userEmail: userEmail,
+      userEmail: 'current_user',
       method: 'manual',
       step: 'confirmed',
       stepNumber: 3,

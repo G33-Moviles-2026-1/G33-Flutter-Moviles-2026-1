@@ -75,7 +75,6 @@ class ScheduleClassesTable extends Table {
   String get tableName => 'schedule_classes';
 
   TextColumn get classId => text()();
-  TextColumn get userEmail => text()();
   TextColumn get title => text().nullable()();
   TextColumn get locationText => text().nullable()();
   TextColumn get roomId => text().nullable()();
@@ -104,7 +103,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(driftDatabase(name: 'andespace_db'));
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -210,26 +209,15 @@ class AppDatabase extends _$AppDatabase {
     await delete(scheduleClassesTable).go();
   });
 
-  Future<List<ScheduleClassesTableData>> getScheduleClassesByUser(
-    String userEmail,
-  ) {
-    return (select(scheduleClassesTable)
-          ..where((t) => t.userEmail.equals(userEmail))
-          ..orderBy([
-            (t) => OrderingTerm.asc(t.startDate),
-            (t) => OrderingTerm.asc(t.startTime),
-          ]))
-        .get();
+  Future<List<ScheduleClassesTableData>> getScheduleClasses() {
+    return (select(scheduleClassesTable)).get();
   }
 
-  Future<void> replaceScheduleClassesForUser(
-    String userEmail,
+  Future<void> replaceScheduleClasses(
     List<ScheduleClassesTableCompanion> rows,
   ) {
     return transaction(() async {
-      await (delete(
-        scheduleClassesTable,
-      )..where((t) => t.userEmail.equals(userEmail))).go();
+      await delete(scheduleClassesTable).go();
 
       if (rows.isNotEmpty) {
         await batch((b) => b.insertAll(scheduleClassesTable, rows));
@@ -249,9 +237,7 @@ class AppDatabase extends _$AppDatabase {
     });
   }
 
-  Future<void> clearScheduleForUser(String userEmail) {
-    return (delete(
-      scheduleClassesTable,
-    )..where((t) => t.userEmail.equals(userEmail))).go();
+  Future<void> clearSchedule() async {
+    await delete(scheduleClassesTable).go();
   }
 }

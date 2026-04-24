@@ -33,48 +33,39 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
 
   @override
   Future<void> uploadIcsSchedule({
-    required String userEmail,
     required String filePath,
   }) async {
     await remoteDataSource.uploadIcsSchedule(
-      userEmail: userEmail,
       filePath: filePath,
     );
   }
 
   @override
   Future<void> uploadManualSchedule({
-    required String userEmail,
     required List<ManualClass> classes,
   }) async {
     final models = ManualClassMapper.toModelList(classes);
 
     try {
       await remoteDataSource.uploadManualSchedule(
-        userEmail: userEmail,
         classes: models,
       );
 
-      final remoteClasses = await remoteDataSource.getScheduleClasses(
-        userEmail: userEmail,
-      );
+      final remoteClasses = await remoteDataSource.getScheduleClasses();
 
       await localDataSource.replaceClasses(
-        userEmail: userEmail,
         classes: ScheduleClassMapper.toEntityList(remoteClasses),
       );
     } catch (e) {
       if (!_isConnectivityError(e)) rethrow;
 
       await localDataSource.saveManualClasses(
-        userEmail: userEmail,
         classes: classes,
       );
 
       connectivityQueueService.enqueue(
         _UploadManualSchedulePendingAction(
           remoteDataSource: remoteDataSource,
-          userEmail: userEmail,
           classes: models,
         ),
       );
@@ -83,21 +74,16 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
 
   @override
   Future<WeeklySchedule> getWeeklySchedule({
-    required String userEmail,
     required DateTime date,
   }) async {
     try {
       final model = await remoteDataSource.getWeeklySchedule(
-        userEmail: userEmail,
         date: date,
       );
 
-      final remoteClasses = await remoteDataSource.getScheduleClasses(
-        userEmail: userEmail,
-      );
+      final remoteClasses = await remoteDataSource.getScheduleClasses();
 
       await localDataSource.replaceClasses(
-        userEmail: userEmail,
         classes: ScheduleClassMapper.toEntityList(remoteClasses),
       );
 
@@ -106,43 +92,35 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
       if (!_isConnectivityError(e)) rethrow;
 
       return localDataSource.getWeeklySchedule(
-        userEmail: userEmail,
         date: date,
       );
     }
   }
 
   @override
-  Future<List<ScheduleClass>> getScheduleClasses({
-    required String userEmail,
-  }) async {
+  Future<List<ScheduleClass>> getScheduleClasses() async {
     try {
-      final models = await remoteDataSource.getScheduleClasses(
-        userEmail: userEmail,
-      );
+      final models = await remoteDataSource.getScheduleClasses();
 
       final classes = ScheduleClassMapper.toEntityList(models);
 
       await localDataSource.replaceClasses(
-        userEmail: userEmail,
-        classes: classes,
+        classes: classes
       );
 
       return classes;
     } catch (e) {
       if (!_isConnectivityError(e)) rethrow;
 
-      return localDataSource.getClasses(userEmail: userEmail);
+      return localDataSource.getClasses();
     }
   }
 
   @override
   Future<FreeRoomsForDay> getFreeRoomsForDay({
-    required String userEmail,
     required DateTime date,
   }) async {
     final model = await remoteDataSource.getFreeRoomsForDay(
-      userEmail: userEmail,
       date: date,
     );
 
@@ -150,18 +128,17 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   }
 
   @override
-  Future<void> deleteFullSchedule({required String userEmail}) async {
-    await localDataSource.clearSchedule(userEmail: userEmail);
+  Future<void> deleteFullSchedule() async {
+    await localDataSource.clearSchedule();
 
     try {
-      await remoteDataSource.deleteFullSchedule(userEmail: userEmail);
+      await remoteDataSource.deleteFullSchedule();
     } catch (e) {
       if (!_isConnectivityError(e)) rethrow;
 
       connectivityQueueService.enqueue(
         _DeleteFullSchedulePendingAction(
           remoteDataSource: remoteDataSource,
-          userEmail: userEmail,
         ),
       );
     }
@@ -169,23 +146,19 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
 
   @override
   Future<void> deleteScheduleClass({
-    required String userEmail,
     required String classId,
   }) async {
     await remoteDataSource.deleteScheduleClass(
-      userEmail: userEmail,
       classId: classId,
     );
   }
 
   @override
   Future<void> deleteScheduleOccurrence({
-    required String userEmail,
     required String classId,
     required DateTime date,
   }) async {
     await remoteDataSource.deleteScheduleOccurrence(
-      userEmail: userEmail,
       classId: classId,
       date: date,
     );
@@ -193,7 +166,6 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
 
   @override
   Future<List<RoomSearchItem>> getRecommendedRoomsForDay({
-    required String userEmail,
     required DateTime date,
   }) async {
     final raw = await remoteDataSource.getRecommendedRoomsForDay(date: date);
@@ -204,12 +176,10 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
 
 class _UploadManualSchedulePendingAction implements PendingAction {
   final ScheduleRemoteDataSource remoteDataSource;
-  final String userEmail;
   final List<dynamic> classes;
 
   const _UploadManualSchedulePendingAction({
     required this.remoteDataSource,
-    required this.userEmail,
     required this.classes,
   });
 
@@ -222,7 +192,6 @@ class _UploadManualSchedulePendingAction implements PendingAction {
   @override
   Future<void> execute() {
     return remoteDataSource.uploadManualSchedule(
-      userEmail: userEmail,
       classes: classes.cast(),
     );
   }
@@ -230,11 +199,9 @@ class _UploadManualSchedulePendingAction implements PendingAction {
 
 class _DeleteFullSchedulePendingAction implements PendingAction {
   final ScheduleRemoteDataSource remoteDataSource;
-  final String userEmail;
 
   const _DeleteFullSchedulePendingAction({
     required this.remoteDataSource,
-    required this.userEmail,
   });
 
   @override
@@ -246,6 +213,6 @@ class _DeleteFullSchedulePendingAction implements PendingAction {
 
   @override
   Future<void> execute() {
-    return remoteDataSource.deleteFullSchedule(userEmail: userEmail);
+    return remoteDataSource.deleteFullSchedule();
   }
 }

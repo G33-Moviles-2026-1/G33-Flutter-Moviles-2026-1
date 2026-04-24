@@ -298,13 +298,12 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
                             final analytics = ref.read(
                               analyticsServiceProvider,
                             );
-                            final userEmail = await controller.getUserEmail();
                             final importSessionId = const Uuid().v4();
 
                             await analytics.trackScheduleImportStep(
                               sessionId: importSessionId,
                               deviceId: 'mobile',
-                              userEmail: userEmail,
+                              userEmail: 'current_user',
                               method: 'manual',
                               step: 'started',
                               stepNumber: 1,

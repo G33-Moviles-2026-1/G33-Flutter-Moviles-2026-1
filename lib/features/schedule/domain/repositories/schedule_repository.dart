@@ -7,46 +7,35 @@ import '../entities/weekly_schedule.dart';
 
 abstract class ScheduleRepository {
   Future<void> uploadIcsSchedule({
-    required String userEmail,
     required String filePath,
   });
 
   Future<void> uploadManualSchedule({
-    required String userEmail,
     required List<ManualClass> classes,
   });
 
   Future<WeeklySchedule> getWeeklySchedule({
-    required String userEmail,
     required DateTime date,
   });
 
-  Future<List<ScheduleClass>> getScheduleClasses({
-    required String userEmail,
-  });
+  Future<List<ScheduleClass>> getScheduleClasses();
 
   Future<FreeRoomsForDay> getFreeRoomsForDay({
-    required String userEmail,
     required DateTime date,
   });
 
-  Future<void> deleteFullSchedule({
-    required String userEmail,
-  });
+  Future<void> deleteFullSchedule();
 
   Future<void> deleteScheduleClass({
-    required String userEmail,
     required String classId,
   });
 
   Future<void> deleteScheduleOccurrence({
-    required String userEmail,
     required String classId,
     required DateTime date,
   });
 
   Future<List<RoomSearchItem>> getRecommendedRoomsForDay({
-    required String userEmail,
     required DateTime date,
   });
 }
