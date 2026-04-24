@@ -8,8 +8,8 @@ import 'package:andespace/core/navigation/app_tab.dart';
 import 'package:andespace/shared/widgets/app_scaffold.dart';
 import 'package:uuid/uuid.dart';
 
-import '../controllers/schedule_state.dart';
-import '../controllers/schedule_notifier.dart';
+import '../notifiers/schedule_state.dart';
+import '../notifiers/schedule_notifier.dart';
 import '../widgets/schedule_import_option_card.dart';
 import 'add_class_page.dart';
 import 'weekly_schedule_page.dart';
@@ -17,10 +17,7 @@ import 'weekly_schedule_page.dart';
 class ScheduleLoadPage extends ConsumerWidget {
   const ScheduleLoadPage({super.key});
 
-  Future<void> _pickAndUploadIcs(
-    BuildContext context,
-    WidgetRef ref,
-  ) async {
+  Future<void> _pickAndUploadIcs(BuildContext context, WidgetRef ref) async {
     final analytics = ref.read(analyticsServiceProvider);
     final controller = ref.read(scheduleControllerProvider.notifier);
     final importSessionId = const Uuid().v4();
@@ -34,9 +31,7 @@ class ScheduleLoadPage extends ConsumerWidget {
       method: 'ics',
       step: 'started',
       stepNumber: 1,
-      propsJson: {
-        'source_screen': 'schedule_load',
-      },
+      propsJson: {'source_screen': 'schedule_load'},
     );
 
     final result = await FilePicker.platform.pickFiles(
@@ -54,9 +49,7 @@ class ScheduleLoadPage extends ConsumerWidget {
       method: 'ics',
       step: 'file_selected',
       stepNumber: 2,
-      propsJson: {
-        'source_screen': 'schedule_load',
-      },
+      propsJson: {'source_screen': 'schedule_load'},
     );
 
     await analytics.trackScheduleImportStep(
@@ -66,9 +59,7 @@ class ScheduleLoadPage extends ConsumerWidget {
       method: 'ics',
       step: 'parsed',
       stepNumber: 3,
-      propsJson: {
-        'source_screen': 'schedule_load',
-      },
+      propsJson: {'source_screen': 'schedule_load'},
     );
 
     await controller.importIcs(
@@ -83,18 +74,14 @@ class ScheduleLoadPage extends ConsumerWidget {
       method: 'ics',
       step: 'confirmed',
       stepNumber: 4,
-      propsJson: {
-        'source_screen': 'schedule_load',
-      },
+      propsJson: {'source_screen': 'schedule_load'},
     );
     if (!context.mounted) return;
     final newState = ref.read(scheduleControllerProvider);
     if (newState.status == ScheduleStatus.loaded) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
-          builder: (_) => const WeeklySchedulePage(),
-        ),
+        MaterialPageRoute(builder: (_) => const WeeklySchedulePage()),
       );
     }
   }
@@ -105,23 +92,33 @@ class ScheduleLoadPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.listen<ScheduleState>(
-      scheduleControllerProvider,
-      (_, next) {
-        if (next.status == ScheduleStatus.error &&
-            next.errorMessage != null &&
-            next.errorMessage!.trim().isNotEmpty) {
-          ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(
-              SnackBar(
-                content: Text(next.errorMessage!),
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
-        }
-      },
-    );
+    ref.listen<ScheduleState>(scheduleControllerProvider, (_, next) {
+      if (next.status == ScheduleStatus.error &&
+          next.errorMessage != null &&
+          next.errorMessage!.trim().isNotEmpty) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(next.errorMessage!),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+      }
+
+      if (next.infoMessage != null && next.infoMessage!.trim().isNotEmpty) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(next.infoMessage!),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+
+        ref.read(scheduleControllerProvider.notifier).clearInfoMessage();
+      }
+    });
 
     final state = ref.watch(scheduleControllerProvider);
     final theme = Theme.of(context);
@@ -190,7 +187,9 @@ class ScheduleLoadPage extends ConsumerWidget {
                 ScheduleImportOptionCard(
                   title: 'Load ICS',
                   icon: Icons.upload_file_outlined,
-                  onTap: isUploading ? () {} : () => _pickAndUploadIcs(context, ref),
+                  onTap: isUploading
+                      ? () {}
+                      : () => _pickAndUploadIcs(context, ref),
                 ),
                 const SizedBox(height: 14),
                 ScheduleImportOptionCard(
@@ -198,7 +197,9 @@ class ScheduleLoadPage extends ConsumerWidget {
                   icon: Icons.edit_calendar_outlined,
                   onTap: () async {
                     final analytics = ref.read(analyticsServiceProvider);
-                    final controller = ref.read(scheduleControllerProvider.notifier);
+                    final controller = ref.read(
+                      scheduleControllerProvider.notifier,
+                    );
                     final userEmail = await controller.getUserEmail();
                     final importSessionId = const Uuid().v4();
 
@@ -209,9 +210,7 @@ class ScheduleLoadPage extends ConsumerWidget {
                       method: 'manual',
                       step: 'started',
                       stepNumber: 1,
-                      propsJson: {
-                        'source_screen': 'schedule_load',
-                      },
+                      propsJson: {'source_screen': 'schedule_load'},
                     );
 
                     if (!context.mounted) return;
@@ -219,9 +218,8 @@ class ScheduleLoadPage extends ConsumerWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => AddClassPage(
-                          importSessionId: importSessionId,
-                        ),
+                        builder: (_) =>
+                            AddClassPage(importSessionId: importSessionId),
                       ),
                     );
                   },

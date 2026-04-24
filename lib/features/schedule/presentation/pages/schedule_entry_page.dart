@@ -7,8 +7,8 @@ import 'package:andespace/shared/widgets/auth_required_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../controllers/schedule_state.dart';
-import '../controllers/schedule_notifier.dart';
+import '../notifiers/schedule_state.dart';
+import '../notifiers/schedule_notifier.dart';
 import 'schedule_load_page.dart';
 import 'weekly_schedule_page.dart';
 

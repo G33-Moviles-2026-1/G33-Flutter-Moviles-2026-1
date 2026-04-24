@@ -4,8 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/manual_class.dart';
-import '../controllers/schedule_state.dart';
-import '../controllers/schedule_notifier.dart';
+import '../notifiers/schedule_state.dart';
+import '../notifiers/schedule_notifier.dart';
 
 class AddClassPage extends ConsumerStatefulWidget {
   const AddClassPage({

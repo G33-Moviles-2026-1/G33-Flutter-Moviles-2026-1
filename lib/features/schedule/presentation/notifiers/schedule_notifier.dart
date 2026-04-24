@@ -2,6 +2,7 @@ import 'package:andespace/core/di/core_provider.dart';
 import 'package:andespace/features/rooms/domain/entities/room_search.dart';
 import 'package:andespace/features/schedule/domain/entities/schedule_class.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:andespace/core/connectivity/pending_action_event.dart';
 import 'package:dio/dio.dart';
 
 import '../../domain/entities/manual_class.dart';
@@ -12,6 +13,7 @@ import 'schedule_state.dart';
 class ScheduleNotifier extends Notifier<ScheduleState> {
   @override
   ScheduleState build() {
+    Future.microtask(listenPendingActionEvents);
     return ScheduleState.initial();
   }
 
@@ -42,9 +44,7 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
         method: method,
         step: step,
         stepNumber: stepNumber,
-        propsJson: {
-          if (errorMessage != null) 'error_message': errorMessage,
-        },
+        propsJson: {if (errorMessage != null) 'error_message': errorMessage},
       );
     } catch (_) {
       // No bloqueamos el flujo principal por analytics
@@ -76,6 +76,7 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
       status: ScheduleStatus.loading,
       selectedDate: targetDate,
       clearErrorMessage: true,
+      clearInfoMessage: true,
     );
 
     try {
@@ -88,6 +89,7 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
           weeklySchedule: schedule,
           ownerEmail: userEmail,
           clearErrorMessage: true,
+          clearInfoMessage: true,
         );
         return;
       }
@@ -97,6 +99,7 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
         weeklySchedule: schedule,
         ownerEmail: userEmail,
         clearErrorMessage: true,
+        clearInfoMessage: true,
       );
     } catch (error) {
       // ESTE es el comportamiento viejo que sí funcionaba:
@@ -106,6 +109,7 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
           status: ScheduleStatus.empty,
           clearWeeklySchedule: true,
           clearErrorMessage: true,
+          clearInfoMessage: true,
           ownerEmail: userEmail,
         );
         return;
@@ -115,6 +119,7 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
         status: ScheduleStatus.error,
         errorMessage: mapScheduleErrorMessage(error),
         clearWeeklySchedule: true,
+        clearInfoMessage: true,
         ownerEmail: userEmail,
       );
     }
@@ -132,15 +137,11 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
   }
 
   Future<void> goToPreviousWeek() async {
-    await loadWeek(
-      date: state.selectedDate.subtract(const Duration(days: 7)),
-    );
+    await loadWeek(date: state.selectedDate.subtract(const Duration(days: 7)));
   }
 
   Future<void> goToNextWeek() async {
-    await loadWeek(
-      date: state.selectedDate.add(const Duration(days: 7)),
-    );
+    await loadWeek(date: state.selectedDate.add(const Duration(days: 7)));
   }
 
   Future<void> importIcs({
@@ -182,10 +183,16 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
     );
 
     try {
-      final saveManualClassForCurrentUser =
-          ref.read(saveManualClassForCurrentUserProvider);
+      final saveManualClassForCurrentUser = ref.read(
+        saveManualClassForCurrentUserProvider,
+      );
 
       await saveManualClassForCurrentUser(manualClass: manualClass);
+
+      state = state.copyWith(
+        infoMessage:
+            'Schedule saved. If you are offline, it will sync when connection returns.',
+      );
 
       await _trackScheduleImportStep(
         importSessionId: importSessionId,
@@ -210,10 +217,16 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
     );
 
     try {
-      final deleteFullScheduleForCurrentUser =
-          ref.read(deleteFullScheduleForCurrentUserProvider);
+      final deleteFullScheduleForCurrentUser = ref.read(
+        deleteFullScheduleForCurrentUserProvider,
+      );
 
       await deleteFullScheduleForCurrentUser();
+
+      state = state.copyWith(
+        infoMessage:
+            'Schedule deleted locally. If you are offline, the change will sync later.',
+      );
 
       state = state.copyWith(
         status: ScheduleStatus.empty,
@@ -236,8 +249,9 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
     );
 
     try {
-      final deleteScheduleClassForCurrentUser =
-          ref.read(deleteScheduleClassForCurrentUserProvider);
+      final deleteScheduleClassForCurrentUser = ref.read(
+        deleteScheduleClassForCurrentUserProvider,
+      );
 
       await deleteScheduleClassForCurrentUser(classId: classId);
       await loadWeek(date: state.selectedDate);
@@ -259,8 +273,9 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
     );
 
     try {
-      final deleteScheduleOccurrenceForCurrentUser =
-          ref.read(deleteScheduleOccurrenceForCurrentUserProvider);
+      final deleteScheduleOccurrenceForCurrentUser = ref.read(
+        deleteScheduleOccurrenceForCurrentUserProvider,
+      );
 
       await deleteScheduleOccurrenceForCurrentUser(
         classId: classId,
@@ -277,20 +292,20 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
   }
 
   Future<List<ScheduleClass>> getExistingClassesForValidation() {
-    final getScheduleClassesForCurrentUser =
-        ref.read(getScheduleClassesForCurrentUserProvider);
+    final getScheduleClassesForCurrentUser = ref.read(
+      getScheduleClassesForCurrentUserProvider,
+    );
 
     return getScheduleClassesForCurrentUser();
   }
 
   Future<List<RoomSearchItem>> loadRecommendedRoomsForSelectedDay() async {
     try {
-      final getRecommendedRoomsForCurrentUser =
-          ref.read(getRecommendedRoomsForCurrentUserProvider);
-
-      return await getRecommendedRoomsForCurrentUser(
-        date: state.selectedDate,
+      final getRecommendedRoomsForCurrentUser = ref.read(
+        getRecommendedRoomsForCurrentUserProvider,
       );
+
+      return await getRecommendedRoomsForCurrentUser(date: state.selectedDate);
     } catch (error) {
       state = state.copyWith(
         status: ScheduleStatus.error,
@@ -298,6 +313,33 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
       );
       rethrow;
     }
+  }
+
+  void listenPendingActionEvents() {
+    ref.listen(
+      connectivityQueueServiceProvider.select((service) => service.events),
+      (_, stream) {
+        stream.listen((event) {
+          if (event is PendingActionSucceeded) {
+            state = state.copyWith(
+              infoMessage: event.action.successMessage,
+              clearErrorMessage: true,
+            );
+          }
+
+          if (event is PendingActionFailed) {
+            state = state.copyWith(
+              errorMessage: event.action.failureMessage,
+              clearInfoMessage: true,
+            );
+          }
+        });
+      },
+    );
+  }
+
+  void clearInfoMessage() {
+    state = state.copyWith(clearInfoMessage: true);
   }
 }
 

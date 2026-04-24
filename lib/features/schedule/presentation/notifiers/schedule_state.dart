@@ -17,6 +17,7 @@ class ScheduleState {
   final DateTime selectedDate;
   final String? errorMessage;
   final String? ownerEmail;
+  final String? infoMessage;
 
   const ScheduleState({
     required this.status,
@@ -24,6 +25,7 @@ class ScheduleState {
     this.weeklySchedule,
     this.errorMessage,
     this.ownerEmail,
+    this.infoMessage,
   });
 
   factory ScheduleState.initial() {
@@ -34,6 +36,7 @@ class ScheduleState {
       weeklySchedule: null,
       errorMessage: null,
       ownerEmail: null,
+      infoMessage: null,
     );
   }
 
@@ -46,6 +49,8 @@ class ScheduleState {
     bool clearErrorMessage = false,
     String? ownerEmail,
     bool clearOwnerEmail = false,
+    String? infoMessage,
+    bool clearInfoMessage = false,
   }) {
     return ScheduleState(
       status: status ?? this.status,
@@ -55,6 +60,7 @@ class ScheduleState {
       errorMessage:
           clearErrorMessage ? null : (errorMessage ?? this.errorMessage),
       ownerEmail: clearOwnerEmail ? null : (ownerEmail ?? this.ownerEmail),
+      infoMessage: clearInfoMessage ? null : (infoMessage ?? this.infoMessage),
     );
   }
 }

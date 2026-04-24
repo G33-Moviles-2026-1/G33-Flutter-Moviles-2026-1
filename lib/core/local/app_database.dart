@@ -198,8 +198,9 @@ class AppDatabase extends _$AppDatabase {
   Future<void> replaceCachedPaths(List<CachedPathsTableCompanion> rows) =>
       transaction(() async {
         await delete(cachedPathsTable).go();
-        if (rows.isNotEmpty)
+        if (rows.isNotEmpty) {
           await batch((b) => b.insertAll(cachedPathsTable, rows));
+        }
       });
 
   Future<void> clearAllLocalUserData() => transaction(() async {
@@ -239,7 +240,9 @@ class AppDatabase extends _$AppDatabase {
   Future<void> upsertScheduleClasses(
     List<ScheduleClassesTableCompanion> rows,
   ) async {
-    if (rows.isEmpty) return;
+    if (rows.isEmpty) {
+      return;
+    }
 
     await batch((b) {
       b.insertAllOnConflictUpdate(scheduleClassesTable, rows);
