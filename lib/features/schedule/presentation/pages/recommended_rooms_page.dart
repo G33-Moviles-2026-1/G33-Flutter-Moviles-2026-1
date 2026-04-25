@@ -8,28 +8,87 @@ class RecommendedRoomsPage extends ConsumerWidget {
   const RecommendedRoomsPage({
     super.key,
     required this.items,
+    this.lastUpdated,
   });
 
   final List<RoomSearchItem> items;
+  final DateTime? lastUpdated;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Recommended Rooms'),
-      ),
-      body: items.isEmpty
-          ? const _EmptyRecommendationsView()
-          : ListView.separated(
-              padding: const EdgeInsets.all(16),
-              itemCount: items.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final room = items[index];
-                return _RecommendedRoomCard(room: room);
-              },
+      appBar: AppBar(title: const Text('Recommended Rooms')),
+      body: Column(
+        children: [
+          if (lastUpdated != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              child: _CachedRecommendationsBanner(lastUpdated: lastUpdated!),
             ),
+          Expanded(
+            child: items.isEmpty
+                ? const _EmptyRecommendationsView()
+                : ListView.separated(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: items.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final room = items[index];
+                      return _RecommendedRoomCard(room: room);
+                    },
+                  ),
+          ),
+        ],
+      ),
     );
+  }
+}
+
+class _CachedRecommendationsBanner extends StatelessWidget {
+  const _CachedRecommendationsBanner({required this.lastUpdated});
+
+  final DateTime lastUpdated;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.secondary.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.18)),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.info_outline,
+            size: 18,
+            color: theme.colorScheme.secondary,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Showing last available recommendations. Last updated: ${_formatTimeAgo(lastUpdated)}. Availability may have changed.',
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatTimeAgo(DateTime time) {
+    final diff = DateTime.now().difference(time);
+
+    if (diff.inMinutes < 1) return 'just now';
+    if (diff.inMinutes < 60) return '${diff.inMinutes} min ago';
+    if (diff.inHours < 24) return '${diff.inHours} h ago';
+    return '${diff.inDays} days ago';
   }
 }
 
@@ -84,9 +143,7 @@ class _EmptyRecommendationsView extends StatelessWidget {
 }
 
 class _RecommendedRoomCard extends StatelessWidget {
-  const _RecommendedRoomCard({
-    required this.room,
-  });
+  const _RecommendedRoomCard({required this.room});
 
   final RoomSearchItem room;
 
@@ -108,9 +165,7 @@ class _RecommendedRoomCard extends StatelessWidget {
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (_) => RoomDetailPage(room: room),
-            ),
+            MaterialPageRoute(builder: (_) => RoomDetailPage(room: room)),
           );
         },
         child: Ink(
@@ -130,7 +185,9 @@ class _RecommendedRoomCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.secondary.withValues(alpha: 0.16),
+                      color: theme.colorScheme.secondary.withValues(
+                        alpha: 0.16,
+                      ),
                       borderRadius: BorderRadius.circular(14),
                     ),
                     child: const Icon(Icons.meeting_room_outlined),
@@ -148,20 +205,14 @@ class _RecommendedRoomCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 10),
-              Text(
-                subtitle,
-                style: theme.textTheme.bodyMedium,
-              ),
+              Text(subtitle, style: theme.textTheme.bodyMedium),
               const SizedBox(height: 14),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
                 children: [
                   if (slotLabel != null)
-                    _InfoChip(
-                      label: slotLabel,
-                      icon: Icons.schedule_outlined,
-                    ),
+                    _InfoChip(label: slotLabel, icon: Icons.schedule_outlined),
                   _InfoChip(
                     label: 'Capacity ${room.capacity}',
                     icon: Icons.people_outline,
@@ -223,10 +274,7 @@ class _RecommendedRoomCard extends StatelessWidget {
 }
 
 class _InfoChip extends StatelessWidget {
-  const _InfoChip({
-    required this.label,
-    required this.icon,
-  });
+  const _InfoChip({required this.label, required this.icon});
 
   final String label;
   final IconData icon;
@@ -259,9 +307,7 @@ class _InfoChip extends StatelessWidget {
 }
 
 class _TagChip extends StatelessWidget {
-  const _TagChip({
-    required this.label,
-  });
+  const _TagChip({required this.label});
 
   final String label;
 
@@ -273,12 +319,8 @@ class _TagChip extends StatelessWidget {
       label: Text(label),
       visualDensity: VisualDensity.compact,
       backgroundColor: theme.cardColor,
-      side: BorderSide(
-        color: theme.dividerColor.withValues(alpha: 0.18),
-      ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(999),
-      ),
+      side: BorderSide(color: theme.dividerColor.withValues(alpha: 0.18)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
     );
   }
 }

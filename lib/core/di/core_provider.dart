@@ -1,4 +1,5 @@
 import 'package:andespace/core/analytics/analytics_service.dart';
+import 'package:andespace/core/local/app_database.dart';
 import 'package:andespace/core/session/session_controller.dart';
 export 'package:andespace/core/session/session_controller.dart'
     show SessionNotifier, SessionState, SessionLocation, UserSearchSelection;
@@ -42,6 +43,12 @@ final connectivityQueueServiceProvider =
   final service = ConnectivityQueueService();
   service.init(ref.read(connectivityRecoveryServiceProvider).onRecovered);
   return service;
+});
+
+final appDatabaseProvider = Provider<AppDatabase>((ref) {
+  final db = AppDatabase();
+  ref.onDispose(db.close);
+  return db;
 });
 
 String validatedBaseUrl(String rawBaseUrl) {

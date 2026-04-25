@@ -10,40 +10,30 @@ import '../models/weekly_schedule_dto.dart';
 
 abstract class ScheduleRemoteDataSource {
   Future<ScheduleUploadResponseModel> uploadIcsSchedule({
-    required String userEmail,
     required String filePath,
   });
 
   Future<ScheduleUploadResponseModel> uploadManualSchedule({
-    required String userEmail,
     required List<ManualClassModel> classes,
   });
 
   Future<WeeklyScheduleModel> getWeeklySchedule({
-    required String userEmail,
     required DateTime date,
   });
 
-  Future<List<ScheduleClassModel>> getScheduleClasses({
-    required String userEmail,
-  });
+  Future<List<ScheduleClassModel>> getScheduleClasses();
 
   Future<FreeRoomsForDayModel> getFreeRoomsForDay({
-    required String userEmail,
     required DateTime date,
   });
 
-  Future<ScheduleDeleteResponseModel> deleteFullSchedule({
-    required String userEmail,
-  });
+  Future<ScheduleDeleteResponseModel> deleteFullSchedule();
 
   Future<ScheduleDeleteResponseModel> deleteScheduleClass({
-    required String userEmail,
     required String classId,
   });
 
   Future<ScheduleDeleteResponseModel> deleteScheduleOccurrence({
-    required String userEmail,
     required String classId,
     required DateTime date,
   });
@@ -62,13 +52,11 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
 
   @override
   Future<ScheduleUploadResponseModel> uploadIcsSchedule({
-    required String userEmail,
     required String filePath,
   }) async {
     final fileName = filePath.split('/').last;
 
     final formData = FormData.fromMap({
-      'user_email': userEmail,
       'file': await MultipartFile.fromFile(
         filePath,
         filename: fileName,
@@ -87,13 +75,11 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
 
   @override
   Future<ScheduleUploadResponseModel> uploadManualSchedule({
-    required String userEmail,
     required List<ManualClassModel> classes,
   }) async {
     final response = await dio.post(
       '/schedule/upload/manual',
       data: {
-        'user_email': userEmail,
         'classes': classes.map((e) => e.toJson()).toList(),
       },
     );
@@ -105,13 +91,11 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
 
   @override
   Future<WeeklyScheduleModel> getWeeklySchedule({
-    required String userEmail,
     required DateTime date,
   }) async {
     final response = await dio.get(
       '/schedule/week',
       queryParameters: {
-        'user_email': userEmail,
         'date': _formatDdMmYyyy(date),
       },
     );
@@ -122,13 +106,11 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
   }
 
   @override
-  Future<List<ScheduleClassModel>> getScheduleClasses({
-    required String userEmail,
-  }) async {
+  Future<List<ScheduleClassModel>> getScheduleClasses(
+  ) async {
     final response = await dio.get(
       '/schedule/classes',
       queryParameters: {
-        'user_email': userEmail,
       },
     );
 
@@ -142,13 +124,11 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
 
   @override
   Future<FreeRoomsForDayModel> getFreeRoomsForDay({
-    required String userEmail,
     required DateTime date,
   }) async {
     final response = await dio.get(
       '/schedule/free-rooms',
       queryParameters: {
-        'user_email': userEmail,
         'date': _formatDdMmYyyy(date),
       },
     );
@@ -159,13 +139,11 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
   }
 
   @override
-  Future<ScheduleDeleteResponseModel> deleteFullSchedule({
-    required String userEmail,
-  }) async {
+  Future<ScheduleDeleteResponseModel> deleteFullSchedule(
+  ) async {
     final response = await dio.delete(
       '/schedule',
       queryParameters: {
-        'user_email': userEmail,
       },
     );
 
@@ -176,13 +154,11 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
 
   @override
   Future<ScheduleDeleteResponseModel> deleteScheduleClass({
-    required String userEmail,
     required String classId,
   }) async {
     final response = await dio.delete(
       '/schedule/class/$classId',
       queryParameters: {
-        'user_email': userEmail,
       },
     );
 
@@ -193,14 +169,12 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
 
   @override
   Future<ScheduleDeleteResponseModel> deleteScheduleOccurrence({
-    required String userEmail,
     required String classId,
     required DateTime date,
   }) async {
     final response = await dio.delete(
       '/schedule/class/$classId/occurrence',
       queryParameters: {
-        'user_email': userEmail,
         'date': _formatDdMmYyyy(date),
       },
     );

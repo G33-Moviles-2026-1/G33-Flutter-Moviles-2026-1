@@ -1,4 +1,4 @@
-import 'package:andespace/features/auth/presentation/controllers/auth_notifier.dart';
+import 'package:andespace/features/auth/presentation/notifiers/auth_notifier.dart';
 import 'package:andespace/core/navigation/app_routes.dart';
 import 'package:andespace/core/navigation/app_tab.dart';
 import 'package:andespace/features/schedule/presentation/widgets/schedule_page_scaffold.dart';
@@ -7,8 +7,8 @@ import 'package:andespace/shared/widgets/auth_required_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../controllers/schedule_state.dart';
-import '../controllers/schedule_notifier.dart';
+import '../notifiers/schedule_state.dart';
+import '../notifiers/schedule_notifier.dart';
 import 'schedule_load_page.dart';
 import 'weekly_schedule_page.dart';
 
@@ -68,8 +68,7 @@ class _ScheduleEntryPageState extends ConsumerState<ScheduleEntryPage> {
 
     if (!_requestedInitialLoad ||
         state.status == ScheduleStatus.initial ||
-        (state.status == ScheduleStatus.loading &&
-            state.weeklySchedule == null)) {
+        state.status == ScheduleStatus.loading) {
       return const SchedulePageScaffold(
         body: ScheduleStatusCard(
           leading: CircularProgressIndicator(),
@@ -78,9 +77,14 @@ class _ScheduleEntryPageState extends ConsumerState<ScheduleEntryPage> {
         ),
       );
     }
-
-    if (state.weeklySchedule != null) {
+    if (state.weeklySchedule != null &&
+        state.status != ScheduleStatus.empty &&
+        state.status != ScheduleStatus.initial) {
       return const WeeklySchedulePage();
+    }
+
+    if (state.status == ScheduleStatus.empty && state.weeklySchedule == null) {
+      return const ScheduleLoadPage();
     }
 
     if (state.status == ScheduleStatus.error) {

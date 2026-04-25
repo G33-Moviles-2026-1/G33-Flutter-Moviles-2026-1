@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:andespace/core/di/core_provider.dart';
 import 'package:andespace/features/rooms/domain/entities/room_search.dart';
 import 'package:andespace/features/schedule/domain/entities/schedule_class.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:andespace/core/connectivity/pending_action_event.dart';
 import 'package:dio/dio.dart';
 
 import '../../domain/entities/manual_class.dart';
@@ -12,12 +15,8 @@ import 'schedule_state.dart';
 class ScheduleNotifier extends Notifier<ScheduleState> {
   @override
   ScheduleState build() {
+    Future.microtask(listenPendingActionEvents);
     return ScheduleState.initial();
-  }
-
-  Future<String> getUserEmail() {
-    final useCase = ref.read(getAuthenticatedUserEmailProvider);
-    return useCase();
   }
 
   void resetState() {
@@ -32,62 +31,51 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
     String? errorMessage,
   }) async {
     try {
-      final userEmail = await getUserEmail();
       final analyticsService = ref.read(analyticsServiceProvider);
 
       await analyticsService.trackScheduleImportStep(
         sessionId: importSessionId,
         deviceId: 'mobile',
-        userEmail: userEmail,
+        userEmail: 'current_user',
         method: method,
         step: step,
         stepNumber: stepNumber,
-        propsJson: {
-          if (errorMessage != null) 'error_message': errorMessage,
-        },
+        propsJson: {if (errorMessage != null) 'error_message': errorMessage},
       );
-    } catch (_) {
-      // No bloqueamos el flujo principal por analytics
-    }
+    } catch (_) {}
   }
 
   bool _isMissingScheduleError(Object error) {
     if (error is! DioException) return false;
-
-    final statusCode = error.response?.statusCode;
-    return statusCode == 404;
+    return error.response?.statusCode == 404;
   }
 
   Future<void> loadWeek({DateTime? date}) async {
     final targetDate = date ?? state.selectedDate;
-    final userEmail = await getUserEmail();
-
-    // Si cambió el usuario, limpiamos el estado visible para no mezclar sesiones
-    if (state.ownerEmail != null && state.ownerEmail != userEmail) {
-      state = ScheduleState.initial().copyWith(
-        selectedDate: targetDate,
-        ownerEmail: userEmail,
-      );
-    } else if (state.ownerEmail == null) {
-      state = state.copyWith(ownerEmail: userEmail);
-    }
 
     state = state.copyWith(
       status: ScheduleStatus.loading,
       selectedDate: targetDate,
       clearErrorMessage: true,
+      clearInfoMessage: true,
     );
 
     try {
-      final loadWeekForCurrentUser = ref.read(loadWeekForCurrentUserProvider);
-      final schedule = await loadWeekForCurrentUser(date: targetDate);
+      final loadWeek = ref.read(loadWeekForCurrentUserProvider);
+      final schedule = await loadWeek(date: targetDate);
 
       if (schedule.occurrences.isEmpty) {
+        final existingClasses = await ref.read(
+          getScheduleClassesForCurrentUserProvider,
+        )();
+
         state = state.copyWith(
-          status: ScheduleStatus.empty,
+          status: existingClasses.isEmpty
+              ? ScheduleStatus.empty
+              : ScheduleStatus.loaded,
           weeklySchedule: schedule,
-          ownerEmail: userEmail,
           clearErrorMessage: true,
+          clearInfoMessage: true,
         );
         return;
       }
@@ -95,18 +83,12 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
       state = state.copyWith(
         status: ScheduleStatus.loaded,
         weeklySchedule: schedule,
-        ownerEmail: userEmail,
-        clearErrorMessage: true,
       );
     } catch (error) {
-      // ESTE es el comportamiento viejo que sí funcionaba:
-      // si el backend responde 404 porque no hay horario, no es error; es estado vacío.
       if (_isMissingScheduleError(error)) {
         state = state.copyWith(
           status: ScheduleStatus.empty,
           clearWeeklySchedule: true,
-          clearErrorMessage: true,
-          ownerEmail: userEmail,
         );
         return;
       }
@@ -115,7 +97,6 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
         status: ScheduleStatus.error,
         errorMessage: mapScheduleErrorMessage(error),
         clearWeeklySchedule: true,
-        ownerEmail: userEmail,
       );
     }
   }
@@ -132,15 +113,11 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
   }
 
   Future<void> goToPreviousWeek() async {
-    await loadWeek(
-      date: state.selectedDate.subtract(const Duration(days: 7)),
-    );
+    await loadWeek(date: state.selectedDate.subtract(const Duration(days: 7)));
   }
 
   Future<void> goToNextWeek() async {
-    await loadWeek(
-      date: state.selectedDate.add(const Duration(days: 7)),
-    );
+    await loadWeek(date: state.selectedDate.add(const Duration(days: 7)));
   }
 
   Future<void> importIcs({
@@ -153,8 +130,8 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
     );
 
     try {
-      final importIcsForCurrentUser = ref.read(importIcsForCurrentUserProvider);
-      await importIcsForCurrentUser(filePath: filePath);
+      final importIcs = ref.read(importIcsForCurrentUserProvider);
+      await importIcs(filePath: filePath);
 
       await _trackScheduleImportStep(
         importSessionId: importSessionId,
@@ -165,9 +142,15 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
 
       await loadWeek(date: DateTime.now());
     } catch (error) {
+      final message = mapScheduleErrorMessage(error);
+
       state = state.copyWith(
         status: ScheduleStatus.error,
-        errorMessage: mapScheduleErrorMessage(error),
+        errorMessage:
+            message.toLowerCase().contains('internet') ||
+                message.toLowerCase().contains('connection')
+            ? 'You need internet to import an ICS schedule.'
+            : message,
       );
     }
   }
@@ -182,10 +165,13 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
     );
 
     try {
-      final saveManualClassForCurrentUser =
-          ref.read(saveManualClassForCurrentUserProvider);
+      final saveManual = ref.read(saveManualClassForCurrentUserProvider);
+      await saveManual(manualClass: manualClass);
 
-      await saveManualClassForCurrentUser(manualClass: manualClass);
+      state = state.copyWith(
+        infoMessage:
+            'Schedule saved. If you are offline, it will sync when connection returns.',
+      );
 
       await _trackScheduleImportStep(
         importSessionId: importSessionId,
@@ -210,16 +196,14 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
     );
 
     try {
-      final deleteFullScheduleForCurrentUser =
-          ref.read(deleteFullScheduleForCurrentUserProvider);
-
-      await deleteFullScheduleForCurrentUser();
+      final deleteFull = ref.read(deleteFullScheduleForCurrentUserProvider);
+      await deleteFull();
 
       state = state.copyWith(
+        infoMessage:
+            'Schedule deleted locally. If you are offline, the change will sync later.',
         status: ScheduleStatus.empty,
         clearWeeklySchedule: true,
-        clearErrorMessage: true,
-        clearOwnerEmail: true,
       );
     } catch (error) {
       state = state.copyWith(
@@ -236,10 +220,9 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
     );
 
     try {
-      final deleteScheduleClassForCurrentUser =
-          ref.read(deleteScheduleClassForCurrentUserProvider);
+      final deleteClass = ref.read(deleteScheduleClassForCurrentUserProvider);
 
-      await deleteScheduleClassForCurrentUser(classId: classId);
+      await deleteClass(classId: classId);
       await loadWeek(date: state.selectedDate);
     } catch (error) {
       state = state.copyWith(
@@ -259,13 +242,11 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
     );
 
     try {
-      final deleteScheduleOccurrenceForCurrentUser =
-          ref.read(deleteScheduleOccurrenceForCurrentUserProvider);
-
-      await deleteScheduleOccurrenceForCurrentUser(
-        classId: classId,
-        date: date,
+      final deleteOccurrence = ref.read(
+        deleteScheduleOccurrenceForCurrentUserProvider,
       );
+
+      await deleteOccurrence(classId: classId, date: date);
 
       await loadWeek(date: state.selectedDate);
     } catch (error) {
@@ -277,20 +258,20 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
   }
 
   Future<List<ScheduleClass>> getExistingClassesForValidation() {
-    final getScheduleClassesForCurrentUser =
-        ref.read(getScheduleClassesForCurrentUserProvider);
+    final getScheduleClasses = ref.read(
+      getScheduleClassesForCurrentUserProvider,
+    );
 
-    return getScheduleClassesForCurrentUser();
+    return getScheduleClasses();
   }
 
-  Future<List<RoomSearchItem>> loadRecommendedRoomsForSelectedDay() async {
+  Future<(List<RoomSearchItem>, DateTime?)> loadRecommendedRoomsForSelectedDay() async {
     try {
-      final getRecommendedRoomsForCurrentUser =
-          ref.read(getRecommendedRoomsForCurrentUserProvider);
-
-      return await getRecommendedRoomsForCurrentUser(
-        date: state.selectedDate,
+      final getRecommendedRooms = ref.read(
+        getRecommendedRoomsForCurrentUserProvider,
       );
+
+      return await getRecommendedRooms(date: state.selectedDate);
     } catch (error) {
       state = state.copyWith(
         status: ScheduleStatus.error,
@@ -298,6 +279,61 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
       );
       rethrow;
     }
+  }
+
+  int _successCount = 0;
+  int _failureCount = 0;
+  Timer? _debounceTimer;
+
+  void listenPendingActionEvents() {
+    ref.listen(
+      connectivityQueueServiceProvider.select((service) => service.events),
+      (_, stream) {
+        stream.listen((event) {
+          if (event is PendingActionSucceeded) {
+            _successCount++;
+          }
+
+          if (event is PendingActionFailed) {
+            _failureCount++;
+          }
+
+          _debounceTimer?.cancel();
+
+          _debounceTimer = Timer(const Duration(seconds: 2), () {
+            _emitGroupedMessage();
+          });
+        });
+      },
+    );
+  }
+
+  void _emitGroupedMessage() {
+    if (_successCount == 0 && _failureCount == 0) return;
+
+    if (_failureCount == 0) {
+      state = state.copyWith(
+        infoMessage: 'All changes synced successfully.',
+        clearErrorMessage: true,
+      );
+    } else if (_successCount == 0) {
+      state = state.copyWith(
+        errorMessage: 'Some changes failed to sync.',
+        clearInfoMessage: true,
+      );
+    } else {
+      state = state.copyWith(
+        errorMessage: 'Some changes failed to sync.',
+        clearInfoMessage: true,
+      );
+    }
+
+    _successCount = 0;
+    _failureCount = 0;
+  }
+
+  void clearInfoMessage() {
+    state = state.copyWith(clearInfoMessage: true);
   }
 }
 

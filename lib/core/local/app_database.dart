@@ -70,19 +70,53 @@ class CachedPathsTable extends Table {
   Set<Column> get primaryKey => {cacheKey};
 }
 
+class ScheduleClassesTable extends Table {
+  @override
+  String get tableName => 'schedule_classes';
+
+  TextColumn get classId => text()();
+  TextColumn get title => text().nullable()();
+  TextColumn get locationText => text().nullable()();
+  TextColumn get roomId => text().nullable()();
+  DateTimeColumn get startDate => dateTime()();
+  DateTimeColumn get endDate => dateTime()();
+  TextColumn get startTime => text()();
+  TextColumn get endTime => text()();
+  TextColumn get weekdaysJson => text()();
+  TextColumn get syncState => text().withDefault(const Constant('synced'))();
+  DateTimeColumn get updatedAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {classId};
+}
+
+class CachedRecommendedRoomsTable extends Table {
+  @override
+  String get tableName => 'cached_recommended_rooms';
+
+  TextColumn get cacheKey => text()(); // yyyy-MM-dd
+  TextColumn get dataJson => text()();
+  DateTimeColumn get updatedAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {cacheKey};
+}
+
 @DriftDatabase(
   tables: [
     MyBookingsTable,
     FavoriteRoomsTable,
+    ScheduleClassesTable,
     FavoriteMutationsTable,
     CachedPathsTable,
+    CachedRecommendedRoomsTable,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(driftDatabase(name: 'andespace_db'));
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -110,9 +144,7 @@ class AppDatabase extends _$AppDatabase {
   Future<List<FavoriteRoomsTableData>> getVisibleFavorites() {
     return (select(favoriteRoomsTable)
           ..where((t) => t.syncState.isNotValue('pending_remove'))
-          ..orderBy([
-            (t) => OrderingTerm.desc(t.updatedAt),
-          ]))
+          ..orderBy([(t) => OrderingTerm.desc(t.updatedAt)]))
         .get();
   }
 
@@ -120,8 +152,9 @@ class AppDatabase extends _$AppDatabase {
       select(favoriteRoomsTable).get();
 
   Future<FavoriteRoomsTableData?> getFavoriteById(String roomId) {
-    return (select(favoriteRoomsTable)..where((t) => t.roomId.equals(roomId)))
-        .getSingleOrNull();
+    return (select(
+      favoriteRoomsTable,
+    )..where((t) => t.roomId.equals(roomId))).getSingleOrNull();
   }
 
   Future<void> upsertFavorite(FavoriteRoomsTableCompanion row) =>
@@ -132,26 +165,23 @@ class AppDatabase extends _$AppDatabase {
 
   Future<void> deleteCleanFavoritesNotIn(Set<String> roomIds) async {
     if (roomIds.isEmpty) {
-      await (delete(favoriteRoomsTable)..where((t) => t.syncState.equals('clean')))
-          .go();
+      await (delete(
+        favoriteRoomsTable,
+      )..where((t) => t.syncState.equals('clean'))).go();
       return;
     }
 
-    await (delete(favoriteRoomsTable)
-          ..where(
-            (t) =>
-                t.syncState.equals('clean') &
-                t.roomId.isNotIn(roomIds.toList()),
-          ))
+    await (delete(favoriteRoomsTable)..where(
+          (t) =>
+              t.syncState.equals('clean') & t.roomId.isNotIn(roomIds.toList()),
+        ))
         .go();
   }
 
   Future<List<FavoriteMutationsTableData>> getPendingFavoriteMutations() {
-    return (select(favoriteMutationsTable)
-          ..orderBy([
-            (t) => OrderingTerm.asc(t.createdAt),
-          ]))
-        .get();
+    return (select(
+      favoriteMutationsTable,
+    )..orderBy([(t) => OrderingTerm.asc(t.createdAt)])).get();
   }
 
   Future<List<FavoriteMutationsTableData>> getFavoriteMutationsForRoom(
@@ -159,9 +189,7 @@ class AppDatabase extends _$AppDatabase {
   ) {
     return (select(favoriteMutationsTable)
           ..where((t) => t.roomId.equals(roomId))
-          ..orderBy([
-            (t) => OrderingTerm.asc(t.createdAt),
-          ]))
+          ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]))
         .get();
   }
 
@@ -171,23 +199,84 @@ class AppDatabase extends _$AppDatabase {
   Future<void> deleteFavoriteMutationById(String opId) =>
       (delete(favoriteMutationsTable)..where((t) => t.opId.equals(opId))).go();
 
-  Future<void> deleteFavoriteMutationsForRoom(String roomId) =>
-      (delete(favoriteMutationsTable)..where((t) => t.roomId.equals(roomId))).go();
+  Future<void> deleteFavoriteMutationsForRoom(String roomId) => (delete(
+    favoriteMutationsTable,
+  )..where((t) => t.roomId.equals(roomId))).go();
 
-  Future<List<CachedPathsTableData>> getCachedPaths() =>
-      (select(cachedPathsTable)
-            ..orderBy([(t) => OrderingTerm.asc(t.accessedAt)]))
-          .get();
+  Future<List<CachedPathsTableData>> getCachedPaths() => (select(
+    cachedPathsTable,
+  )..orderBy([(t) => OrderingTerm.asc(t.accessedAt)])).get();
 
   Future<void> replaceCachedPaths(List<CachedPathsTableCompanion> rows) =>
       transaction(() async {
         await delete(cachedPathsTable).go();
-        if (rows.isNotEmpty) await batch((b) => b.insertAll(cachedPathsTable, rows));
+        if (rows.isNotEmpty) {
+          await batch((b) => b.insertAll(cachedPathsTable, rows));
+        }
       });
 
   Future<void> clearAllLocalUserData() => transaction(() async {
-        await delete(myBookingsTable).go();
-        await delete(favoriteMutationsTable).go();
-        await delete(favoriteRoomsTable).go();
-      });
+    await delete(myBookingsTable).go();
+    await delete(favoriteMutationsTable).go();
+    await delete(favoriteRoomsTable).go();
+    await delete(scheduleClassesTable).go();
+    await delete(cachedRecommendedRoomsTable).go();
+  });
+
+  Future<List<ScheduleClassesTableData>> getScheduleClasses() {
+    return (select(scheduleClassesTable)).get();
+  }
+
+  Future<void> replaceScheduleClasses(
+    List<ScheduleClassesTableCompanion> rows,
+  ) {
+    return transaction(() async {
+      await delete(scheduleClassesTable).go();
+
+      if (rows.isNotEmpty) {
+        await batch((b) => b.insertAll(scheduleClassesTable, rows));
+      }
+    });
+  }
+
+  Future<void> upsertScheduleClasses(
+    List<ScheduleClassesTableCompanion> rows,
+  ) async {
+    if (rows.isEmpty) {
+      return;
+    }
+
+    await batch((b) {
+      b.insertAllOnConflictUpdate(scheduleClassesTable, rows);
+    });
+  }
+
+  Future<void> clearSchedule() async {
+    await delete(scheduleClassesTable).go();
+  }
+
+  Future<void> deleteScheduleClass(String classId) async {
+    await (delete(
+      scheduleClassesTable,
+    )..where((t) => t.classId.equals(classId))).go();
+  }
+
+  Future<void> upsertRecommendedRooms({
+    required String key,
+    required String json,
+  }) {
+    return into(cachedRecommendedRoomsTable).insertOnConflictUpdate(
+      CachedRecommendedRoomsTableCompanion(
+        cacheKey: Value(key),
+        dataJson: Value(json),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+  }
+
+  Future<CachedRecommendedRoomsTableData?> getRecommendedRooms(String key) {
+    return (select(
+      cachedRecommendedRoomsTable,
+    )..where((t) => t.cacheKey.equals(key))).getSingleOrNull();
+  }
 }
