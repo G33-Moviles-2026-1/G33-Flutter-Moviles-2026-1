@@ -1,3 +1,4 @@
+import 'package:andespace/features/auth/data/local/auth_local_data_source.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core_provider.dart';
@@ -18,7 +19,10 @@ final authApiProvider = Provider<AuthApi>((ref) {
 });
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
-  return AuthRepositoryImpl(ref.watch(authApiProvider));
+  return AuthRepositoryImpl(
+    api: ref.watch(authApiProvider),
+    localDataSource: ref.watch(authLocalDataSourceProvider),
+  );
 });
 
 
@@ -47,4 +51,8 @@ final logoutAndClearSessionDataUseCaseProvider =
     bookingsLocalDataSource: ref.watch(bookingsLocalDataSourceProvider),
     favoritesLocalDataSource: ref.watch(favoritesLocalDataSourceProvider),
   );
+});
+
+final authLocalDataSourceProvider = Provider<AuthLocalDataSource>((ref) {
+  return AuthLocalDataSourceImpl();
 });

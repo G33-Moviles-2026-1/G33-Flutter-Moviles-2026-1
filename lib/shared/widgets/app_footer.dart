@@ -91,7 +91,6 @@ class _AppFooterState extends State<AppFooter> {
   @override
   Widget build(BuildContext context) {
     final brand = Theme.of(context).extension<BrandColors>()!;
-    final theme = Theme.of(context);
 
     return Column(
       mainAxisSize: MainAxisSize.min,

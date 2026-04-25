@@ -1,4 +1,4 @@
-import 'package:andespace/features/auth/presentation/controllers/auth_notifier.dart';
+import 'package:andespace/features/auth/presentation/notifiers/auth_notifier.dart';
 import 'package:andespace/core/navigation/app_routes.dart';
 import 'package:andespace/core/navigation/app_tab.dart';
 import 'package:andespace/features/schedule/presentation/widgets/schedule_page_scaffold.dart';

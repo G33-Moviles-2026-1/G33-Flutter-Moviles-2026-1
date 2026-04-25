@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../controllers/auth_notifier.dart';
+import '../notifiers/auth_notifier.dart';
 import '../widgets/auth_footer_link.dart';
 import '../widgets/auth_page_layout.dart';
 import '../widgets/auth_password_field.dart';

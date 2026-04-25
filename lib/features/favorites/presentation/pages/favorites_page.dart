@@ -5,7 +5,7 @@ import '../../../../core/navigation/app_tab.dart';
 import '../../../../shared/widgets/app_scaffold.dart';
 import '../../../../shared/widgets/auth_required_scaffold.dart';
 import '../../../../shared/widgets/section_page_layout.dart';
-import '../../../auth/presentation/controllers/auth_notifier.dart';
+import '../../../auth/presentation/notifiers/auth_notifier.dart';
 import '../controllers/favorites_state.dart';
 import '../providers/favorites_providers.dart';
 import '../widgets/favorite_room_card.dart';

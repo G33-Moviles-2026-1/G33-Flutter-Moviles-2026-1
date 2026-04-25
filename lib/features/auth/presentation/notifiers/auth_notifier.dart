@@ -12,8 +12,7 @@ class AuthNotifier extends Notifier<AuthState> {
   late final LoginAndFetchCurrentUserUseCase _loginAndFetchCurrentUserUseCase;
   late final SignUpAndFetchCurrentUserUseCase _signUpAndFetchCurrentUserUseCase;
   late final GetCurrentUserUseCase _getCurrentUserUseCase;
-  late final LogoutAndClearSessionDataUseCase
-      _logoutAndClearSessionDataUseCase;
+  late final LogoutAndClearSessionDataUseCase _logoutAndClearSessionDataUseCase;
 
   @override
   AuthState build() {
@@ -32,11 +31,7 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   Future<void> loadCurrentUser() async {
-    state = state.copyWith(
-      isLoading: true,
-      error: null,
-      isSuccess: false,
-    );
+    state = state.copyWith(isLoading: true, error: null, isSuccess: false);
 
     try {
       final user = await _getCurrentUserUseCase();
@@ -48,22 +43,12 @@ class AuthNotifier extends Notifier<AuthState> {
         isSuccess: false,
       );
     } catch (_) {
-      state = const AuthState(
-        isLoading: false,
-        isAuthenticated: false,
-      );
+      state = const AuthState(isLoading: false, isAuthenticated: false);
     }
   }
 
-  Future<void> login({
-    required String email,
-    required String password,
-  }) async {
-    state = state.copyWith(
-      isLoading: true,
-      error: null,
-      isSuccess: false,
-    );
+  Future<void> login({required String email, required String password}) async {
+    state = state.copyWith(isLoading: true, error: null, isSuccess: false);
 
     try {
       final user = await _loginAndFetchCurrentUserUseCase(
@@ -94,11 +79,7 @@ class AuthNotifier extends Notifier<AuthState> {
     required String password,
     required String firstSemester,
   }) async {
-    state = state.copyWith(
-      isLoading: true,
-      error: null,
-      isSuccess: false,
-    );
+    state = state.copyWith(isLoading: true, error: null, isSuccess: false);
 
     try {
       final user = await _signUpAndFetchCurrentUserUseCase(
@@ -127,11 +108,7 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   Future<void> logout() async {
-    state = state.copyWith(
-      isLoading: true,
-      error: null,
-      isSuccess: false,
-    );
+    state = state.copyWith(isLoading: true, error: null, isSuccess: false);
 
     try {
       await _logoutAndClearSessionDataUseCase();
@@ -154,12 +131,10 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   void clearState() {
-    state = AuthState(
-      isAuthenticated: state.isAuthenticated,
-      user: state.user,
-    );
+    state = AuthState(isAuthenticated: state.isAuthenticated, user: state.user);
   }
 }
 
-final authControllerProvider =
-    NotifierProvider<AuthNotifier, AuthState>(AuthNotifier.new);
+final authControllerProvider = NotifierProvider<AuthNotifier, AuthState>(
+  AuthNotifier.new,
+);

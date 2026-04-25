@@ -1,3 +1,6 @@
+import 'package:andespace/features/auth/data/local/auth_local_data_source.dart';
+import 'package:dio/dio.dart';
+
 import '../../domain/entities/auth_user.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../models/auth_request_dto.dart';
@@ -6,20 +9,18 @@ import '../remote/auth_api.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final AuthApi api;
+  final AuthLocalDataSource localDataSource;
 
-  AuthRepositoryImpl(this.api);
+  AuthRepositoryImpl({required this.api, required this.localDataSource});
 
   @override
-  Future<void> login({
-    required String email,
-    required String password,
-  }) async {
-    await api.login(
-      LoginRequestDto(
-        email: email,
-        password: password,
-      ),
-    );
+  Future<void> login({required String email, required String password}) async {
+    await api.login(LoginRequestDto(email: email, password: password));
+
+    final user = await getCurrentUser();
+    if (user != null) {
+      await localDataSource.saveSession(user);
+    }
   }
 
   @override
@@ -35,6 +36,11 @@ class AuthRepositoryImpl implements AuthRepository {
         firstSemester: firstSemester,
       ),
     );
+
+    final user = await getCurrentUser();
+    if (user != null) {
+      await localDataSource.saveSession(user);
+    }
   }
 
   @override
@@ -44,14 +50,42 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<AuthUser?> getCurrentUser() async {
-    final data = await api.me();
+    try {
+      final data = await api.me();
 
-    final activeUser = data['active_user'];
-    if (activeUser == null) {
-      return null;
+      final activeUser = data['active_user'];
+      if (activeUser == null) {
+        await localDataSource.clearSession();
+        return null;
+      }
+
+      final model = AuthUserModel.fromMeResponse(data);
+      final user = model.toEntity();
+
+      await localDataSource.saveSession(user);
+
+      return user;
+    } on DioException catch (e) {
+      if (e.response == null) {
+        return localDataSource.getSavedUser();
+      }
+
+      rethrow;
     }
+  }
 
-    final model = AuthUserModel.fromMeResponse(data);
-    return model.toEntity();
+  @override
+  Future<AuthUser?> getSavedUser() {
+    return localDataSource.getSavedUser();
+  }
+
+  @override
+  Future<bool> hasSavedSession() {
+    return localDataSource.hasSavedSession();
+  }
+
+  @override
+  Future<void> clearSavedSession() {
+    return localDataSource.clearSession();
   }
 }

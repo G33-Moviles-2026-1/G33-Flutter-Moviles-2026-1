@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:andespace/core/navigation/app_routes.dart';
-import '../controllers/auth_notifier.dart';
+import '../notifiers/auth_notifier.dart';
 
 class AuthGatePage extends ConsumerStatefulWidget {
   const AuthGatePage({super.key});

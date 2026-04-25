@@ -1,6 +1,6 @@
 import 'package:andespace/core/di/core_provider.dart';
 import 'package:andespace/core/navigation/app_routes.dart';
-import 'package:andespace/features/auth/presentation/controllers/auth_notifier.dart';
+import 'package:andespace/features/auth/presentation/notifiers/auth_notifier.dart';
 import 'package:andespace/features/rooms/domain/entities/room_date_availability.dart';
 import 'package:andespace/features/rooms/presentation/controllers/room_detail_notifier.dart';
 import 'package:andespace/shared/widgets/utilities_string.dart';
