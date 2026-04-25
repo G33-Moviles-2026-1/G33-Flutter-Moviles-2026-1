@@ -54,7 +54,15 @@ class HomeSearchNotifier extends AutoDisposeNotifier<HomeSearchState> {
 
     if (nearMe) {
       state = HomeSearchState.loading(previousResponse: state.response);
-      await _sessionNotifier.refreshLocation();
+      try {
+        await _sessionNotifier.refreshLocation();
+      } catch (e) {
+        state = HomeSearchState.error(
+          e is Exception ? e.toString().replaceFirst('Exception: ', '') : 'No se pudo obtener tu ubicación GPS.',
+          previousResponse: state.response,
+        );
+        return;
+      }
     }
 
     final sessionLocation = nearMe ? _sessionNotifier.currentLocation : null;
