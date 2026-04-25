@@ -68,15 +68,24 @@ class SessionNotifier extends Notifier<SessionState> {
     LocationPermission permission;
 
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) return;
+    if (!serviceEnabled) {
+      state = SessionState(currentSearch: state.currentSearch);
+      throw Exception('Location services are disabled. Please enable GPS and try again.');
+    }
 
     permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) return;
+      if (permission == LocationPermission.denied) {
+        state = SessionState(currentSearch: state.currentSearch);
+        throw Exception('Location permission denied.');
+      }
     }
 
-    if (permission == LocationPermission.deniedForever) return;
+    if (permission == LocationPermission.deniedForever) {
+      state = SessionState(currentSearch: state.currentSearch);
+      throw Exception('Location permission permanently denied. Enable it in app settings.');
+    }
 
     final position = await Geolocator.getCurrentPosition(
       locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
