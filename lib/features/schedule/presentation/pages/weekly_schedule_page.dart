@@ -299,16 +299,17 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
                               analyticsServiceProvider,
                             );
                             final importSessionId = const Uuid().v4();
-
-                            await analytics.trackScheduleImportStep(
-                              sessionId: importSessionId,
-                              deviceId: 'mobile',
-                              userEmail: 'current_user',
-                              method: 'manual',
-                              step: 'started',
-                              stepNumber: 1,
-                              propsJson: {'source_screen': 'schedule_load'},
-                            );
+                            try {
+                              await analytics.trackScheduleImportStep(
+                                sessionId: importSessionId,
+                                deviceId: 'mobile',
+                                userEmail: 'current_user',
+                                method: 'manual',
+                                step: 'started',
+                                stepNumber: 1,
+                                propsJson: {'source_screen': 'schedule_load'},
+                              );
+                            } catch (_) {}
 
                             if (!context.mounted) return;
 

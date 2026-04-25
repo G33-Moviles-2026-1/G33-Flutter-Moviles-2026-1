@@ -8,10 +8,7 @@ import '../notifiers/schedule_state.dart';
 import '../notifiers/schedule_notifier.dart';
 
 class AddClassPage extends ConsumerStatefulWidget {
-  const AddClassPage({
-    super.key,
-    required this.importSessionId,
-  });
+  const AddClassPage({super.key, required this.importSessionId});
 
   final String importSessionId;
 
@@ -154,9 +151,7 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
         _startTime == null ||
         _endTime == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Select start and end dates and times.'),
-        ),
+        const SnackBar(content: Text('Select start and end dates and times.')),
       );
       return;
     }
@@ -164,7 +159,9 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
     if (_startDate!.isAfter(_endDate!)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Start date must be earlier than or equal to end date.'),
+          content: Text(
+            'Start date must be earlier than or equal to end date.',
+          ),
         ),
       );
       return;
@@ -189,9 +186,7 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
 
     if (selectedWeekdays.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Select at least one weekday.'),
-        ),
+        const SnackBar(content: Text('Select at least one weekday.')),
       );
       return;
     }
@@ -199,17 +194,17 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
     final controller = ref.read(scheduleControllerProvider.notifier);
     final analytics = ref.read(analyticsServiceProvider);
 
-    await analytics.trackScheduleImportStep(
-      sessionId: widget.importSessionId,
-      deviceId: 'mobile',
-      userEmail: 'current_user',
-      method: 'manual',
-      step: 'first_class_added',
-      stepNumber: 2,
-      propsJson: {
-        'source_screen': 'add_class',
-      },
-    );
+    try {
+      await analytics.trackScheduleImportStep(
+        sessionId: widget.importSessionId,
+        deviceId: 'mobile',
+        userEmail: 'current_user',
+        method: 'manual',
+        step: 'first_class_added',
+        stepNumber: 2,
+        propsJson: {'source_screen': 'add_class'},
+      );
+    } catch (_) {}
 
     final existingClasses = await controller.getExistingClassesForValidation();
 
@@ -235,7 +230,8 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
       final existingEndParts = existing.endTime.split(':');
 
       final existingStartMinutes =
-          int.parse(existingStartParts[0]) * 60 + int.parse(existingStartParts[1]);
+          int.parse(existingStartParts[0]) * 60 +
+          int.parse(existingStartParts[1]);
       final existingEndMinutes =
           int.parse(existingEndParts[0]) * 60 + int.parse(existingEndParts[1]);
 
@@ -257,18 +253,17 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
         return;
       }
     }
-
-    await analytics.trackScheduleImportStep(
-      sessionId: widget.importSessionId,
-      deviceId: 'mobile',
-      userEmail: 'current_user',
-      method: 'manual',
-      step: 'confirmed',
-      stepNumber: 3,
-      propsJson: {
-        'source_screen': 'add_class',
-      },
-    );
+    try {
+      await analytics.trackScheduleImportStep(
+        sessionId: widget.importSessionId,
+        deviceId: 'mobile',
+        userEmail: 'current_user',
+        method: 'manual',
+        step: 'confirmed',
+        stepNumber: 3,
+        propsJson: {'source_screen': 'add_class'},
+      );
+    } catch (_) {}
 
     final manualClass = ManualClass(
       title: _titleController.text.trim(),
@@ -302,23 +297,20 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
 
   @override
   Widget build(BuildContext context) {
-    ref.listen<ScheduleState>(
-      scheduleControllerProvider,
-      (_, next) {
-        if (next.status == ScheduleStatus.error &&
-            next.errorMessage != null &&
-            next.errorMessage!.trim().isNotEmpty) {
-          ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(
-              SnackBar(
-                content: Text(next.errorMessage!),
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
-        }
-      },
-    );
+    ref.listen<ScheduleState>(scheduleControllerProvider, (_, next) {
+      if (next.status == ScheduleStatus.error &&
+          next.errorMessage != null &&
+          next.errorMessage!.trim().isNotEmpty) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(next.errorMessage!),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+      }
+    });
 
     final state = ref.watch(scheduleControllerProvider);
     final isSaving = state.status == ScheduleStatus.savingManualClass;
@@ -366,13 +358,11 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
                     children: [
                       TextFormField(
                         controller: _titleController,
-                        inputFormatters: [
-                          LengthLimitingTextInputFormatter(60),
-                        ],
+                        inputFormatters: [LengthLimitingTextInputFormatter(60)],
                         decoration: InputDecoration(
                           hintText: 'Class Title',
                           counterText: '',
-                            enabledBorder: OutlineInputBorder(
+                          enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(14),
                             borderSide: BorderSide(
                               color: theme.brightness == Brightness.light
@@ -392,12 +382,10 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: _roomIdController,
-                        inputFormatters: [
-                          LengthLimitingTextInputFormatter(30),
-                        ],
+                        inputFormatters: [LengthLimitingTextInputFormatter(30)],
                         decoration: InputDecoration(
                           hintText: 'Room (Optional)',
-                            enabledBorder: OutlineInputBorder(
+                          enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(14),
                             borderSide: BorderSide(
                               color: theme.brightness == Brightness.light
@@ -454,7 +442,9 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
                               height: 54,
                               child: OutlinedButton.icon(
                                 onPressed: _pickEndDate,
-                                icon: const Icon(Icons.event_available_outlined),
+                                icon: const Icon(
+                                  Icons.event_available_outlined,
+                                ),
                                 label: Text(
                                   _endDate == null
                                       ? 'End Date'
@@ -547,10 +537,19 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
                               ),
                             ),
                             selected: selected,
-                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            visualDensity: const VisualDensity(horizontal: -2, vertical: -2),
-                            labelPadding: const EdgeInsets.symmetric(horizontal: 6),
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                            materialTapTargetSize:
+                                MaterialTapTargetSize.shrinkWrap,
+                            visualDensity: const VisualDensity(
+                              horizontal: -2,
+                              vertical: -2,
+                            ),
+                            labelPadding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 4,
+                            ),
                             onSelected: (value) {
                               setState(() {
                                 _weekdays[day] = value;

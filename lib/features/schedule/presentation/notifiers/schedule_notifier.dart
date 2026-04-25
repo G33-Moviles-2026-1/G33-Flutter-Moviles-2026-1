@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:andespace/core/di/core_provider.dart';
 import 'package:andespace/features/rooms/domain/entities/room_search.dart';
 import 'package:andespace/features/schedule/domain/entities/schedule_class.dart';
@@ -63,9 +65,17 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
       final schedule = await loadWeek(date: targetDate);
 
       if (schedule.occurrences.isEmpty) {
+        final existingClasses = await ref.read(
+          getScheduleClassesForCurrentUserProvider,
+        )();
+
         state = state.copyWith(
-          status: ScheduleStatus.empty,
+          status: existingClasses.isEmpty
+              ? ScheduleStatus.empty
+              : ScheduleStatus.loaded,
           weeklySchedule: schedule,
+          clearErrorMessage: true,
+          clearInfoMessage: true,
         );
         return;
       }
@@ -132,9 +142,15 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
 
       await loadWeek(date: DateTime.now());
     } catch (error) {
+      final message = mapScheduleErrorMessage(error);
+
       state = state.copyWith(
         status: ScheduleStatus.error,
-        errorMessage: mapScheduleErrorMessage(error),
+        errorMessage:
+            message.toLowerCase().contains('internet') ||
+                message.toLowerCase().contains('connection')
+            ? 'You need internet to import an ICS schedule.'
+            : message,
       );
     }
   }
@@ -204,9 +220,7 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
     );
 
     try {
-      final deleteClass = ref.read(
-        deleteScheduleClassForCurrentUserProvider,
-      );
+      final deleteClass = ref.read(deleteScheduleClassForCurrentUserProvider);
 
       await deleteClass(classId: classId);
       await loadWeek(date: state.selectedDate);
@@ -232,10 +246,7 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
         deleteScheduleOccurrenceForCurrentUserProvider,
       );
 
-      await deleteOccurrence(
-        classId: classId,
-        date: date,
-      );
+      await deleteOccurrence(classId: classId, date: date);
 
       await loadWeek(date: state.selectedDate);
     } catch (error) {
@@ -270,27 +281,55 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
     }
   }
 
+  int _successCount = 0;
+  int _failureCount = 0;
+  Timer? _debounceTimer;
+
   void listenPendingActionEvents() {
     ref.listen(
       connectivityQueueServiceProvider.select((service) => service.events),
       (_, stream) {
         stream.listen((event) {
           if (event is PendingActionSucceeded) {
-            state = state.copyWith(
-              infoMessage: event.action.successMessage,
-              clearErrorMessage: true,
-            );
+            _successCount++;
           }
 
           if (event is PendingActionFailed) {
-            state = state.copyWith(
-              errorMessage: event.action.failureMessage,
-              clearInfoMessage: true,
-            );
+            _failureCount++;
           }
+
+          _debounceTimer?.cancel();
+
+          _debounceTimer = Timer(const Duration(seconds: 2), () {
+            _emitGroupedMessage();
+          });
         });
       },
     );
+  }
+
+  void _emitGroupedMessage() {
+    if (_successCount == 0 && _failureCount == 0) return;
+
+    if (_failureCount == 0) {
+      state = state.copyWith(
+        infoMessage: 'All changes synced successfully.',
+        clearErrorMessage: true,
+      );
+    } else if (_successCount == 0) {
+      state = state.copyWith(
+        errorMessage: 'Some changes failed to sync.',
+        clearInfoMessage: true,
+      );
+    } else {
+      state = state.copyWith(
+        errorMessage: 'Some changes failed to sync.',
+        clearInfoMessage: true,
+      );
+    }
+
+    _successCount = 0;
+    _failureCount = 0;
   }
 
   void clearInfoMessage() {
@@ -299,6 +338,4 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
 }
 
 final scheduleControllerProvider =
-    NotifierProvider<ScheduleNotifier, ScheduleState>(
-  ScheduleNotifier.new,
-);
+    NotifierProvider<ScheduleNotifier, ScheduleState>(ScheduleNotifier.new);

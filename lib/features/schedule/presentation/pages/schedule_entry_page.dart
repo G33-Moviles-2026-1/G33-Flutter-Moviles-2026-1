@@ -68,8 +68,7 @@ class _ScheduleEntryPageState extends ConsumerState<ScheduleEntryPage> {
 
     if (!_requestedInitialLoad ||
         state.status == ScheduleStatus.initial ||
-        (state.status == ScheduleStatus.loading &&
-            state.weeklySchedule == null)) {
+        state.status == ScheduleStatus.loading) {
       return const SchedulePageScaffold(
         body: ScheduleStatusCard(
           leading: CircularProgressIndicator(),
@@ -78,9 +77,14 @@ class _ScheduleEntryPageState extends ConsumerState<ScheduleEntryPage> {
         ),
       );
     }
-
-    if (state.weeklySchedule != null) {
+    if (state.weeklySchedule != null &&
+        state.status != ScheduleStatus.empty &&
+        state.status != ScheduleStatus.initial) {
       return const WeeklySchedulePage();
+    }
+
+    if (state.status == ScheduleStatus.empty && state.weeklySchedule == null) {
+      return const ScheduleLoadPage();
     }
 
     if (state.status == ScheduleStatus.error) {

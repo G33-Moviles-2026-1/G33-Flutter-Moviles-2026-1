@@ -240,4 +240,10 @@ class AppDatabase extends _$AppDatabase {
   Future<void> clearSchedule() async {
     await delete(scheduleClassesTable).go();
   }
+
+  Future<void> deleteScheduleClass(String classId) async {
+  await (delete(scheduleClassesTable)
+        ..where((t) => t.classId.equals(classId)))
+      .go();
+}
 }
