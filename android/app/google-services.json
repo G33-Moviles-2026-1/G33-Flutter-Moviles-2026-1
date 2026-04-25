@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "148383268151",
+    "project_id": "andespace-e6166",
+    "storage_bucket": "andespace-e6166.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:148383268151:android:22b77cac501a82b08ceeb2",
+        "android_client_info": {
+          "package_name": "com.example.andespace"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAXh3Kt0D5iXT76qFpc2GtpCdGfZvQnLts"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
