@@ -1,0 +1,341 @@
+import 'dart:async';
+
+import 'package:andespace/core/di/core_provider.dart';
+import 'package:andespace/features/rooms/domain/entities/room_search.dart';
+import 'package:andespace/features/schedule/domain/entities/schedule_class.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:andespace/core/connectivity/pending_action_event.dart';
+import 'package:dio/dio.dart';
+
+import '../../domain/entities/manual_class.dart';
+import '../mappers/schedule_error_message_mapper.dart';
+import '../providers/schedule_providers.dart';
+import 'schedule_state.dart';
+
+class ScheduleNotifier extends Notifier<ScheduleState> {
+  @override
+  ScheduleState build() {
+    Future.microtask(listenPendingActionEvents);
+    return ScheduleState.initial();
+  }
+
+  void resetState() {
+    state = ScheduleState.initial();
+  }
+
+  Future<void> _trackScheduleImportStep({
+    required String importSessionId,
+    required String method,
+    required String step,
+    required int stepNumber,
+    String? errorMessage,
+  }) async {
+    try {
+      final analyticsService = ref.read(analyticsServiceProvider);
+
+      await analyticsService.trackScheduleImportStep(
+        sessionId: importSessionId,
+        deviceId: 'mobile',
+        userEmail: 'current_user',
+        method: method,
+        step: step,
+        stepNumber: stepNumber,
+        propsJson: {if (errorMessage != null) 'error_message': errorMessage},
+      );
+    } catch (_) {}
+  }
+
+  bool _isMissingScheduleError(Object error) {
+    if (error is! DioException) return false;
+    return error.response?.statusCode == 404;
+  }
+
+  Future<void> loadWeek({DateTime? date}) async {
+    final targetDate = date ?? state.selectedDate;
+
+    state = state.copyWith(
+      status: ScheduleStatus.loading,
+      selectedDate: targetDate,
+      clearErrorMessage: true,
+      clearInfoMessage: true,
+    );
+
+    try {
+      final loadWeek = ref.read(loadWeekForCurrentUserProvider);
+      final schedule = await loadWeek(date: targetDate);
+
+      if (schedule.occurrences.isEmpty) {
+        final existingClasses = await ref.read(
+          getScheduleClassesForCurrentUserProvider,
+        )();
+
+        state = state.copyWith(
+          status: existingClasses.isEmpty
+              ? ScheduleStatus.empty
+              : ScheduleStatus.loaded,
+          weeklySchedule: schedule,
+          clearErrorMessage: true,
+          clearInfoMessage: true,
+        );
+        return;
+      }
+
+      state = state.copyWith(
+        status: ScheduleStatus.loaded,
+        weeklySchedule: schedule,
+      );
+    } catch (error) {
+      if (_isMissingScheduleError(error)) {
+        state = state.copyWith(
+          status: ScheduleStatus.empty,
+          clearWeeklySchedule: true,
+        );
+        return;
+      }
+
+      state = state.copyWith(
+        status: ScheduleStatus.error,
+        errorMessage: mapScheduleErrorMessage(error),
+        clearWeeklySchedule: true,
+      );
+    }
+  }
+
+  Future<void> refresh() async {
+    await loadWeek(date: DateTime.now());
+  }
+
+  Future<void> selectDay(DateTime date) async {
+    state = state.copyWith(
+      selectedDate: DateTime(date.year, date.month, date.day),
+      clearErrorMessage: true,
+    );
+  }
+
+  Future<void> goToPreviousWeek() async {
+    await loadWeek(date: state.selectedDate.subtract(const Duration(days: 7)));
+  }
+
+  Future<void> goToNextWeek() async {
+    await loadWeek(date: state.selectedDate.add(const Duration(days: 7)));
+  }
+
+  Future<void> importIcs({
+    required String filePath,
+    required String importSessionId,
+  }) async {
+    state = state.copyWith(
+      status: ScheduleStatus.uploading,
+      clearErrorMessage: true,
+    );
+
+    try {
+      final importIcs = ref.read(importIcsForCurrentUserProvider);
+      await importIcs(filePath: filePath);
+
+      await _trackScheduleImportStep(
+        importSessionId: importSessionId,
+        method: 'ics',
+        step: 'completed',
+        stepNumber: 5,
+      );
+
+      await loadWeek(date: DateTime.now());
+    } catch (error) {
+      final message = mapScheduleErrorMessage(error);
+
+      state = state.copyWith(
+        status: ScheduleStatus.error,
+        errorMessage:
+            message.toLowerCase().contains('internet') ||
+                message.toLowerCase().contains('connection')
+            ? 'You need internet to import an ICS schedule.'
+            : message,
+      );
+    }
+  }
+
+  Future<void> saveManualClass({
+    required ManualClass manualClass,
+    required String importSessionId,
+  }) async {
+    state = state.copyWith(
+      status: ScheduleStatus.savingManualClass,
+      clearErrorMessage: true,
+    );
+
+    try {
+      final saveManual = ref.read(saveManualClassForCurrentUserProvider);
+      await saveManual(manualClass: manualClass);
+
+      state = state.copyWith(
+        infoMessage:
+            'Schedule saved. If you are offline, it will sync when connection returns.',
+      );
+
+      await _trackScheduleImportStep(
+        importSessionId: importSessionId,
+        method: 'manual',
+        step: 'completed',
+        stepNumber: 4,
+      );
+
+      await loadWeek(date: state.selectedDate);
+    } catch (error) {
+      state = state.copyWith(
+        status: ScheduleStatus.error,
+        errorMessage: mapScheduleErrorMessage(error),
+      );
+    }
+  }
+
+  Future<void> removeFullSchedule() async {
+    state = state.copyWith(
+      status: ScheduleStatus.deleting,
+      clearErrorMessage: true,
+    );
+
+    try {
+      final deleteFull = ref.read(deleteFullScheduleForCurrentUserProvider);
+      await deleteFull();
+
+      state = state.copyWith(
+        infoMessage:
+            'Schedule deleted locally. If you are offline, the change will sync later.',
+        status: ScheduleStatus.empty,
+        clearWeeklySchedule: true,
+      );
+    } catch (error) {
+      state = state.copyWith(
+        status: ScheduleStatus.error,
+        errorMessage: mapScheduleErrorMessage(error),
+      );
+    }
+  }
+
+  Future<void> removeClass({required String classId}) async {
+    state = state.copyWith(
+      status: ScheduleStatus.deleting,
+      clearErrorMessage: true,
+    );
+
+    try {
+      final deleteClass = ref.read(deleteScheduleClassForCurrentUserProvider);
+
+      await deleteClass(classId: classId);
+      await loadWeek(date: state.selectedDate);
+    } catch (error) {
+      state = state.copyWith(
+        status: ScheduleStatus.error,
+        errorMessage: mapScheduleErrorMessage(error),
+      );
+    }
+  }
+
+  Future<void> removeOccurrence({
+    required String classId,
+    required DateTime date,
+  }) async {
+    state = state.copyWith(
+      status: ScheduleStatus.deleting,
+      clearErrorMessage: true,
+    );
+
+    try {
+      final deleteOccurrence = ref.read(
+        deleteScheduleOccurrenceForCurrentUserProvider,
+      );
+
+      await deleteOccurrence(classId: classId, date: date);
+
+      await loadWeek(date: state.selectedDate);
+    } catch (error) {
+      state = state.copyWith(
+        status: ScheduleStatus.error,
+        errorMessage: mapScheduleErrorMessage(error),
+      );
+    }
+  }
+
+  Future<List<ScheduleClass>> getExistingClassesForValidation() {
+    final getScheduleClasses = ref.read(
+      getScheduleClassesForCurrentUserProvider,
+    );
+
+    return getScheduleClasses();
+  }
+
+  Future<(List<RoomSearchItem>, DateTime?)> loadRecommendedRoomsForSelectedDay() async {
+    try {
+      final getRecommendedRooms = ref.read(
+        getRecommendedRoomsForCurrentUserProvider,
+      );
+
+      return await getRecommendedRooms(date: state.selectedDate);
+    } catch (error) {
+      state = state.copyWith(
+        status: ScheduleStatus.error,
+        errorMessage: mapScheduleErrorMessage(error),
+      );
+      rethrow;
+    }
+  }
+
+  int _successCount = 0;
+  int _failureCount = 0;
+  Timer? _debounceTimer;
+
+  void listenPendingActionEvents() {
+    ref.listen(
+      connectivityQueueServiceProvider.select((service) => service.events),
+      (_, stream) {
+        stream.listen((event) {
+          if (event is PendingActionSucceeded) {
+            _successCount++;
+          }
+
+          if (event is PendingActionFailed) {
+            _failureCount++;
+          }
+
+          _debounceTimer?.cancel();
+
+          _debounceTimer = Timer(const Duration(seconds: 2), () {
+            _emitGroupedMessage();
+          });
+        });
+      },
+    );
+  }
+
+  void _emitGroupedMessage() {
+    if (_successCount == 0 && _failureCount == 0) return;
+
+    if (_failureCount == 0) {
+      state = state.copyWith(
+        infoMessage: 'All changes synced successfully.',
+        clearErrorMessage: true,
+      );
+    } else if (_successCount == 0) {
+      state = state.copyWith(
+        errorMessage: 'Some changes failed to sync.',
+        clearInfoMessage: true,
+      );
+    } else {
+      state = state.copyWith(
+        errorMessage: 'Some changes failed to sync.',
+        clearInfoMessage: true,
+      );
+    }
+
+    _successCount = 0;
+    _failureCount = 0;
+  }
+
+  void clearInfoMessage() {
+    state = state.copyWith(clearInfoMessage: true);
+  }
+}
+
+final scheduleControllerProvider =
+    NotifierProvider<ScheduleNotifier, ScheduleState>(ScheduleNotifier.new);

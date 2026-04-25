@@ -1,18 +1,19 @@
-import 'package:andespace/features/schedule/domain/usecases/get_recommended_rooms_for_day.dart';
+import 'package:andespace/features/schedule/data/local/schedule_local_data_source.dart';
+import 'package:andespace/features/schedule/domain/usecases/delete_full_schedule_for_current_user_usecase.dart';
+import 'package:andespace/features/schedule/domain/usecases/delete_schedule_class_for_current_user_usecase.dart';
+import 'package:andespace/features/schedule/domain/usecases/delete_schedule_occurrence_for_current_user_usecase.dart';
+import 'package:andespace/features/schedule/domain/usecases/get_recommended_rooms_for_current_user_usecase.dart';
+import 'package:andespace/features/schedule/domain/usecases/get_schedule_classes_for_current_user_usecase.dart';
+import 'package:andespace/features/schedule/domain/usecases/import_ics_for_current_user_usecase.dart';
+import 'package:andespace/features/schedule/domain/usecases/load_week_for_current_user_usecase.dart';
+import 'package:andespace/features/schedule/domain/usecases/save_manual_class_for_current_user_usecase.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:andespace/core/di/core_provider.dart';
 
-import '../../data/datasources/schedule_remote_data_source.dart';
+import '../../data/remote/schedule_remote_data_source.dart';
 import '../../data/repositories/schedule_repository_impl.dart';
 import '../../domain/repositories/schedule_repository.dart';
-import '../../domain/usecases/delete_full_schedule.dart';
-import '../../domain/usecases/delete_schedule_class.dart';
-import '../../domain/usecases/delete_schedule_occurrence.dart';
-import '../../domain/usecases/get_schedule_classes.dart';
-import '../../domain/usecases/get_weekly_schedule.dart';
-import '../../domain/usecases/upload_ics_schedule.dart';
-import '../../domain/usecases/upload_manual_schedule.dart';
 
 final scheduleRemoteDataSourceProvider = Provider<ScheduleRemoteDataSource>((ref) {
   final dio = ref.watch(dioProvider);
@@ -22,49 +23,77 @@ final scheduleRemoteDataSourceProvider = Provider<ScheduleRemoteDataSource>((ref
 
 final scheduleRepositoryProvider = Provider<ScheduleRepository>((ref) {
   final remoteDataSource = ref.watch(scheduleRemoteDataSourceProvider);
+  final localDataSource = ref.watch(scheduleLocalDataSourceProvider);
+  final connectivityQueueService = ref.watch(connectivityQueueServiceProvider);
 
   return ScheduleRepositoryImpl(
     remoteDataSource: remoteDataSource,
+    localDataSource: localDataSource,
+    connectivityQueueService: connectivityQueueService,
   );
 });
 
-final uploadIcsScheduleProvider = Provider<UploadIcsSchedule>((ref) {
-  final repository = ref.watch(scheduleRepositoryProvider);
-  return UploadIcsSchedule(repository);
+
+final loadWeekForCurrentUserProvider =
+    Provider<LoadWeekForCurrentUserUseCase>((ref) {
+  return LoadWeekForCurrentUserUseCase(
+    repository: ref.watch(scheduleRepositoryProvider),
+  );
 });
 
-final uploadManualScheduleProvider = Provider<UploadManualSchedule>((ref) {
-  final repository = ref.watch(scheduleRepositoryProvider);
-  return UploadManualSchedule(repository);
+final importIcsForCurrentUserProvider =
+    Provider<ImportIcsForCurrentUserUseCase>((ref) {
+  return ImportIcsForCurrentUserUseCase(
+    repository: ref.watch(scheduleRepositoryProvider),
+  );
 });
 
-final getWeeklyScheduleProvider = Provider<GetWeeklySchedule>((ref) {
-  final repository = ref.watch(scheduleRepositoryProvider);
-  return GetWeeklySchedule(repository);
+final getScheduleClassesForCurrentUserProvider =
+    Provider<GetScheduleClassesForCurrentUserUseCase>((ref) {
+  return GetScheduleClassesForCurrentUserUseCase(
+    repository: ref.watch(scheduleRepositoryProvider),
+  );
 });
 
-final getScheduleClassesProvider = Provider<GetScheduleClasses>((ref) {
-  final repository = ref.watch(scheduleRepositoryProvider);
-  return GetScheduleClasses(repository);
+final saveManualClassForCurrentUserProvider =
+    Provider<SaveManualClassForCurrentUserUseCase>((ref) {
+  return SaveManualClassForCurrentUserUseCase(
+    repository: ref.watch(scheduleRepositoryProvider),
+    getScheduleClassesForCurrentUser:
+        ref.watch(getScheduleClassesForCurrentUserProvider),
+  );
 });
 
-final deleteFullScheduleProvider = Provider<DeleteFullSchedule>((ref) {
-  final repository = ref.watch(scheduleRepositoryProvider);
-  return DeleteFullSchedule(repository);
+final deleteFullScheduleForCurrentUserProvider =
+    Provider<DeleteFullScheduleForCurrentUserUseCase>((ref) {
+  return DeleteFullScheduleForCurrentUserUseCase(
+    repository: ref.watch(scheduleRepositoryProvider),
+  );
 });
 
-final deleteScheduleClassProvider = Provider<DeleteScheduleClass>((ref) {
-  final repository = ref.watch(scheduleRepositoryProvider);
-  return DeleteScheduleClass(repository);
+final deleteScheduleClassForCurrentUserProvider =
+    Provider<DeleteScheduleClassForCurrentUserUseCase>((ref) {
+  return DeleteScheduleClassForCurrentUserUseCase(
+    repository: ref.watch(scheduleRepositoryProvider),
+  );
 });
 
-final deleteScheduleOccurrenceProvider = Provider<DeleteScheduleOccurrence>((ref) {
-  final repository = ref.watch(scheduleRepositoryProvider);
-  return DeleteScheduleOccurrence(repository);
+final deleteScheduleOccurrenceForCurrentUserProvider =
+    Provider<DeleteScheduleOccurrenceForCurrentUserUseCase>((ref) {
+  return DeleteScheduleOccurrenceForCurrentUserUseCase(
+    repository: ref.watch(scheduleRepositoryProvider),
+  );
 });
 
-final getRecommendedRoomsForDayProvider = Provider<GetRecommendedRoomsForDay>((ref) {
-  final repository = ref.watch(scheduleRepositoryProvider);
-  return GetRecommendedRoomsForDay(repository);
+final getRecommendedRoomsForCurrentUserProvider =
+    Provider<GetRecommendedRoomsForCurrentUserUseCase>((ref) {
+  return GetRecommendedRoomsForCurrentUserUseCase(
+    repository: ref.watch(scheduleRepositoryProvider),
+  );
 });
 
+final scheduleLocalDataSourceProvider = Provider<ScheduleLocalDataSource>((ref) {
+  final db = ref.watch(appDatabaseProvider);
+
+  return ScheduleLocalDataSourceImpl(db: db);
+});

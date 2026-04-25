@@ -1,17 +1,16 @@
 import '../entities/weekly_schedule.dart';
 import '../repositories/schedule_repository.dart';
 
-class GetWeeklySchedule {
+class LoadWeekForCurrentUserUseCase {
   final ScheduleRepository repository;
 
-  const GetWeeklySchedule(this.repository);
+  LoadWeekForCurrentUserUseCase({
+    required this.repository,
+  });
 
-  Future<WeeklySchedule> call({
-    required String userEmail,
-    required DateTime date,
-  }) {
+  Future<WeeklySchedule> call({required DateTime date}) async {
+
     return repository.getWeeklySchedule(
-      userEmail: userEmail,
       date: date,
     );
   }

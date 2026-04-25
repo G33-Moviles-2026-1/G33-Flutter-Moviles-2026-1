@@ -1,253 +1,294 @@
+import 'package:andespace/core/connectivity/connectivity_queue_service.dart';
+import 'package:andespace/core/connectivity/pending_action.dart';
 import 'package:andespace/features/rooms/domain/entities/room_search.dart';
+import 'package:andespace/features/schedule/data/local/schedule_local_data_source.dart';
+import 'package:andespace/features/schedule/data/models/manual_class_dto.dart';
+import 'package:dio/dio.dart';
 
 import '../../domain/entities/free_rooms_for_day.dart';
 import '../../domain/entities/manual_class.dart';
 import '../../domain/entities/schedule_class.dart';
-import '../../domain/entities/schedule_occurrence.dart';
 import '../../domain/entities/weekly_schedule.dart';
 import '../../domain/repositories/schedule_repository.dart';
-import '../datasources/schedule_remote_data_source.dart';
-import '../models/manual_class_dto.dart';
+import '../mappers/free_rooms_mapper.dart';
+import '../mappers/manual_class_mapper.dart';
+import '../mappers/recommended_rooms_mapper.dart';
+import '../mappers/schedule_class_mapper.dart';
+import '../remote/schedule_remote_data_source.dart';
 
 class ScheduleRepositoryImpl implements ScheduleRepository {
   final ScheduleRemoteDataSource remoteDataSource;
+  final ScheduleLocalDataSource localDataSource;
+  final ConnectivityQueueService connectivityQueueService;
 
   const ScheduleRepositoryImpl({
     required this.remoteDataSource,
+    required this.localDataSource,
+    required this.connectivityQueueService,
   });
 
+  bool _isConnectivityError(Object e) {
+    return e is DioException && e.response == null;
+  }
+
   @override
-  Future<void> uploadIcsSchedule({
-    required String userEmail,
-    required String filePath,
-  }) async {
-    await remoteDataSource.uploadIcsSchedule(
-      userEmail: userEmail,
-      filePath: filePath,
+  Future<void> uploadIcsSchedule({required String filePath}) async {
+    await remoteDataSource.uploadIcsSchedule(filePath: filePath);
+
+    final remoteClasses = await remoteDataSource.getScheduleClasses();
+
+    await localDataSource.replaceClasses(
+      classes: ScheduleClassMapper.toEntityList(remoteClasses),
     );
   }
 
   @override
   Future<void> uploadManualSchedule({
-    required String userEmail,
     required List<ManualClass> classes,
   }) async {
-    final models = classes
-        .map(
-          (e) => ManualClassModel(
-            title: e.title,
-            locationText: e.locationText,
-            roomId: e.roomId,
-            startDate: e.startDate,
-            endDate: e.endDate,
-            startTime: e.startTime,
-            endTime: e.endTime,
-            weekdays: e.weekdays,
-          ),
-        )
-        .toList();
+    final models = ManualClassMapper.toModelList(classes);
+    final normalizedModels = _normalizeManualModelsForBackend(models);
 
-    await remoteDataSource.uploadManualSchedule(
-      userEmail: userEmail,
-      classes: models,
-    );
+    try {
+      await remoteDataSource.uploadManualSchedule(classes: normalizedModels);
+
+      final remoteClasses = await remoteDataSource.getScheduleClasses();
+
+      await localDataSource.replaceClasses(
+        classes: ScheduleClassMapper.toEntityList(remoteClasses),
+      );
+    } catch (e) {
+      if (!_isConnectivityError(e)) rethrow;
+
+      await localDataSource.saveManualClasses(classes: classes);
+
+      connectivityQueueService.enqueue(
+        _UploadManualSchedulePendingAction(
+          remoteDataSource: remoteDataSource,
+          classes: normalizedModels,
+        ),
+      );
+    }
   }
 
   @override
-  Future<WeeklySchedule> getWeeklySchedule({
-    required String userEmail,
-    required DateTime date,
-  }) async {
-    final model = await remoteDataSource.getWeeklySchedule(
-      userEmail: userEmail,
-      date: date,
-    );
-
-    return WeeklySchedule(
-      weekStart: model.weekStart,
-      weekEnd: model.weekEnd,
-      occurrences: model.occurrences
-          .map(
-            (e) => ScheduleOccurrence(
-              classId: e.classId,
-              title: e.title,
-              locationText: e.locationText,
-              roomId: (e.roomId != null && e.roomId!.trim().isNotEmpty)
-                  ? e.roomId
-                  : e.locationText,
-              date: e.date,
-              weekday: e.weekday,
-              startTime: e.startTime,
-              endTime: e.endTime,
-            ),
-          )
-          .toList(),
-    );
+  Future<WeeklySchedule> getWeeklySchedule({required DateTime date}) {
+    return localDataSource.getWeeklySchedule(date: date);
   }
 
   @override
-  Future<List<ScheduleClass>> getScheduleClasses({
-    required String userEmail,
-  }) async {
-    final models = await remoteDataSource.getScheduleClasses(
-      userEmail: userEmail,
-    );
-
-    return models
-        .map(
-          (e) => ScheduleClass(
-            classId: e.classId,
-            title: e.title,
-            locationText: e.locationText,
-            roomId: (e.roomId != null && e.roomId!.trim().isNotEmpty)
-              ? e.roomId
-              : e.locationText,
-            startDate: e.startDate,
-            endDate: e.endDate,
-            startTime: e.startTime,
-            endTime: e.endTime,
-            weekdays: e.weekdays,
-          ),
-        )
-        .toList();
+  Future<List<ScheduleClass>> getScheduleClasses() {
+    return localDataSource.getClasses();
   }
 
   @override
-  Future<FreeRoomsForDay> getFreeRoomsForDay({
-    required String userEmail,
-    required DateTime date,
-  }) async {
-    final model = await remoteDataSource.getFreeRoomsForDay(
-      userEmail: userEmail,
-      date: date,
-    );
+  Future<FreeRoomsForDay> getFreeRoomsForDay({required DateTime date}) async {
+    final model = await remoteDataSource.getFreeRoomsForDay(date: date);
 
-    return FreeRoomsForDay(
-      date: model.date,
-      weekday: model.weekday,
-      freeSlots: model.freeSlots
-          .map(
-            (e) => FreeSlot(
-              startTime: e.startTime,
-              endTime: e.endTime,
-            ),
-          )
-          .toList(),
-      slotsWithRooms: model.slotsWithRooms
-          .map(
-            (slot) => SlotWithRooms(
-              slotStart: slot.slotStart,
-              slotEnd: slot.slotEnd,
-              availableRooms: slot.availableRooms
-                  .map(
-                    (room) => RoomInSlot(
-                      roomId: room.roomId,
-                      buildingName: room.buildingName,
-                      capacity: room.capacity,
-                      reliability: room.reliability,
-                    ),
-                  )
-                  .toList(),
-            ),
-          )
-          .toList(),
-    );
+    return FreeRoomsForDayMapper.toEntity(model);
   }
 
   @override
-  Future<void> deleteFullSchedule({
-    required String userEmail,
-  }) async {
-    await remoteDataSource.deleteFullSchedule(
-      userEmail: userEmail,
-    );
+  Future<void> deleteFullSchedule() async {
+    await localDataSource.clearSchedule();
+
+    try {
+      await remoteDataSource.deleteFullSchedule();
+    } catch (e) {
+      if (!_isConnectivityError(e)) rethrow;
+
+      connectivityQueueService.enqueue(
+        _DeleteFullSchedulePendingAction(remoteDataSource: remoteDataSource),
+      );
+    }
   }
 
   @override
-  Future<void> deleteScheduleClass({
-    required String userEmail,
-    required String classId,
-  }) async {
-    await remoteDataSource.deleteScheduleClass(
-      userEmail: userEmail,
-      classId: classId,
-    );
+  Future<void> deleteScheduleClass({required String classId}) async {
+    await localDataSource.deleteClass(classId: classId);
+
+    try {
+      await remoteDataSource.deleteScheduleClass(classId: classId);
+    } catch (e) {
+      if (!_isConnectivityError(e)) rethrow;
+
+      connectivityQueueService.enqueue(
+        _DeleteScheduleClassPendingAction(
+          remoteDataSource: remoteDataSource,
+          classId: classId,
+        ),
+      );
+    }
   }
 
   @override
   Future<void> deleteScheduleOccurrence({
-    required String userEmail,
     required String classId,
     required DateTime date,
   }) async {
-    await remoteDataSource.deleteScheduleOccurrence(
-      userEmail: userEmail,
-      classId: classId,
-      date: date,
-    );
+    await localDataSource.deleteOccurrence(classId: classId, date: date);
+
+    try {
+      await remoteDataSource.deleteScheduleOccurrence(
+        classId: classId,
+        date: date,
+      );
+    } catch (e) {
+      if (!_isConnectivityError(e)) rethrow;
+
+      connectivityQueueService.enqueue(
+        _DeleteScheduleOccurrencePendingAction(
+          remoteDataSource: remoteDataSource,
+          classId: classId,
+          date: date,
+        ),
+      );
+    }
   }
 
   @override
-  Future<List<RoomSearchItem>> getRecommendedRoomsForDay({
-    required String userEmail,
+  Future<(List<RoomSearchItem>, DateTime?)> getRecommendedRoomsForDay({
     required DateTime date,
   }) async {
-    final raw = await remoteDataSource.getRecommendedRoomsForDay(
-      date: date,
-    );
+    try {
+      final raw = await remoteDataSource.getRecommendedRoomsForDay(date: date);
 
-    final slots = raw['slots'] as List<dynamic>? ?? [];
-    final items = <RoomSearchItem>[];
+      await localDataSource.cacheRecommendedRooms(date: date, raw: raw);
 
-    for (final slot in slots) {
-      final slotMap = Map<String, dynamic>.from(slot as Map);
-      final slotStart = slotMap['slot_start'] as String? ?? '';
-      final slotEnd = slotMap['slot_end'] as String? ?? '';
+      return (RecommendedRoomsMapper.fromRaw(raw), DateTime.now());
+    } catch (e) {
+      if (!_isConnectivityError(e)) rethrow;
 
-      final recommendedRooms =
-          slotMap['recommended_rooms'] as List<dynamic>? ?? [];
+      final cached = await localDataSource.getCachedRecommendedRooms(
+        date: date,
+      );
+      final raw = cached.$1;
+      final updatedAt = cached.$2;
 
-      for (final room in recommendedRooms) {
-        final roomMap = Map<String, dynamic>.from(room as Map);
-
-        final roomId = roomMap['room_id'] as String? ?? '';
-        final buildingName = roomMap['building_name'] as String?;
-        final capacity = roomMap['capacity'] as int? ?? 0;
-        final reliability =
-            (roomMap['reliability'] as num?)?.toDouble() ?? 0.0;
-
-        final score = (roomMap['score'] as num?)?.toDouble();
-        final fromPrevious =
-            (roomMap['from_previous_seconds'] as num?)?.toDouble();
-        final toNext =
-            (roomMap['to_next_seconds'] as num?)?.toDouble();
-
-        final parts = roomId.split(' ');
-        final buildingCode = parts.isNotEmpty ? parts.first : '';
-        final roomNumber = parts.length > 1 ? parts.sublist(1).join(' ') : '';
-
-        items.add(
-          RoomSearchItem(
-            roomId: roomId,
-            buildingCode: buildingCode,
-            buildingName: buildingName,
-            roomNumber: roomNumber,
-            capacity: capacity,
-            reliability: reliability,
-            utilities: [
-              if (score != null) 'score ${score.toStringAsFixed(2)}',
-              if (fromPrevious != null) 'prev ${(fromPrevious / 60).round()} min',
-              if (toNext != null) 'next ${(toNext / 60).round()} min',
-            ],
-            distanceSeconds: toNext ?? fromPrevious,
-            matchingWindows: [
-              MatchingWindow(start: slotStart, end: slotEnd),
-            ],
-          ),
-        );
+      if (raw == null) {
+        return (<RoomSearchItem>[], null);
       }
+
+      return (RecommendedRoomsMapper.fromRaw(raw), updatedAt);
+    }
+  }
+}
+
+List<ManualClassModel> _normalizeManualModelsForBackend(
+  List<ManualClassModel> models,
+) {
+  return models.map((model) {
+    return ManualClassModel(
+      title: model.title,
+      locationText: null,
+      roomId: (model.roomId != null && model.roomId!.trim().isNotEmpty)
+          ? model.roomId!.trim()
+          : model.locationText?.trim(),
+      startDate: model.startDate,
+      endDate: model.endDate,
+      startTime: model.startTime,
+      endTime: model.endTime,
+      weekdays: model.weekdays
+          .map((e) => e.toString().toLowerCase().trim())
+          .toList(),
+    );
+  }).toList();
+}
+
+class _UploadManualSchedulePendingAction implements PendingAction {
+  final ScheduleRemoteDataSource remoteDataSource;
+  final List<dynamic> classes;
+
+  const _UploadManualSchedulePendingAction({
+    required this.remoteDataSource,
+    required this.classes,
+  });
+
+  @override
+  String get successMessage => 'Schedule synced correctly.';
+
+  @override
+  String get failureMessage => 'We could not sync the schedule.';
+
+  @override
+  Future<void> execute() {
+    return remoteDataSource.uploadManualSchedule(
+      classes: _normalizeManualModelsForBackend(
+        classes.cast<ManualClassModel>(),
+      ),
+    );
+  }
+}
+
+class _DeleteFullSchedulePendingAction implements PendingAction {
+  final ScheduleRemoteDataSource remoteDataSource;
+
+  const _DeleteFullSchedulePendingAction({required this.remoteDataSource});
+
+  @override
+  @override
+  String get successMessage => 'Schedule deleted correctly.';
+
+  @override
+  String get failureMessage => 'We could not sync the schedule deletion.';
+
+  @override
+  Future<void> execute() {
+    return remoteDataSource.deleteFullSchedule();
+  }
+}
+
+class _DeleteScheduleClassPendingAction implements PendingAction {
+  final ScheduleRemoteDataSource remoteDataSource;
+  final String classId;
+
+  const _DeleteScheduleClassPendingAction({
+    required this.remoteDataSource,
+    required this.classId,
+  });
+
+  @override
+  String get successMessage => 'Schedule class synced correctly.';
+
+  @override
+  String get failureMessage => 'We could not sync the deleted class.';
+
+  @override
+  Future<void> execute() {
+    if (classId.startsWith('manual_')) {
+      return Future.value();
     }
 
-    return items;
+    return remoteDataSource.deleteScheduleClass(classId: classId);
+  }
+}
+
+class _DeleteScheduleOccurrencePendingAction implements PendingAction {
+  final ScheduleRemoteDataSource remoteDataSource;
+  final String classId;
+  final DateTime date;
+
+  const _DeleteScheduleOccurrencePendingAction({
+    required this.remoteDataSource,
+    required this.classId,
+    required this.date,
+  });
+
+  @override
+  String get successMessage => 'Schedule occurrence synced correctly.';
+
+  @override
+  String get failureMessage => 'We could not sync the deleted occurrence.';
+
+  @override
+  Future<void> execute() {
+    if (classId.startsWith('manual_')) {
+      return Future.value();
+    }
+
+    return remoteDataSource.deleteScheduleOccurrence(
+      classId: classId,
+      date: date,
+    );
   }
 }

@@ -1,17 +1,17 @@
 import '../repositories/schedule_repository.dart';
 
-class DeleteScheduleOccurrence {
+class DeleteScheduleOccurrenceForCurrentUserUseCase {
   final ScheduleRepository repository;
 
-  const DeleteScheduleOccurrence(this.repository);
+  DeleteScheduleOccurrenceForCurrentUserUseCase({
+    required this.repository,
+  });
 
   Future<void> call({
-    required String userEmail,
     required String classId,
     required DateTime date,
-  }) {
-    return repository.deleteScheduleOccurrence(
-      userEmail: userEmail,
+  }) async {
+    await repository.deleteScheduleOccurrence(
       classId: classId,
       date: date,
     );

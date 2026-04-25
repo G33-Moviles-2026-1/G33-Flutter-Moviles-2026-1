@@ -1,59 +1,57 @@
 import 'package:andespace/core/analytics/analytics_service.dart';
+import 'package:andespace/core/local/app_database.dart';
 import 'package:andespace/core/session/session_controller.dart';
 export 'package:andespace/core/session/session_controller.dart'
     show SessionNotifier, SessionState, SessionLocation, UserSearchSelection;
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio/dio.dart';
-import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../connectivity/connectivity_queue_service.dart';
 import '../connectivity/connectivity_recovery_service.dart';
-import '../network/network_constants.dart';
 
-final cookieJarProvider = Provider<CookieJar>((ref) {
-  return CookieJar();
+final cookieJarProvider = Provider<PersistCookieJar>((ref) {
+  throw UnimplementedError(
+    'cookieJarProvider must be overridden in main.dart',
+  );
 });
 
 final dioProvider = Provider<Dio>((ref) {
-  final dio = Dio(
-    BaseOptions(
-      baseUrl: _validatedBaseUrl(NetworkConstants.baseUrl),
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 10),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    ),
+  throw UnimplementedError(
+    'dioProvider must be overridden in main.dart',
   );
-
-  dio.interceptors.add(
-    CookieManager(ref.read(cookieJarProvider)),
-  );
-
-  return dio;
 });
 
 final sessionControllerProvider =
     NotifierProvider<SessionNotifier, SessionState>(SessionNotifier.new);
 
 final analyticsServiceProvider = Provider<AnalyticsService>((ref) {
-  return AnalyticsService(ref.read(dioProvider));
+  throw UnimplementedError(
+    'analyticsServiceProvider must be overridden in main.dart',
+  );
 });
 
-final connectivityRecoveryServiceProvider = Provider<ConnectivityRecoveryService>((ref) {
+final connectivityRecoveryServiceProvider =
+    Provider<ConnectivityRecoveryService>((ref) {
   final service = ConnectivityRecoveryService();
   service.startMonitoring();
   return service;
 });
 
-final connectivityQueueServiceProvider = Provider<ConnectivityQueueService>((ref) {
+final connectivityQueueServiceProvider =
+    Provider<ConnectivityQueueService>((ref) {
   final service = ConnectivityQueueService();
   service.init(ref.read(connectivityRecoveryServiceProvider).onRecovered);
   return service;
 });
 
-String _validatedBaseUrl(String rawBaseUrl) {
+final appDatabaseProvider = Provider<AppDatabase>((ref) {
+  final db = AppDatabase();
+  ref.onDispose(db.close);
+  return db;
+});
+
+String validatedBaseUrl(String rawBaseUrl) {
   final uri = Uri.parse(rawBaseUrl);
 
   if (uri.scheme == 'https') {

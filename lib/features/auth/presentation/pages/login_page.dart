@@ -1,10 +1,13 @@
 import 'package:andespace/core/navigation/app_routes.dart';
-import 'package:andespace/core/navigation/app_tab.dart';
-import 'package:andespace/shared/widgets/app_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../controllers/auth_notifier.dart';
+
+import '../notifiers/auth_notifier.dart';
+import '../widgets/auth_footer_link.dart';
+import '../widgets/auth_page_layout.dart';
+import '../widgets/auth_password_field.dart';
+import '../widgets/auth_submit_button.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -26,10 +29,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   @override
   void initState() {
     super.initState();
-
-    _passwordFocusNode.addListener(() {
-      setState(() {});
-    });
+    _passwordFocusNode.addListener(() => setState(() {}));
   }
 
   @override
@@ -38,6 +38,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     _passwordCtrl.dispose();
     _passwordFocusNode.dispose();
     super.dispose();
+  }
+
+  Future<void> _submit() async {
+    FocusScope.of(context).unfocus();
+
+    if (!_formKey.currentState!.validate()) return;
+
+    await ref.read(authControllerProvider.notifier).login(
+          email: _emailCtrl.text.trim(),
+          password: _passwordCtrl.text.trim(),
+        );
   }
 
   @override
@@ -58,167 +69,97 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     });
 
     final state = ref.watch(authControllerProvider);
-    final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
-    final colorScheme = theme.colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
-    return AppScaffold(
-      currentTab: AppTab.rooms,
-      onTabSelected: (tab) => AppRoutes.handleTabSelection(context, tab),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
-          child: Form(
-            key: _formKey,
-            child: Column(
+    return AuthPageLayout(
+      title: 'Log In',
+      child: Form(
+        key: _formKey,
+        child: Column(
+          children: [
+            TextFormField(
+              controller: _emailCtrl,
+              inputFormatters: [
+                LengthLimitingTextInputFormatter(35),
+              ],
+              keyboardType: TextInputType.emailAddress,
+              decoration: const InputDecoration(
+                hintText: 'Student Mail',
+              ),
+              validator: (value) {
+                final email = value?.trim() ?? '';
+                if (email.isEmpty) {
+                  return 'Enter your email';
+                }
+                if (!RegExp(r'^[^@]+@[^@]+\.[^@]+$').hasMatch(email)) {
+                  return 'Enter a valid email';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 18),
+            AuthPasswordField(
+              controller: _passwordCtrl,
+              focusNode: _passwordFocusNode,
+              obscureText: _obscurePassword,
+              hintText: 'Password',
+              onToggleVisibility: () {
+                setState(() {
+                  _obscurePassword = !_obscurePassword;
+                });
+              },
+              validator: (value) {
+                final password = value?.trim() ?? '';
+                if (password.isEmpty) {
+                  return 'Enter your password';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 28),
+            AuthSubmitButton(
+              isLoading: state.isLoading,
+              label: 'Continue',
+              onPressed: _submit,
+            ),
+            const SizedBox(height: 30),
+            AuthFooterLink(
+              prefixText: "If you don't have an account, ",
+              actionText: 'sign up',
+              onPressed: () {
+                Navigator.pushReplacementNamed(
+                  context,
+                  AppRoutes.signup,
+                );
+              },
+            ),
+            const SizedBox(height: 15),
+            Wrap(
+              alignment: WrapAlignment.center,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                const SizedBox(height: 28),
                 Text(
-                  'Log In',
-                  style: textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: colorScheme.onSurface,
-                  ),
+                  'Enter as a ',
+                  textAlign: TextAlign.center,
+                  style: textTheme.bodyMedium,
                 ),
-                const SizedBox(height: 36),
-                TextFormField(
-                  controller: _emailCtrl,
-                  inputFormatters: [
-                    LengthLimitingTextInputFormatter(35),
-                  ],
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(
-                    hintText: 'Student Mail',
-                  ),
-                  validator: (value) {
-                    final email = value?.trim() ?? '';
-                    if (email.isEmpty) {
-                      return 'Enter your email';
-                    }
-                    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+$').hasMatch(email)) {
-                      return 'Enter a valid email';
-                    }
-                    return null;
+                TextButton(
+                  onPressed: () {
+                    Navigator.pushReplacementNamed(context, AppRoutes.home);
                   },
-                ),
-                const SizedBox(height: 18),
-                TextFormField(
-                  controller: _passwordCtrl,
-                  inputFormatters: [
-                    LengthLimitingTextInputFormatter(20),
-                  ],
-                  focusNode: _passwordFocusNode,
-                  obscureText: _obscurePassword,
-                  decoration: InputDecoration(
-                    hintText: 'Password',
-                    suffixIcon: _passwordFocusNode.hasFocus
-                        ? IconButton(
-                            icon: Icon(
-                              _obscurePassword
-                                  ? Icons.visibility_off
-                                  : Icons.visibility,
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                _obscurePassword = !_obscurePassword;
-                              });
-                            },
-                          )
-                        : null,
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
-                  validator: (value) {
-                    final password = value?.trim() ?? '';
-                    if (password.isEmpty) {
-                      return 'Enter your password';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 28),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: state.isLoading
-                        ? null
-                        : () async {
-                            FocusScope.of(context).unfocus();
-
-                            if (!_formKey.currentState!.validate()) return;
-
-                            await ref
-                                .read(authControllerProvider.notifier)
-                                .login(
-                                  email: _emailCtrl.text.trim(),
-                                  password: _passwordCtrl.text.trim(),
-                                );
-                          },
-                    child: state.isLoading
-                        ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(strokeWidth: 2.5),
-                          )
-                        : const Text('Continue'),
+                  child: const Text(
+                    'guest',
+                    style: TextStyle(fontWeight: FontWeight.w900),
                   ),
-                ),
-                const SizedBox(height: 30),
-                Wrap(
-                  alignment: WrapAlignment.center,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    Text(
-                      "If you don't have an account, ",
-                      textAlign: TextAlign.center,
-                      style: textTheme.bodyMedium,
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pushReplacementNamed(
-                          context,
-                          AppRoutes.signup,
-                        );
-                      },
-                      style: TextButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                      child: const Text(
-                        'sign up',
-                        style: TextStyle(fontWeight: FontWeight.w900),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 15),
-                Wrap(
-                  alignment: WrapAlignment.center,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    Text(
-                      'Enter as a ',
-                      textAlign: TextAlign.center,
-                      style: textTheme.bodyMedium,
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pushReplacementNamed(context, AppRoutes.home);
-                      },
-                      style: TextButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                      child: const Text(
-                        'guest',
-                        style: TextStyle(fontWeight: FontWeight.w900),
-                      ),
-                    ),
-                  ],
                 ),
               ],
             ),
-          ),
+          ],
         ),
       ),
     );

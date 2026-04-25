@@ -1,15 +1,14 @@
 import 'package:andespace/core/di/core_provider.dart';
-import 'package:andespace/core/navigation/app_routes.dart';
 import 'package:andespace/features/schedule/presentation/pages/recommended_rooms_page.dart';
+import 'package:andespace/features/schedule/presentation/widgets/schedule_confirm_dialog.dart';
+import 'package:andespace/features/schedule/presentation/widgets/schedule_page_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:andespace/core/navigation/app_tab.dart';
-import 'package:andespace/shared/widgets/app_scaffold.dart';
 import 'package:uuid/uuid.dart';
 
-import '../controllers/schedule_state.dart';
-import '../controllers/schedule_notifier.dart';
+import '../notifiers/schedule_state.dart';
+import '../notifiers/schedule_notifier.dart';
 import '../widgets/weekly_calendar_view.dart';
 import 'add_class_page.dart';
 import 'schedule_load_page.dart';
@@ -32,10 +31,6 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
         ref.read(scheduleControllerProvider.notifier).loadWeek();
       });
     }
-  }
-
-  void _onTabSelected(BuildContext context, AppTab tab) {
-    AppRoutes.handleTabSelection(context, tab);
   }
 
   String _monthName(int month) {
@@ -64,56 +59,25 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
     required String classId,
     required DateTime date,
   }) async {
-    final confirmed = await showDialog<bool>(
-          context: context,
-          builder: (context) {
-            return AlertDialog(
-              title: const Text('Delete occurrence'),
-              content: const Text('Do you want to delete this class occurrence?'),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context, false),
-                  child: const Text('Cancel'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.pop(context, true),
-                  child: const Text('Delete'),
-                ),
-              ],
-            );
-          },
-        ) ??
-        false;
+    final confirmed = await showScheduleConfirmDialog(
+      context: context,
+      title: 'Delete occurrence',
+      message: 'Do you want to delete this class occurrence?',
+    );
 
     if (!confirmed) return;
 
-    await ref.read(scheduleControllerProvider.notifier).removeOccurrence(
-          classId: classId,
-          date: date,
-        );
+    await ref
+        .read(scheduleControllerProvider.notifier)
+        .removeOccurrence(classId: classId, date: date);
   }
 
   Future<void> _confirmDeleteFullSchedule() async {
-    final confirmed = await showDialog<bool>(
-          context: context,
-          builder: (context) {
-            return AlertDialog(
-              title: const Text('Delete full schedule'),
-              content: const Text('This will remove your entire schedule. Continue?'),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context, false),
-                  child: const Text('Cancel'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.pop(context, true),
-                  child: const Text('Delete'),
-                ),
-              ],
-            );
-          },
-        ) ??
-        false;
+    final confirmed = await showScheduleConfirmDialog(
+      context: context,
+      title: 'Delete full schedule',
+      message: 'This will remove your entire schedule. Continue?',
+    );
 
     if (!confirmed) return;
 
@@ -122,33 +86,40 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
 
   @override
   Widget build(BuildContext context) {
-    ref.listen<ScheduleState>(
-      scheduleControllerProvider,
-      (_, next) {
-        if (next.status == ScheduleStatus.error &&
-            next.errorMessage != null &&
-            next.errorMessage!.trim().isNotEmpty) {
-          ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(
-              SnackBar(
-                content: Text(next.errorMessage!),
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
-        }
-      },
-    );
+    ref.listen<ScheduleState>(scheduleControllerProvider, (_, next) {
+      if (next.status == ScheduleStatus.error &&
+          next.errorMessage != null &&
+          next.errorMessage!.trim().isNotEmpty) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(next.errorMessage!),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+      }
+
+      if (next.infoMessage != null && next.infoMessage!.trim().isNotEmpty) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(next.infoMessage!),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+
+        ref.read(scheduleControllerProvider.notifier).clearInfoMessage();
+      }
+    });
 
     final state = ref.watch(scheduleControllerProvider);
     final controller = ref.read(scheduleControllerProvider.notifier);
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
 
-    return AppScaffold(
-      //title: 'My Schedule',
-      currentTab: AppTab.schedule,
-      onTabSelected: (tab) => _onTabSelected(context, tab),
+    return SchedulePageScaffold(
       body: Builder(
         builder: (context) {
           if (state.status == ScheduleStatus.loading &&
@@ -167,7 +138,10 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
             child: Column(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 10,
+                  ),
                   decoration: BoxDecoration(
                     color: theme.cardColor,
                     borderRadius: BorderRadius.circular(18),
@@ -184,10 +158,7 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
                       Expanded(
                         child: Column(
                           children: [
-                            Text(
-                              'Week',
-                              style: textTheme.bodySmall,
-                            ),
+                            Text('Week', style: textTheme.bodySmall),
                             const SizedBox(height: 2),
                             Text(
                               _formatWeekRange(
@@ -249,8 +220,15 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
                         height: 56,
                         child: ElevatedButton.icon(
                           onPressed: () async {
+                            final messenger = ScaffoldMessenger.of(context);
+                            final navigator = Navigator.of(context);
+
                             final now = DateTime.now();
-                            final today = DateTime(now.year, now.month, now.day);
+                            final today = DateTime(
+                              now.year,
+                              now.month,
+                              now.day,
+                            );
                             final maxDate = today.add(const Duration(days: 7));
 
                             final selected = DateTime(
@@ -263,7 +241,7 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
                             final isAfterMaxDate = selected.isAfter(maxDate);
 
                             if (isBeforeToday || isAfterMaxDate) {
-                              ScaffoldMessenger.of(context).showSnackBar(
+                              messenger.showSnackBar(
                                 const SnackBar(
                                   content: Text(
                                     'You can only filter schedule from today up to 7 days ahead.',
@@ -274,7 +252,9 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
                               return;
                             }
 
-                            final session = ref.read(sessionControllerProvider.notifier);
+                            final session = ref.read(
+                              sessionControllerProvider.notifier,
+                            );
                             final currentSearch = session.currentSearch;
 
                             session.updateSearchSelection(
@@ -283,14 +263,19 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
                               endTime: currentSearch?.endTime,
                             );
 
-                            final items = await controller.loadRecommendedRoomsForSelectedDay();
+                            final result = await controller
+                                .loadRecommendedRoomsForSelectedDay();
+                            final items = result.$1;
+                            final lastUpdated = result.$2;
 
                             if (!mounted) return;
 
-                            Navigator.push(
-                              context,
+                            navigator.push(
                               MaterialPageRoute(
-                                builder: (_) => RecommendedRoomsPage(items: items),
+                                builder: (_) => RecommendedRoomsPage(
+                                  items: items,
+                                  lastUpdated: lastUpdated,
+                                ),
                               ),
                             );
                           },
@@ -300,9 +285,9 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(999),
                             ),
-                          textStyle: const TextStyle(
+                            textStyle: const TextStyle(
                               fontSize: 12,
-                              fontWeight: FontWeight.w700
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
                         ),
@@ -314,21 +299,21 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
                         height: 56,
                         child: OutlinedButton.icon(
                           onPressed: () async {
-                            final analytics = ref.read(analyticsServiceProvider);
-                            final userEmail = await controller.getUserEmail();
-                            final importSessionId = const Uuid().v4();
-
-                            await analytics.trackScheduleImportStep(
-                              sessionId: importSessionId,
-                              deviceId: 'mobile',
-                              userEmail: userEmail,
-                              method: 'manual',
-                              step: 'started',
-                              stepNumber: 1,
-                              propsJson: {
-                                'source_screen': 'schedule_load',
-                              },
+                            final analytics = ref.read(
+                              analyticsServiceProvider,
                             );
+                            final importSessionId = const Uuid().v4();
+                            try {
+                              await analytics.trackScheduleImportStep(
+                                sessionId: importSessionId,
+                                deviceId: 'mobile',
+                                userEmail: 'current_user',
+                                method: 'manual',
+                                step: 'started',
+                                stepNumber: 1,
+                                propsJson: {'source_screen': 'schedule_load'},
+                              );
+                            } catch (_) {}
 
                             if (!context.mounted) return;
 
@@ -349,7 +334,7 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
                             ),
                             textStyle: const TextStyle(
                               fontSize: 12,
-                              fontWeight: FontWeight.w700
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
                         ),
