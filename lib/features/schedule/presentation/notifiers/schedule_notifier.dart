@@ -265,7 +265,7 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
     return getScheduleClasses();
   }
 
-  Future<List<RoomSearchItem>> loadRecommendedRoomsForSelectedDay() async {
+  Future<(List<RoomSearchItem>, DateTime?)> loadRecommendedRoomsForSelectedDay() async {
     try {
       final getRecommendedRooms = ref.read(
         getRecommendedRoomsForCurrentUserProvider,

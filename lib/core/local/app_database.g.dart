@@ -2773,6 +2773,286 @@ class CachedPathsTableCompanion extends UpdateCompanion<CachedPathsTableData> {
   }
 }
 
+class $CachedRecommendedRoomsTableTable extends CachedRecommendedRoomsTable
+    with
+        TableInfo<
+          $CachedRecommendedRoomsTableTable,
+          CachedRecommendedRoomsTableData
+        > {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CachedRecommendedRoomsTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _cacheKeyMeta = const VerificationMeta(
+    'cacheKey',
+  );
+  @override
+  late final GeneratedColumn<String> cacheKey = GeneratedColumn<String>(
+    'cache_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _dataJsonMeta = const VerificationMeta(
+    'dataJson',
+  );
+  @override
+  late final GeneratedColumn<String> dataJson = GeneratedColumn<String>(
+    'data_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [cacheKey, dataJson, updatedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'cached_recommended_rooms';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CachedRecommendedRoomsTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('cache_key')) {
+      context.handle(
+        _cacheKeyMeta,
+        cacheKey.isAcceptableOrUnknown(data['cache_key']!, _cacheKeyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_cacheKeyMeta);
+    }
+    if (data.containsKey('data_json')) {
+      context.handle(
+        _dataJsonMeta,
+        dataJson.isAcceptableOrUnknown(data['data_json']!, _dataJsonMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dataJsonMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {cacheKey};
+  @override
+  CachedRecommendedRoomsTableData map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CachedRecommendedRoomsTableData(
+      cacheKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}cache_key'],
+      )!,
+      dataJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}data_json'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $CachedRecommendedRoomsTableTable createAlias(String alias) {
+    return $CachedRecommendedRoomsTableTable(attachedDatabase, alias);
+  }
+}
+
+class CachedRecommendedRoomsTableData extends DataClass
+    implements Insertable<CachedRecommendedRoomsTableData> {
+  final String cacheKey;
+  final String dataJson;
+  final DateTime updatedAt;
+  const CachedRecommendedRoomsTableData({
+    required this.cacheKey,
+    required this.dataJson,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['cache_key'] = Variable<String>(cacheKey);
+    map['data_json'] = Variable<String>(dataJson);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  CachedRecommendedRoomsTableCompanion toCompanion(bool nullToAbsent) {
+    return CachedRecommendedRoomsTableCompanion(
+      cacheKey: Value(cacheKey),
+      dataJson: Value(dataJson),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory CachedRecommendedRoomsTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CachedRecommendedRoomsTableData(
+      cacheKey: serializer.fromJson<String>(json['cacheKey']),
+      dataJson: serializer.fromJson<String>(json['dataJson']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'cacheKey': serializer.toJson<String>(cacheKey),
+      'dataJson': serializer.toJson<String>(dataJson),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  CachedRecommendedRoomsTableData copyWith({
+    String? cacheKey,
+    String? dataJson,
+    DateTime? updatedAt,
+  }) => CachedRecommendedRoomsTableData(
+    cacheKey: cacheKey ?? this.cacheKey,
+    dataJson: dataJson ?? this.dataJson,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  CachedRecommendedRoomsTableData copyWithCompanion(
+    CachedRecommendedRoomsTableCompanion data,
+  ) {
+    return CachedRecommendedRoomsTableData(
+      cacheKey: data.cacheKey.present ? data.cacheKey.value : this.cacheKey,
+      dataJson: data.dataJson.present ? data.dataJson.value : this.dataJson,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CachedRecommendedRoomsTableData(')
+          ..write('cacheKey: $cacheKey, ')
+          ..write('dataJson: $dataJson, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(cacheKey, dataJson, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CachedRecommendedRoomsTableData &&
+          other.cacheKey == this.cacheKey &&
+          other.dataJson == this.dataJson &&
+          other.updatedAt == this.updatedAt);
+}
+
+class CachedRecommendedRoomsTableCompanion
+    extends UpdateCompanion<CachedRecommendedRoomsTableData> {
+  final Value<String> cacheKey;
+  final Value<String> dataJson;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const CachedRecommendedRoomsTableCompanion({
+    this.cacheKey = const Value.absent(),
+    this.dataJson = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  CachedRecommendedRoomsTableCompanion.insert({
+    required String cacheKey,
+    required String dataJson,
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : cacheKey = Value(cacheKey),
+       dataJson = Value(dataJson),
+       updatedAt = Value(updatedAt);
+  static Insertable<CachedRecommendedRoomsTableData> custom({
+    Expression<String>? cacheKey,
+    Expression<String>? dataJson,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (cacheKey != null) 'cache_key': cacheKey,
+      if (dataJson != null) 'data_json': dataJson,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  CachedRecommendedRoomsTableCompanion copyWith({
+    Value<String>? cacheKey,
+    Value<String>? dataJson,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return CachedRecommendedRoomsTableCompanion(
+      cacheKey: cacheKey ?? this.cacheKey,
+      dataJson: dataJson ?? this.dataJson,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (cacheKey.present) {
+      map['cache_key'] = Variable<String>(cacheKey.value);
+    }
+    if (dataJson.present) {
+      map['data_json'] = Variable<String>(dataJson.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CachedRecommendedRoomsTableCompanion(')
+          ..write('cacheKey: $cacheKey, ')
+          ..write('dataJson: $dataJson, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -2788,6 +3068,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $CachedPathsTableTable cachedPathsTable = $CachedPathsTableTable(
     this,
   );
+  late final $CachedRecommendedRoomsTableTable cachedRecommendedRoomsTable =
+      $CachedRecommendedRoomsTableTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2798,6 +3080,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     scheduleClassesTable,
     favoriteMutationsTable,
     cachedPathsTable,
+    cachedRecommendedRoomsTable,
   ];
 }
 
@@ -4233,6 +4516,187 @@ typedef $$CachedPathsTableTableProcessedTableManager =
       CachedPathsTableData,
       PrefetchHooks Function()
     >;
+typedef $$CachedRecommendedRoomsTableTableCreateCompanionBuilder =
+    CachedRecommendedRoomsTableCompanion Function({
+      required String cacheKey,
+      required String dataJson,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$CachedRecommendedRoomsTableTableUpdateCompanionBuilder =
+    CachedRecommendedRoomsTableCompanion Function({
+      Value<String> cacheKey,
+      Value<String> dataJson,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$CachedRecommendedRoomsTableTableFilterComposer
+    extends Composer<_$AppDatabase, $CachedRecommendedRoomsTableTable> {
+  $$CachedRecommendedRoomsTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get cacheKey => $composableBuilder(
+    column: $table.cacheKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get dataJson => $composableBuilder(
+    column: $table.dataJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$CachedRecommendedRoomsTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $CachedRecommendedRoomsTableTable> {
+  $$CachedRecommendedRoomsTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get cacheKey => $composableBuilder(
+    column: $table.cacheKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get dataJson => $composableBuilder(
+    column: $table.dataJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$CachedRecommendedRoomsTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CachedRecommendedRoomsTableTable> {
+  $$CachedRecommendedRoomsTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get cacheKey =>
+      $composableBuilder(column: $table.cacheKey, builder: (column) => column);
+
+  GeneratedColumn<String> get dataJson =>
+      $composableBuilder(column: $table.dataJson, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$CachedRecommendedRoomsTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CachedRecommendedRoomsTableTable,
+          CachedRecommendedRoomsTableData,
+          $$CachedRecommendedRoomsTableTableFilterComposer,
+          $$CachedRecommendedRoomsTableTableOrderingComposer,
+          $$CachedRecommendedRoomsTableTableAnnotationComposer,
+          $$CachedRecommendedRoomsTableTableCreateCompanionBuilder,
+          $$CachedRecommendedRoomsTableTableUpdateCompanionBuilder,
+          (
+            CachedRecommendedRoomsTableData,
+            BaseReferences<
+              _$AppDatabase,
+              $CachedRecommendedRoomsTableTable,
+              CachedRecommendedRoomsTableData
+            >,
+          ),
+          CachedRecommendedRoomsTableData,
+          PrefetchHooks Function()
+        > {
+  $$CachedRecommendedRoomsTableTableTableManager(
+    _$AppDatabase db,
+    $CachedRecommendedRoomsTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CachedRecommendedRoomsTableTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$CachedRecommendedRoomsTableTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$CachedRecommendedRoomsTableTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> cacheKey = const Value.absent(),
+                Value<String> dataJson = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CachedRecommendedRoomsTableCompanion(
+                cacheKey: cacheKey,
+                dataJson: dataJson,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String cacheKey,
+                required String dataJson,
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => CachedRecommendedRoomsTableCompanion.insert(
+                cacheKey: cacheKey,
+                dataJson: dataJson,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$CachedRecommendedRoomsTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CachedRecommendedRoomsTableTable,
+      CachedRecommendedRoomsTableData,
+      $$CachedRecommendedRoomsTableTableFilterComposer,
+      $$CachedRecommendedRoomsTableTableOrderingComposer,
+      $$CachedRecommendedRoomsTableTableAnnotationComposer,
+      $$CachedRecommendedRoomsTableTableCreateCompanionBuilder,
+      $$CachedRecommendedRoomsTableTableUpdateCompanionBuilder,
+      (
+        CachedRecommendedRoomsTableData,
+        BaseReferences<
+          _$AppDatabase,
+          $CachedRecommendedRoomsTableTable,
+          CachedRecommendedRoomsTableData
+        >,
+      ),
+      CachedRecommendedRoomsTableData,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -4250,4 +4714,10 @@ class $AppDatabaseManager {
       );
   $$CachedPathsTableTableTableManager get cachedPathsTable =>
       $$CachedPathsTableTableTableManager(_db, _db.cachedPathsTable);
+  $$CachedRecommendedRoomsTableTableTableManager
+  get cachedRecommendedRoomsTable =>
+      $$CachedRecommendedRoomsTableTableTableManager(
+        _db,
+        _db.cachedRecommendedRoomsTable,
+      );
 }

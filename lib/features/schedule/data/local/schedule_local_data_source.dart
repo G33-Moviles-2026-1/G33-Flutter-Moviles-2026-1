@@ -24,6 +24,15 @@ abstract class ScheduleLocalDataSource {
     required String classId,
     required DateTime date,
   });
+
+  Future<void> cacheRecommendedRooms({
+    required DateTime date,
+    required Map<String, dynamic> raw,
+  });
+
+  Future<(Map<String, dynamic>?, DateTime?)> getCachedRecommendedRooms({
+    required DateTime date,
+  });
 }
 
 class ScheduleLocalDataSourceImpl implements ScheduleLocalDataSource {
@@ -385,5 +394,35 @@ class ScheduleLocalDataSourceImpl implements ScheduleLocalDataSource {
     }
 
     return clean;
+  }
+
+  @override
+  Future<void> cacheRecommendedRooms({
+    required DateTime date,
+    required Map<String, dynamic> raw,
+  }) {
+    return db.upsertRecommendedRooms(
+      key: _formatDateKey(date),
+      json: jsonEncode(raw),
+    );
+  }
+
+  @override
+  Future<(Map<String, dynamic>?, DateTime?)> getCachedRecommendedRooms({
+    required DateTime date,
+  }) async {
+    final cached = await db.getRecommendedRooms(_formatDateKey(date));
+
+    if (cached == null) {
+      return (null, null);
+    }
+
+    final decoded = jsonDecode(cached.dataJson);
+
+    if (decoded is! Map<String, dynamic>) {
+      return (null, null);
+    }
+
+    return (decoded, cached.updatedAt);
   }
 }

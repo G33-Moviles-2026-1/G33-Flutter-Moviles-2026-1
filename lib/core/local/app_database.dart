@@ -90,6 +90,18 @@ class ScheduleClassesTable extends Table {
   Set<Column> get primaryKey => {classId};
 }
 
+class CachedRecommendedRoomsTable extends Table {
+  @override
+  String get tableName => 'cached_recommended_rooms';
+
+  TextColumn get cacheKey => text()(); // yyyy-MM-dd
+  TextColumn get dataJson => text()();
+  DateTimeColumn get updatedAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {cacheKey};
+}
+
 @DriftDatabase(
   tables: [
     MyBookingsTable,
@@ -97,13 +109,14 @@ class ScheduleClassesTable extends Table {
     ScheduleClassesTable,
     FavoriteMutationsTable,
     CachedPathsTable,
+    CachedRecommendedRoomsTable,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(driftDatabase(name: 'andespace_db'));
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -207,6 +220,7 @@ class AppDatabase extends _$AppDatabase {
     await delete(favoriteMutationsTable).go();
     await delete(favoriteRoomsTable).go();
     await delete(scheduleClassesTable).go();
+    await delete(cachedRecommendedRoomsTable).go();
   });
 
   Future<List<ScheduleClassesTableData>> getScheduleClasses() {
@@ -242,8 +256,27 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<void> deleteScheduleClass(String classId) async {
-  await (delete(scheduleClassesTable)
-        ..where((t) => t.classId.equals(classId)))
-      .go();
-}
+    await (delete(
+      scheduleClassesTable,
+    )..where((t) => t.classId.equals(classId))).go();
+  }
+
+  Future<void> upsertRecommendedRooms({
+    required String key,
+    required String json,
+  }) {
+    return into(cachedRecommendedRoomsTable).insertOnConflictUpdate(
+      CachedRecommendedRoomsTableCompanion(
+        cacheKey: Value(key),
+        dataJson: Value(json),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+  }
+
+  Future<CachedRecommendedRoomsTableData?> getRecommendedRooms(String key) {
+    return (select(
+      cachedRecommendedRoomsTable,
+    )..where((t) => t.cacheKey.equals(key))).getSingleOrNull();
+  }
 }

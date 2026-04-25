@@ -6,36 +6,26 @@ import '../entities/schedule_class.dart';
 import '../entities/weekly_schedule.dart';
 
 abstract class ScheduleRepository {
-  Future<void> uploadIcsSchedule({
-    required String filePath,
-  });
+  Future<void> uploadIcsSchedule({required String filePath});
 
-  Future<void> uploadManualSchedule({
-    required List<ManualClass> classes,
-  });
+  Future<void> uploadManualSchedule({required List<ManualClass> classes});
 
-  Future<WeeklySchedule> getWeeklySchedule({
-    required DateTime date,
-  });
+  Future<WeeklySchedule> getWeeklySchedule({required DateTime date});
 
   Future<List<ScheduleClass>> getScheduleClasses();
 
-  Future<FreeRoomsForDay> getFreeRoomsForDay({
-    required DateTime date,
-  });
+  Future<FreeRoomsForDay> getFreeRoomsForDay({required DateTime date});
 
   Future<void> deleteFullSchedule();
 
-  Future<void> deleteScheduleClass({
-    required String classId,
-  });
+  Future<void> deleteScheduleClass({required String classId});
 
   Future<void> deleteScheduleOccurrence({
     required String classId,
     required DateTime date,
   });
 
-  Future<List<RoomSearchItem>> getRecommendedRoomsForDay({
+  Future<(List<RoomSearchItem>, DateTime?)> getRecommendedRoomsForDay({
     required DateTime date,
   });
 }

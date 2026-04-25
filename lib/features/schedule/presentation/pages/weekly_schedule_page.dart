@@ -263,15 +263,19 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
                               endTime: currentSearch?.endTime,
                             );
 
-                            final items = await controller
+                            final result = await controller
                                 .loadRecommendedRoomsForSelectedDay();
+                            final items = result.$1;
+                            final lastUpdated = result.$2;
 
                             if (!mounted) return;
 
                             navigator.push(
                               MaterialPageRoute(
-                                builder: (_) =>
-                                    RecommendedRoomsPage(items: items),
+                                builder: (_) => RecommendedRoomsPage(
+                                  items: items,
+                                  lastUpdated: lastUpdated,
+                                ),
                               ),
                             );
                           },

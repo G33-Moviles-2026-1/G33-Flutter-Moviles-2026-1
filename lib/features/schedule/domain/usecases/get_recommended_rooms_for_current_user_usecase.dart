@@ -5,14 +5,9 @@ import '../repositories/schedule_repository.dart';
 class GetRecommendedRoomsForCurrentUserUseCase {
   final ScheduleRepository repository;
 
-  GetRecommendedRoomsForCurrentUserUseCase({
-    required this.repository,
-  });
+  GetRecommendedRoomsForCurrentUserUseCase({required this.repository});
 
-  Future<List<RoomSearchItem>> call({required DateTime date}) async {
-
-    return repository.getRecommendedRoomsForDay(
-      date: date,
-    );
+  Future<(List<RoomSearchItem>, DateTime?)> call({required DateTime date}) {
+    return repository.getRecommendedRoomsForDay(date: date);
   }
 }

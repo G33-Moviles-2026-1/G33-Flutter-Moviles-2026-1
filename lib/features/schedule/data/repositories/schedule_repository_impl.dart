@@ -34,6 +34,12 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   @override
   Future<void> uploadIcsSchedule({required String filePath}) async {
     await remoteDataSource.uploadIcsSchedule(filePath: filePath);
+
+    final remoteClasses = await remoteDataSource.getScheduleClasses();
+
+    await localDataSource.replaceClasses(
+      classes: ScheduleClassMapper.toEntityList(remoteClasses),
+    );
   }
 
   @override
@@ -141,12 +147,30 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   }
 
   @override
-  Future<List<RoomSearchItem>> getRecommendedRoomsForDay({
+  Future<(List<RoomSearchItem>, DateTime?)> getRecommendedRoomsForDay({
     required DateTime date,
   }) async {
-    final raw = await remoteDataSource.getRecommendedRoomsForDay(date: date);
+    try {
+      final raw = await remoteDataSource.getRecommendedRoomsForDay(date: date);
 
-    return RecommendedRoomsMapper.fromRaw(raw);
+      await localDataSource.cacheRecommendedRooms(date: date, raw: raw);
+
+      return (RecommendedRoomsMapper.fromRaw(raw), DateTime.now());
+    } catch (e) {
+      if (!_isConnectivityError(e)) rethrow;
+
+      final cached = await localDataSource.getCachedRecommendedRooms(
+        date: date,
+      );
+      final raw = cached.$1;
+      final updatedAt = cached.$2;
+
+      if (raw == null) {
+        return (<RoomSearchItem>[], null);
+      }
+
+      return (RecommendedRoomsMapper.fromRaw(raw), updatedAt);
+    }
   }
 }
 
