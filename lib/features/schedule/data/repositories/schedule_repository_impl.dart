@@ -14,7 +14,6 @@ import '../mappers/free_rooms_mapper.dart';
 import '../mappers/manual_class_mapper.dart';
 import '../mappers/recommended_rooms_mapper.dart';
 import '../mappers/schedule_class_mapper.dart';
-import '../mappers/weekly_schedule_mapper.dart';
 import '../remote/schedule_remote_data_source.dart';
 
 class ScheduleRepositoryImpl implements ScheduleRepository {
@@ -67,38 +66,13 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   }
 
   @override
-  Future<WeeklySchedule> getWeeklySchedule({required DateTime date}) async {
-    try {
-      final model = await remoteDataSource.getWeeklySchedule(date: date);
-
-      final remoteClasses = await remoteDataSource.getScheduleClasses();
-
-      await localDataSource.replaceClasses(
-        classes: ScheduleClassMapper.toEntityList(remoteClasses),
-      );
-
-      return WeeklyScheduleMapper.toEntity(model);
-    } catch (e) {
-      if (!_isConnectivityError(e)) rethrow;
-
-      return localDataSource.getWeeklySchedule(date: date);
-    }
+  Future<WeeklySchedule> getWeeklySchedule({required DateTime date}) {
+    return localDataSource.getWeeklySchedule(date: date);
   }
 
   @override
-  Future<List<ScheduleClass>> getScheduleClasses() async {
-    try {
-      final models = await remoteDataSource.getScheduleClasses();
-      final classes = ScheduleClassMapper.toEntityList(models);
-
-      await localDataSource.replaceClasses(classes: classes);
-
-      return classes;
-    } catch (e) {
-      if (!_isConnectivityError(e)) rethrow;
-
-      return localDataSource.getClasses();
-    }
+  Future<List<ScheduleClass>> getScheduleClasses() {
+    return localDataSource.getClasses();
   }
 
   @override
@@ -232,8 +206,7 @@ class _DeleteFullSchedulePendingAction implements PendingAction {
   String get successMessage => 'Schedule deleted correctly.';
 
   @override
-  String get failureMessage =>
-      'We could not sync the schedule deletion.';
+  String get failureMessage => 'We could not sync the schedule deletion.';
 
   @override
   Future<void> execute() {
