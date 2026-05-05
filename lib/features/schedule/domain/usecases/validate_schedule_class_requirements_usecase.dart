@@ -11,9 +11,7 @@ class ValidateScheduleClassRequirementsUseCase {
     List<ScheduleClass> existingClasses = const [],
   }) {
     if (newClasses.isEmpty) {
-      throw const ScheduleValidationException(
-        'There are no classes to save.',
-      );
+      throw const ScheduleValidationException('There are no classes to save.');
     }
 
     for (final scheduleClass in newClasses) {
@@ -29,9 +27,7 @@ class ValidateScheduleClassRequirementsUseCase {
 
   void _validateClassFields(ManualClass scheduleClass) {
     if (scheduleClass.title.trim().isEmpty) {
-      throw const ScheduleValidationException(
-        'Enter a class title.',
-      );
+      throw const ScheduleValidationException('Enter a class title.');
     }
 
     if (scheduleClass.startDate.isAfter(scheduleClass.endDate)) {
@@ -41,16 +37,12 @@ class ValidateScheduleClassRequirementsUseCase {
     }
 
     if (scheduleClass.weekdays.isEmpty) {
-      throw const ScheduleValidationException(
-        'Select at least one weekday.',
-      );
+      throw const ScheduleValidationException('Select at least one weekday.');
     }
 
     for (final weekday in scheduleClass.weekdays) {
       if (!ScheduleWeekday.isValid(weekday)) {
-        throw ScheduleValidationException(
-          'Invalid weekday: $weekday.',
-        );
+        throw ScheduleValidationException('Invalid weekday: $weekday.');
       }
     }
 
@@ -64,9 +56,7 @@ class ValidateScheduleClassRequirementsUseCase {
     }
   }
 
-  void _validateNewClassesDoNotOverlapEachOther(
-    List<ManualClass> newClasses,
-  ) {
+  void _validateNewClassesDoNotOverlapEachOther(List<ManualClass> newClasses) {
     for (var i = 0; i < newClasses.length; i++) {
       for (var j = i + 1; j < newClasses.length; j++) {
         final first = newClasses[i];
@@ -96,10 +86,7 @@ class ValidateScheduleClassRequirementsUseCase {
     }
   }
 
-  bool _manualClassesOverlap(
-    ManualClass first,
-    ManualClass second,
-  ) {
+  bool _manualClassesOverlap(ManualClass first, ManualClass second) {
     return _haveCommonWeekday(first.weekdays, second.weekdays) &&
         _dateRangesOverlap(
           startA: first.startDate,
@@ -134,10 +121,7 @@ class ValidateScheduleClassRequirementsUseCase {
         );
   }
 
-  bool _haveCommonWeekday(
-    List<String> firstWeekdays,
-    List<String> secondWeekdays,
-  ) {
+  bool _haveCommonWeekday(List<String> firstWeekdays, List<String> secondWeekdays) {
     final firstSet = firstWeekdays.toSet();
     return secondWeekdays.any(firstSet.contains);
   }
@@ -164,24 +148,18 @@ class ValidateScheduleClassRequirementsUseCase {
     final parts = value.split(':');
 
     if (parts.length < 2) {
-      throw ScheduleValidationException(
-        'Invalid time format: $value.',
-      );
+      throw ScheduleValidationException('Invalid time format: $value.');
     }
 
     final hour = int.tryParse(parts[0]);
     final minute = int.tryParse(parts[1]);
 
     if (hour == null || minute == null) {
-      throw ScheduleValidationException(
-        'Invalid time format: $value.',
-      );
+      throw ScheduleValidationException('Invalid time format: $value.');
     }
 
     if (hour < 0 || hour > 23 || minute < 0 || minute > 59) {
-      throw ScheduleValidationException(
-        'Invalid time value: $value.',
-      );
+      throw ScheduleValidationException('Invalid time value: $value.');
     }
 
     return hour * 60 + minute;

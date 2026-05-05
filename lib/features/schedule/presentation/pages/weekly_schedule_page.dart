@@ -84,6 +84,78 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
     await ref.read(scheduleControllerProvider.notifier).removeFullSchedule();
   }
 
+  Future<void> _filterFromSchedule() async {
+    final state = ref.read(scheduleControllerProvider);
+    final controller = ref.read(scheduleControllerProvider.notifier);
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final maxDate = today.add(const Duration(days: 7));
+
+    final selected = DateTime(
+      state.selectedDate.year,
+      state.selectedDate.month,
+      state.selectedDate.day,
+    );
+
+    if (selected.isBefore(today) || selected.isAfter(maxDate)) {
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text(
+            'You can only filter schedule from today up to 7 days ahead.',
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    final session = ref.read(sessionControllerProvider.notifier);
+    final currentSearch = session.currentSearch;
+
+    session.updateSearchSelection(
+      date: state.selectedDate,
+      startTime: currentSearch?.startTime,
+      endTime: currentSearch?.endTime,
+    );
+
+    final result = await controller.loadRecommendedRoomsForSelectedDay();
+    final items = result.$1;
+    final lastUpdated = result.$2;
+
+    if (!mounted) return;
+
+    navigator.push(
+      MaterialPageRoute(
+        builder: (_) => RecommendedRoomsPage(
+          items: items,
+          lastUpdated: lastUpdated,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openManualClassPage() async {
+    final controller = ref.read(scheduleControllerProvider.notifier);
+    final importSessionId = const Uuid().v4();
+
+    await controller.trackManualImportStarted(
+      importSessionId: importSessionId,
+      sourceScreen: 'weekly_schedule',
+    );
+
+    if (!mounted) return;
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AddClassPage(importSessionId: importSessionId),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     ref.listen<ScheduleState>(scheduleControllerProvider, (_, next) {
@@ -219,66 +291,7 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
                       child: SizedBox(
                         height: 56,
                         child: ElevatedButton.icon(
-                          onPressed: () async {
-                            final messenger = ScaffoldMessenger.of(context);
-                            final navigator = Navigator.of(context);
-
-                            final now = DateTime.now();
-                            final today = DateTime(
-                              now.year,
-                              now.month,
-                              now.day,
-                            );
-                            final maxDate = today.add(const Duration(days: 7));
-
-                            final selected = DateTime(
-                              state.selectedDate.year,
-                              state.selectedDate.month,
-                              state.selectedDate.day,
-                            );
-
-                            final isBeforeToday = selected.isBefore(today);
-                            final isAfterMaxDate = selected.isAfter(maxDate);
-
-                            if (isBeforeToday || isAfterMaxDate) {
-                              messenger.showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'You can only filter schedule from today up to 7 days ahead.',
-                                  ),
-                                  behavior: SnackBarBehavior.floating,
-                                ),
-                              );
-                              return;
-                            }
-
-                            final session = ref.read(
-                              sessionControllerProvider.notifier,
-                            );
-                            final currentSearch = session.currentSearch;
-
-                            session.updateSearchSelection(
-                              date: state.selectedDate,
-                              startTime: currentSearch?.startTime,
-                              endTime: currentSearch?.endTime,
-                            );
-
-                            final result = await controller
-                                .loadRecommendedRoomsForSelectedDay();
-                            final items = result.$1;
-                            final lastUpdated = result.$2;
-
-                            if (!mounted) return;
-
-                            navigator.push(
-                              MaterialPageRoute(
-                                builder: (_) => RecommendedRoomsPage(
-                                  items: items,
-                                  lastUpdated: lastUpdated,
-                                ),
-                              ),
-                            );
-                          },
+                          onPressed: _filterFromSchedule,
                           icon: const Icon(Icons.filter_alt_outlined),
                           label: const Text('Filter from Schedule'),
                           style: ElevatedButton.styleFrom(
@@ -298,25 +311,7 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
                       child: SizedBox(
                         height: 56,
                         child: OutlinedButton.icon(
-                          onPressed: () async {
-                            final importSessionId = const Uuid().v4();
-
-                            await controller.trackManualImportStarted(
-                              importSessionId: importSessionId,
-                              sourceScreen: 'weekly_schedule',
-                            );
-
-                            if (!context.mounted) return;
-
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => AddClassPage(
-                                  importSessionId: importSessionId,
-                                ),
-                              ),
-                            );
-                          },
+                          onPressed: _openManualClassPage,
                           icon: const Icon(Icons.add_circle_outline),
                           label: const Text('Add Class Manually'),
                           style: OutlinedButton.styleFrom(

@@ -184,10 +184,6 @@ class _ScheduleLoadPageState extends ConsumerState<ScheduleLoadPage> {
     }
   }
 
-  void _onTabSelected(BuildContext context, AppTab tab) {
-    AppRoutes.handleTabSelection(context, tab);
-  }
-
   Future<void> _openManualClassPage() async {
     final importSessionId = const Uuid().v4();
     final controller = ref.read(scheduleControllerProvider.notifier);
@@ -207,6 +203,10 @@ class _ScheduleLoadPageState extends ConsumerState<ScheduleLoadPage> {
         builder: (_) => AddClassPage(importSessionId: importSessionId),
       ),
     );
+  }
+
+  void _onTabSelected(BuildContext context, AppTab tab) {
+    AppRoutes.handleTabSelection(context, tab);
   }
 
   @override

@@ -4,6 +4,7 @@ import 'package:andespace/core/local/app_database.dart';
 import 'package:andespace/features/schedule/domain/entities/manual_class.dart';
 import 'package:andespace/features/schedule/domain/entities/schedule_class.dart';
 import 'package:andespace/features/schedule/domain/entities/schedule_occurrence.dart';
+import 'package:andespace/features/schedule/domain/entities/schedule_weekday.dart';
 import 'package:andespace/features/schedule/domain/entities/weekly_schedule.dart';
 import 'package:drift/drift.dart';
 
@@ -293,44 +294,27 @@ class ScheduleLocalDataSourceImpl implements ScheduleLocalDataSource {
     final clean = value.trim().toLowerCase();
 
     switch (clean) {
-      case 'monday':
-        return 'monday';
-      case 'tuesday':
-        return 'tuesday';
-      case 'wednesday':
-        return 'wednesday';
-      case 'thursday':
-        return 'thursday';
-      case 'friday':
-        return 'friday';
-      case 'saturday':
-        return 'saturday';
-      case 'sunday':
-        return 'sunday';
+      case ScheduleWeekday.monday:
+        return ScheduleWeekday.monday;
+      case ScheduleWeekday.tuesday:
+        return ScheduleWeekday.tuesday;
+      case ScheduleWeekday.wednesday:
+        return ScheduleWeekday.wednesday;
+      case ScheduleWeekday.thursday:
+        return ScheduleWeekday.thursday;
+      case ScheduleWeekday.friday:
+        return ScheduleWeekday.friday;
+      case ScheduleWeekday.saturday:
+        return ScheduleWeekday.saturday;
+      case ScheduleWeekday.sunday:
+        return ScheduleWeekday.sunday;
       default:
         return null;
     }
   }
 
   int _weekdayIndex(String weekday) {
-    switch (weekday) {
-      case 'monday':
-        return DateTime.monday;
-      case 'tuesday':
-        return DateTime.tuesday;
-      case 'wednesday':
-        return DateTime.wednesday;
-      case 'thursday':
-        return DateTime.thursday;
-      case 'friday':
-        return DateTime.friday;
-      case 'saturday':
-        return DateTime.saturday;
-      case 'sunday':
-        return DateTime.sunday;
-      default:
-        return 99;
-    }
+    return ScheduleWeekday.index(weekday);
   }
 
   DateTime _startOfWeek(DateTime date) {
@@ -350,17 +334,7 @@ class ScheduleLocalDataSourceImpl implements ScheduleLocalDataSource {
   }
 
   String _weekdayName(DateTime date) {
-    const names = {
-      DateTime.monday: 'monday',
-      DateTime.tuesday: 'tuesday',
-      DateTime.wednesday: 'wednesday',
-      DateTime.thursday: 'thursday',
-      DateTime.friday: 'friday',
-      DateTime.saturday: 'saturday',
-      DateTime.sunday: 'sunday',
-    };
-
-    return names[date.weekday]!;
+    return ScheduleWeekday.fromDateTimeWeekday(date.weekday)!;
   }
 
   String? _cleanNullable(String? value) {
@@ -403,4 +377,3 @@ class ScheduleLocalDataSourceImpl implements ScheduleLocalDataSource {
     return (decoded, cached.updatedAt);
   }
 }
-

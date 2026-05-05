@@ -28,9 +28,7 @@ class SaveManualClassForCurrentUserUseCase {
       manualClass,
     ];
 
-    await repository.uploadManualSchedule(
-      classes: allClasses,
-    );
+    await repository.uploadManualSchedule(classes: allClasses);
   }
 
   ManualClass _toManualClass(ScheduleClass scheduleClass) {

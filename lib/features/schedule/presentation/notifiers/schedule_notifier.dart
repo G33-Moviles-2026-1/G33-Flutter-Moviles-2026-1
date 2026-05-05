@@ -43,13 +43,8 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
         propsJson: propsJson ?? const {},
       );
     } catch (_) {
-      // Analytics should never block the main flow.
+      // Analytics should never block the main schedule flow.
     }
-  }
-
-  bool _isMissingScheduleError(Object error) {
-    if (error is! DioException) return false;
-    return error.response?.statusCode == 404;
   }
 
   Future<void> trackManualImportStarted({
@@ -89,6 +84,11 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
       stepNumber: 2,
       propsJson: {'source_screen': sourceScreen},
     );
+  }
+
+  bool _isMissingScheduleError(Object error) {
+    if (error is! DioException) return false;
+    return error.response?.statusCode == 404;
   }
 
   Future<void> loadWeek({DateTime? date}) async {
@@ -344,8 +344,7 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
     return getScheduleClasses();
   }
 
-  Future<(List<RoomSearchItem>, DateTime?)>
-  loadRecommendedRoomsForSelectedDay() async {
+  Future<(List<RoomSearchItem>, DateTime?)> loadRecommendedRoomsForSelectedDay() async {
     try {
       final getRecommendedRooms = ref.read(
         getRecommendedRoomsForCurrentUserProvider,

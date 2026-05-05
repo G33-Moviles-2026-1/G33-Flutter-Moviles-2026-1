@@ -119,7 +119,10 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
+        SnackBar(
+          content: Text(message),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
   }
 
@@ -395,9 +398,7 @@ class _DateTimeCard extends StatelessWidget {
                     onPressed: onPickStartTime,
                     icon: const Icon(Icons.schedule_outlined),
                     label: Text(
-                      startTime == null
-                          ? 'Start Time'
-                          : startTime!.format(context),
+                      startTime == null ? 'Start Time' : startTime!.format(context),
                     ),
                   ),
                 ),
@@ -424,7 +425,10 @@ class _DateTimeCard extends StatelessWidget {
 }
 
 class _WeekdaysCard extends StatelessWidget {
-  const _WeekdaysCard({required this.weekdays, required this.onChanged});
+  const _WeekdaysCard({
+    required this.weekdays,
+    required this.onChanged,
+  });
 
   final Map<String, bool> weekdays;
   final void Function(String day, bool value) onChanged;
@@ -462,10 +466,7 @@ class _WeekdaysCard extends StatelessWidget {
                 ),
                 selected: selected,
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                visualDensity: const VisualDensity(
-                  horizontal: -2,
-                  vertical: -2,
-                ),
+                visualDensity: const VisualDensity(horizontal: -2, vertical: -2),
                 labelPadding: const EdgeInsets.symmetric(horizontal: 6),
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                 onSelected: (value) => onChanged(day, value),

@@ -1,4 +1,8 @@
+import 'package:andespace/core/di/core_provider.dart';
 import 'package:andespace/features/schedule/data/local/schedule_local_data_source.dart';
+import 'package:andespace/features/schedule/data/remote/schedule_remote_data_source.dart';
+import 'package:andespace/features/schedule/data/repositories/schedule_repository_impl.dart';
+import 'package:andespace/features/schedule/domain/repositories/schedule_repository.dart';
 import 'package:andespace/features/schedule/domain/usecases/delete_full_schedule_for_current_user_usecase.dart';
 import 'package:andespace/features/schedule/domain/usecases/delete_schedule_class_for_current_user_usecase.dart';
 import 'package:andespace/features/schedule/domain/usecases/delete_schedule_occurrence_for_current_user_usecase.dart';
@@ -10,16 +14,17 @@ import 'package:andespace/features/schedule/domain/usecases/save_manual_class_fo
 import 'package:andespace/features/schedule/domain/usecases/validate_schedule_class_requirements_usecase.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:andespace/core/di/core_provider.dart';
-
-import '../../data/remote/schedule_remote_data_source.dart';
-import '../../data/repositories/schedule_repository_impl.dart';
-import '../../domain/repositories/schedule_repository.dart';
-
-final scheduleRemoteDataSourceProvider = Provider<ScheduleRemoteDataSource>((ref) {
+final scheduleRemoteDataSourceProvider =
+    Provider<ScheduleRemoteDataSource>((ref) {
   final dio = ref.watch(dioProvider);
 
   return ScheduleRemoteDataSourceImpl(dio: dio);
+});
+
+final scheduleLocalDataSourceProvider = Provider<ScheduleLocalDataSource>((ref) {
+  final db = ref.watch(appDatabaseProvider);
+
+  return ScheduleLocalDataSourceImpl(db: db);
 });
 
 final scheduleRepositoryProvider = Provider<ScheduleRepository>((ref) {
@@ -34,6 +39,10 @@ final scheduleRepositoryProvider = Provider<ScheduleRepository>((ref) {
   );
 });
 
+final validateScheduleClassRequirementsProvider =
+    Provider<ValidateScheduleClassRequirementsUseCase>((ref) {
+  return const ValidateScheduleClassRequirementsUseCase();
+});
 
 final loadWeekForCurrentUserProvider =
     Provider<LoadWeekForCurrentUserUseCase>((ref) {
@@ -59,11 +68,11 @@ final getScheduleClassesForCurrentUserProvider =
 final saveManualClassForCurrentUserProvider =
     Provider<SaveManualClassForCurrentUserUseCase>((ref) {
   return SaveManualClassForCurrentUserUseCase(
-    repository: ref.read(scheduleRepositoryProvider),
-    getScheduleClassesForCurrentUser: ref.read(
+    repository: ref.watch(scheduleRepositoryProvider),
+    getScheduleClassesForCurrentUser: ref.watch(
       getScheduleClassesForCurrentUserProvider,
     ),
-    validateScheduleClassRequirements: ref.read(
+    validateScheduleClassRequirements: ref.watch(
       validateScheduleClassRequirementsProvider,
     ),
   );
@@ -95,15 +104,4 @@ final getRecommendedRoomsForCurrentUserProvider =
   return GetRecommendedRoomsForCurrentUserUseCase(
     repository: ref.watch(scheduleRepositoryProvider),
   );
-});
-
-final scheduleLocalDataSourceProvider = Provider<ScheduleLocalDataSource>((ref) {
-  final db = ref.watch(appDatabaseProvider);
-
-  return ScheduleLocalDataSourceImpl(db: db);
-});
-
-final validateScheduleClassRequirementsProvider =
-    Provider<ValidateScheduleClassRequirementsUseCase>((ref) {
-  return const ValidateScheduleClassRequirementsUseCase();
 });
