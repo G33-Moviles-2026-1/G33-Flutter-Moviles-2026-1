@@ -7,6 +7,7 @@ import 'package:andespace/features/schedule/domain/usecases/get_schedule_classes
 import 'package:andespace/features/schedule/domain/usecases/import_ics_for_current_user_usecase.dart';
 import 'package:andespace/features/schedule/domain/usecases/load_week_for_current_user_usecase.dart';
 import 'package:andespace/features/schedule/domain/usecases/save_manual_class_for_current_user_usecase.dart';
+import 'package:andespace/features/schedule/domain/usecases/validate_schedule_class_requirements_usecase.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:andespace/core/di/core_provider.dart';
@@ -58,9 +59,13 @@ final getScheduleClassesForCurrentUserProvider =
 final saveManualClassForCurrentUserProvider =
     Provider<SaveManualClassForCurrentUserUseCase>((ref) {
   return SaveManualClassForCurrentUserUseCase(
-    repository: ref.watch(scheduleRepositoryProvider),
-    getScheduleClassesForCurrentUser:
-        ref.watch(getScheduleClassesForCurrentUserProvider),
+    repository: ref.read(scheduleRepositoryProvider),
+    getScheduleClassesForCurrentUser: ref.read(
+      getScheduleClassesForCurrentUserProvider,
+    ),
+    validateScheduleClassRequirements: ref.read(
+      validateScheduleClassRequirementsProvider,
+    ),
   );
 });
 
@@ -96,4 +101,9 @@ final scheduleLocalDataSourceProvider = Provider<ScheduleLocalDataSource>((ref) 
   final db = ref.watch(appDatabaseProvider);
 
   return ScheduleLocalDataSourceImpl(db: db);
+});
+
+final validateScheduleClassRequirementsProvider =
+    Provider<ValidateScheduleClassRequirementsUseCase>((ref) {
+  return const ValidateScheduleClassRequirementsUseCase();
 });

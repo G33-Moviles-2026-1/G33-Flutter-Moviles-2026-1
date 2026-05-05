@@ -294,42 +294,19 @@ class ScheduleLocalDataSourceImpl implements ScheduleLocalDataSource {
 
     switch (clean) {
       case 'monday':
-      case 'mon':
-      case 'lunes':
-      case 'lu':
-        return 'Monday';
+        return 'monday';
       case 'tuesday':
-      case 'tue':
-      case 'martes':
-      case 'ma':
-        return 'Tuesday';
+        return 'tuesday';
       case 'wednesday':
-      case 'wed':
-      case 'miercoles':
-      case 'miércoles':
-      case 'mi':
-        return 'Wednesday';
+        return 'wednesday';
       case 'thursday':
-      case 'thu':
-      case 'jueves':
-      case 'ju':
-        return 'Thursday';
+        return 'thursday';
       case 'friday':
-      case 'fri':
-      case 'viernes':
-      case 'vi':
-        return 'Friday';
+        return 'friday';
       case 'saturday':
-      case 'sat':
-      case 'sabado':
-      case 'sábado':
-      case 'sa':
-        return 'Saturday';
+        return 'saturday';
       case 'sunday':
-      case 'sun':
-      case 'domingo':
-      case 'do':
-        return 'Sunday';
+        return 'sunday';
       default:
         return null;
     }
@@ -337,19 +314,19 @@ class ScheduleLocalDataSourceImpl implements ScheduleLocalDataSource {
 
   int _weekdayIndex(String weekday) {
     switch (weekday) {
-      case 'Monday':
+      case 'monday':
         return DateTime.monday;
-      case 'Tuesday':
+      case 'tuesday':
         return DateTime.tuesday;
-      case 'Wednesday':
+      case 'wednesday':
         return DateTime.wednesday;
-      case 'Thursday':
+      case 'thursday':
         return DateTime.thursday;
-      case 'Friday':
+      case 'friday':
         return DateTime.friday;
-      case 'Saturday':
+      case 'saturday':
         return DateTime.saturday;
-      case 'Sunday':
+      case 'sunday':
         return DateTime.sunday;
       default:
         return 99;
@@ -374,13 +351,13 @@ class ScheduleLocalDataSourceImpl implements ScheduleLocalDataSource {
 
   String _weekdayName(DateTime date) {
     const names = {
-      DateTime.monday: 'Monday',
-      DateTime.tuesday: 'Tuesday',
-      DateTime.wednesday: 'Wednesday',
-      DateTime.thursday: 'Thursday',
-      DateTime.friday: 'Friday',
-      DateTime.saturday: 'Saturday',
-      DateTime.sunday: 'Sunday',
+      DateTime.monday: 'monday',
+      DateTime.tuesday: 'tuesday',
+      DateTime.wednesday: 'wednesday',
+      DateTime.thursday: 'thursday',
+      DateTime.friday: 'friday',
+      DateTime.saturday: 'saturday',
+      DateTime.sunday: 'sunday',
     };
 
     return names[date.weekday]!;
@@ -426,3 +403,4 @@ class ScheduleLocalDataSourceImpl implements ScheduleLocalDataSource {
     return (decoded, cached.updatedAt);
   }
 }
+

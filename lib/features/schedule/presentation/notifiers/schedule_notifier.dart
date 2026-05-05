@@ -28,7 +28,7 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
     required String method,
     required String step,
     required int stepNumber,
-    String? errorMessage,
+    Map<String, dynamic>? propsJson,
   }) async {
     try {
       final analyticsService = ref.read(analyticsServiceProvider);
@@ -40,14 +40,55 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
         method: method,
         step: step,
         stepNumber: stepNumber,
-        propsJson: {if (errorMessage != null) 'error_message': errorMessage},
+        propsJson: propsJson ?? const {},
       );
-    } catch (_) {}
+    } catch (_) {
+      // Analytics should never block the main flow.
+    }
   }
 
   bool _isMissingScheduleError(Object error) {
     if (error is! DioException) return false;
     return error.response?.statusCode == 404;
+  }
+
+  Future<void> trackManualImportStarted({
+    required String importSessionId,
+    required String sourceScreen,
+  }) {
+    return _trackScheduleImportStep(
+      importSessionId: importSessionId,
+      method: 'manual',
+      step: 'started',
+      stepNumber: 1,
+      propsJson: {'source_screen': sourceScreen},
+    );
+  }
+
+  Future<void> trackIcsImportStarted({
+    required String importSessionId,
+    required String sourceScreen,
+  }) {
+    return _trackScheduleImportStep(
+      importSessionId: importSessionId,
+      method: 'ics',
+      step: 'started',
+      stepNumber: 1,
+      propsJson: {'source_screen': sourceScreen},
+    );
+  }
+
+  Future<void> trackIcsFileSelected({
+    required String importSessionId,
+    required String sourceScreen,
+  }) {
+    return _trackScheduleImportStep(
+      importSessionId: importSessionId,
+      method: 'ics',
+      step: 'file_selected',
+      stepNumber: 2,
+      propsJson: {'source_screen': sourceScreen},
+    );
   }
 
   Future<void> loadWeek({DateTime? date}) async {
@@ -127,20 +168,39 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
     state = state.copyWith(
       status: ScheduleStatus.uploading,
       clearErrorMessage: true,
+      clearInfoMessage: true,
     );
 
     try {
       final importIcs = ref.read(importIcsForCurrentUserProvider);
+
       await importIcs(filePath: filePath);
+
+      await _trackScheduleImportStep(
+        importSessionId: importSessionId,
+        method: 'ics',
+        step: 'parsed',
+        stepNumber: 3,
+        propsJson: {'source_screen': 'schedule_load'},
+      );
+
+      await _trackScheduleImportStep(
+        importSessionId: importSessionId,
+        method: 'ics',
+        step: 'confirmed',
+        stepNumber: 4,
+        propsJson: {'source_screen': 'schedule_load'},
+      );
+
+      await loadWeek(date: DateTime.now());
 
       await _trackScheduleImportStep(
         importSessionId: importSessionId,
         method: 'ics',
         step: 'completed',
         stepNumber: 5,
+        propsJson: {'source_screen': 'schedule_load'},
       );
-
-      await loadWeek(date: DateTime.now());
     } catch (error) {
       final message = mapScheduleErrorMessage(error);
 
@@ -162,25 +222,44 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
     state = state.copyWith(
       status: ScheduleStatus.savingManualClass,
       clearErrorMessage: true,
+      clearInfoMessage: true,
     );
 
     try {
       final saveManual = ref.read(saveManualClassForCurrentUserProvider);
+
       await saveManual(manualClass: manualClass);
+
+      await _trackScheduleImportStep(
+        importSessionId: importSessionId,
+        method: 'manual',
+        step: 'first_class_added',
+        stepNumber: 2,
+        propsJson: {'source_screen': 'add_class'},
+      );
+
+      await _trackScheduleImportStep(
+        importSessionId: importSessionId,
+        method: 'manual',
+        step: 'confirmed',
+        stepNumber: 3,
+        propsJson: {'source_screen': 'add_class'},
+      );
 
       state = state.copyWith(
         infoMessage:
             'Schedule saved. If you are offline, it will sync when connection returns.',
       );
 
+      await loadWeek(date: state.selectedDate);
+
       await _trackScheduleImportStep(
         importSessionId: importSessionId,
         method: 'manual',
         step: 'completed',
         stepNumber: 4,
+        propsJson: {'source_screen': 'add_class'},
       );
-
-      await loadWeek(date: state.selectedDate);
     } catch (error) {
       state = state.copyWith(
         status: ScheduleStatus.error,
@@ -265,7 +344,8 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
     return getScheduleClasses();
   }
 
-  Future<(List<RoomSearchItem>, DateTime?)> loadRecommendedRoomsForSelectedDay() async {
+  Future<(List<RoomSearchItem>, DateTime?)>
+  loadRecommendedRoomsForSelectedDay() async {
     try {
       final getRecommendedRooms = ref.read(
         getRecommendedRoomsForCurrentUserProvider,

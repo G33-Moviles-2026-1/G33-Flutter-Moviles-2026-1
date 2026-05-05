@@ -299,21 +299,12 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
                         height: 56,
                         child: OutlinedButton.icon(
                           onPressed: () async {
-                            final analytics = ref.read(
-                              analyticsServiceProvider,
-                            );
                             final importSessionId = const Uuid().v4();
-                            try {
-                              await analytics.trackScheduleImportStep(
-                                sessionId: importSessionId,
-                                deviceId: 'mobile',
-                                userEmail: 'current_user',
-                                method: 'manual',
-                                step: 'started',
-                                stepNumber: 1,
-                                propsJson: {'source_screen': 'schedule_load'},
-                              );
-                            } catch (_) {}
+
+                            await controller.trackManualImportStarted(
+                              importSessionId: importSessionId,
+                              sourceScreen: 'weekly_schedule',
+                            );
 
                             if (!context.mounted) return;
 
