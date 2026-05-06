@@ -1,4 +1,5 @@
 import 'package:andespace/features/auth/data/local/auth_local_data_source.dart';
+import 'package:andespace/features/schedule/presentation/providers/schedule_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core_provider.dart';
@@ -25,33 +26,31 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
   );
 });
 
-
 final getCurrentUserUseCaseProvider = Provider<GetCurrentUserUseCase>((ref) {
   return GetCurrentUserUseCase(ref.watch(authRepositoryProvider));
 });
 
 final loginAndFetchCurrentUserUseCaseProvider =
     Provider<LoginAndFetchCurrentUserUseCase>((ref) {
-  return LoginAndFetchCurrentUserUseCase(
-    ref.watch(authRepositoryProvider),
-  );
-});
+      return LoginAndFetchCurrentUserUseCase(ref.watch(authRepositoryProvider));
+    });
 
 final signUpAndFetchCurrentUserUseCaseProvider =
     Provider<SignUpAndFetchCurrentUserUseCase>((ref) {
-  return SignUpAndFetchCurrentUserUseCase(
-    ref.watch(authRepositoryProvider),
-  );
-});
+      return SignUpAndFetchCurrentUserUseCase(
+        ref.watch(authRepositoryProvider),
+      );
+    });
 
 final logoutAndClearSessionDataUseCaseProvider =
     Provider<LogoutAndClearSessionDataUseCase>((ref) {
-  return LogoutAndClearSessionDataUseCase(
-    authRepository: ref.watch(authRepositoryProvider),
-    bookingsLocalDataSource: ref.watch(bookingsLocalDataSourceProvider),
-    favoritesLocalDataSource: ref.watch(favoritesLocalDataSourceProvider),
-  );
-});
+      return LogoutAndClearSessionDataUseCase(
+        authRepository: ref.watch(authRepositoryProvider),
+        bookingsLocalDataSource: ref.watch(bookingsLocalDataSourceProvider),
+        favoritesLocalDataSource: ref.watch(favoritesLocalDataSourceProvider),
+        scheduleLocalDataSource: ref.watch(scheduleLocalDataSourceProvider),
+      );
+    });
 
 final authLocalDataSourceProvider = Provider<AuthLocalDataSource>((ref) {
   return AuthLocalDataSourceImpl();

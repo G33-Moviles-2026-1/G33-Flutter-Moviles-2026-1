@@ -11,7 +11,6 @@ import '../notifiers/schedule_state.dart';
 import '../notifiers/schedule_notifier.dart';
 import '../widgets/weekly_calendar_view.dart';
 import 'add_class_page.dart';
-import 'schedule_load_page.dart';
 
 class WeeklySchedulePage extends ConsumerStatefulWidget {
   const WeeklySchedulePage({super.key});
@@ -129,10 +128,8 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
 
     navigator.push(
       MaterialPageRoute(
-        builder: (_) => RecommendedRoomsPage(
-          items: items,
-          lastUpdated: lastUpdated,
-        ),
+        builder: (_) =>
+            RecommendedRoomsPage(items: items, lastUpdated: lastUpdated),
       ),
     );
   }
@@ -200,7 +197,7 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
           }
 
           if (state.weeklySchedule == null) {
-            return const ScheduleLoadPage();
+            return const Center(child: CircularProgressIndicator());
           }
 
           final schedule = state.weeklySchedule!;
