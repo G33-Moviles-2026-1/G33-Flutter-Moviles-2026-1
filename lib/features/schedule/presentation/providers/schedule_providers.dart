@@ -10,6 +10,7 @@ import 'package:andespace/features/schedule/domain/usecases/get_recommended_room
 import 'package:andespace/features/schedule/domain/usecases/get_schedule_classes_for_current_user_usecase.dart';
 import 'package:andespace/features/schedule/domain/usecases/import_ics_for_current_user_usecase.dart';
 import 'package:andespace/features/schedule/domain/usecases/load_week_for_current_user_usecase.dart';
+import 'package:andespace/features/schedule/domain/usecases/refresh_schedule_classes_for_current_user_usecase.dart';
 import 'package:andespace/features/schedule/domain/usecases/save_manual_class_for_current_user_usecase.dart';
 import 'package:andespace/features/schedule/domain/usecases/validate_schedule_class_requirements_usecase.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -102,6 +103,13 @@ final deleteScheduleOccurrenceForCurrentUserProvider =
 final getRecommendedRoomsForCurrentUserProvider =
     Provider<GetRecommendedRoomsForCurrentUserUseCase>((ref) {
   return GetRecommendedRoomsForCurrentUserUseCase(
+    repository: ref.watch(scheduleRepositoryProvider),
+  );
+});
+
+final refreshScheduleClassesForCurrentUserProvider =
+    Provider<RefreshScheduleClassesForCurrentUserUseCase>((ref) {
+  return RefreshScheduleClassesForCurrentUserUseCase(
     repository: ref.watch(scheduleRepositoryProvider),
   );
 });

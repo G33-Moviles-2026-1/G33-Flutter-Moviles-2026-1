@@ -1,5 +1,4 @@
 import 'package:andespace/features/auth/data/local/auth_local_data_source.dart';
-import 'package:andespace/features/schedule/presentation/providers/schedule_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core_provider.dart';
@@ -48,7 +47,6 @@ final logoutAndClearSessionDataUseCaseProvider =
         authRepository: ref.watch(authRepositoryProvider),
         bookingsLocalDataSource: ref.watch(bookingsLocalDataSourceProvider),
         favoritesLocalDataSource: ref.watch(favoritesLocalDataSourceProvider),
-        scheduleLocalDataSource: ref.watch(scheduleLocalDataSourceProvider),
       );
     });
 

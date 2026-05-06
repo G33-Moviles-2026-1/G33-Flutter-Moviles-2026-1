@@ -102,6 +102,16 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
     );
 
     try {
+      try {
+        final refreshRemote = ref.read(
+          refreshScheduleClassesForCurrentUserProvider,
+        );
+
+        await refreshRemote();
+      } catch (_) {
+        // Offline fallback: use local data.
+      }
+
       final loadWeek = ref.read(loadWeekForCurrentUserProvider);
       final schedule = await loadWeek(date: targetDate);
 
@@ -344,7 +354,8 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
     return getScheduleClasses();
   }
 
-  Future<(List<RoomSearchItem>, DateTime?)> loadRecommendedRoomsForSelectedDay() async {
+  Future<(List<RoomSearchItem>, DateTime?)>
+  loadRecommendedRoomsForSelectedDay() async {
     try {
       final getRecommendedRooms = ref.read(
         getRecommendedRoomsForCurrentUserProvider,
