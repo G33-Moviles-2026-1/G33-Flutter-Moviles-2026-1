@@ -66,10 +66,7 @@ class _ScheduleEntryPageState extends ConsumerState<ScheduleEntryPage> {
 
     final state = ref.watch(scheduleControllerProvider);
 
-    if (!_requestedInitialLoad ||
-        state.status == ScheduleStatus.initial ||
-        state.status == ScheduleStatus.loading ||
-        state.status == ScheduleStatus.uploading) {
+    if (state.status == ScheduleStatus.uploading) {
       return const SchedulePageScaffold(
         body: ScheduleStatusCard(
           leading: CircularProgressIndicator(),
@@ -90,8 +87,16 @@ class _ScheduleEntryPageState extends ConsumerState<ScheduleEntryPage> {
       return const WeeklySchedulePage();
     }
 
-    if (state.status == ScheduleStatus.empty && state.weeklySchedule == null) {
-      return const ScheduleLoadPage();
+    if (!_requestedInitialLoad ||
+        state.status == ScheduleStatus.initial ||
+        state.status == ScheduleStatus.loading) {
+      return const SchedulePageScaffold(
+        body: ScheduleStatusCard(
+          leading: CircularProgressIndicator(),
+          title: 'Loading your schedule...',
+          message: 'Please wait while we prepare your weekly view.',
+        ),
+      );
     }
 
     if (state.status == ScheduleStatus.error) {

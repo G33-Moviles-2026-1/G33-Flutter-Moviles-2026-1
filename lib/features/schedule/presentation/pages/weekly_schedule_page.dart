@@ -191,13 +191,9 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
     return SchedulePageScaffold(
       body: Builder(
         builder: (context) {
-          if (state.status == ScheduleStatus.loading &&
-              state.weeklySchedule == null) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
+          
           if (state.weeklySchedule == null) {
-            return const Center(child: CircularProgressIndicator());
+            return const SizedBox.shrink();
           }
 
           final schedule = state.weeklySchedule!;
