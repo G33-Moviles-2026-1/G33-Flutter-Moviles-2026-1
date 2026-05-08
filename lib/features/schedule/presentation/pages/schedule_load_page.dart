@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:andespace/core/di/core_provider.dart';
 import 'package:andespace/core/navigation/app_routes.dart';
 import 'package:andespace/features/schedule/presentation/notifiers/schedule_notifier.dart';
 import 'package:andespace/features/schedule/presentation/notifiers/schedule_state.dart';
@@ -66,30 +65,6 @@ class _ScheduleLoadPageState extends ConsumerState<ScheduleLoadPage> {
       return result.isNotEmpty && result.first.rawAddress.isNotEmpty;
     } catch (_) {
       return false;
-    }
-  }
-
-  Future<void> _trackScheduleImportStep({
-    required String importSessionId,
-    required String method,
-    required String step,
-    required int stepNumber,
-    Map<String, dynamic>? propsJson,
-  }) async {
-    try {
-      final analytics = ref.read(analyticsServiceProvider);
-
-      await analytics.trackScheduleImportStep(
-        sessionId: importSessionId,
-        deviceId: 'mobile',
-        userEmail: 'current_user',
-        method: method,
-        step: step,
-        stepNumber: stepNumber,
-        propsJson: propsJson ?? const {},
-      );
-    } catch (_) {
-      // Analytics should never block the main flow.
     }
   }
 
@@ -174,12 +149,9 @@ class _ScheduleLoadPageState extends ConsumerState<ScheduleLoadPage> {
     final controller = ref.read(scheduleControllerProvider.notifier);
     final importSessionId = const Uuid().v4();
 
-    await _trackScheduleImportStep(
+    await controller.trackIcsImportStarted(
       importSessionId: importSessionId,
-      method: 'ics',
-      step: 'started',
-      stepNumber: 1,
-      propsJson: {'source_screen': 'schedule_load'},
+      sourceScreen: 'schedule_load',
     );
 
     final result = await FilePicker.platform.pickFiles(
@@ -190,33 +162,14 @@ class _ScheduleLoadPageState extends ConsumerState<ScheduleLoadPage> {
     final path = result?.files.single.path;
     if (path == null) return;
 
-    await _trackScheduleImportStep(
+    await controller.trackIcsFileSelected(
       importSessionId: importSessionId,
-      method: 'ics',
-      step: 'file_selected',
-      stepNumber: 2,
-      propsJson: {'source_screen': 'schedule_load'},
-    );
-
-    await _trackScheduleImportStep(
-      importSessionId: importSessionId,
-      method: 'ics',
-      step: 'parsed',
-      stepNumber: 3,
-      propsJson: {'source_screen': 'schedule_load'},
+      sourceScreen: 'schedule_load',
     );
 
     await controller.importIcs(
       filePath: path,
       importSessionId: importSessionId,
-    );
-
-    await _trackScheduleImportStep(
-      importSessionId: importSessionId,
-      method: 'ics',
-      step: 'confirmed',
-      stepNumber: 4,
-      propsJson: {'source_screen': 'schedule_load'},
     );
 
     if (!mounted) return;
@@ -231,12 +184,18 @@ class _ScheduleLoadPageState extends ConsumerState<ScheduleLoadPage> {
     }
   }
 
-  void _onTabSelected(BuildContext context, AppTab tab) {
-    AppRoutes.handleTabSelection(context, tab);
-  }
-
   Future<void> _openManualClassPage() async {
     final importSessionId = const Uuid().v4();
+    final controller = ref.read(scheduleControllerProvider.notifier);
+
+    unawaited(
+      controller.trackManualImportStarted(
+        importSessionId: importSessionId,
+        sourceScreen: 'schedule_load',
+      ),
+    );
+
+    if (!mounted) return;
 
     Navigator.push(
       context,
@@ -244,16 +203,10 @@ class _ScheduleLoadPageState extends ConsumerState<ScheduleLoadPage> {
         builder: (_) => AddClassPage(importSessionId: importSessionId),
       ),
     );
+  }
 
-    unawaited(
-      _trackScheduleImportStep(
-        importSessionId: importSessionId,
-        method: 'manual',
-        step: 'started',
-        stepNumber: 1,
-        propsJson: {'source_screen': 'schedule_load'},
-      ),
-    );
+  void _onTabSelected(BuildContext context, AppTab tab) {
+    AppRoutes.handleTabSelection(context, tab);
   }
 
   @override

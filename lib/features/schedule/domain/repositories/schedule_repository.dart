@@ -20,6 +20,8 @@ abstract class ScheduleRepository {
 
   Future<void> deleteScheduleClass({required String classId});
 
+  Future<void> refreshScheduleClassesFromRemote();
+
   Future<void> deleteScheduleOccurrence({
     required String classId,
     required DateTime date,

@@ -25,33 +25,30 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
   );
 });
 
-
 final getCurrentUserUseCaseProvider = Provider<GetCurrentUserUseCase>((ref) {
   return GetCurrentUserUseCase(ref.watch(authRepositoryProvider));
 });
 
 final loginAndFetchCurrentUserUseCaseProvider =
     Provider<LoginAndFetchCurrentUserUseCase>((ref) {
-  return LoginAndFetchCurrentUserUseCase(
-    ref.watch(authRepositoryProvider),
-  );
-});
+      return LoginAndFetchCurrentUserUseCase(ref.watch(authRepositoryProvider));
+    });
 
 final signUpAndFetchCurrentUserUseCaseProvider =
     Provider<SignUpAndFetchCurrentUserUseCase>((ref) {
-  return SignUpAndFetchCurrentUserUseCase(
-    ref.watch(authRepositoryProvider),
-  );
-});
+      return SignUpAndFetchCurrentUserUseCase(
+        ref.watch(authRepositoryProvider),
+      );
+    });
 
 final logoutAndClearSessionDataUseCaseProvider =
     Provider<LogoutAndClearSessionDataUseCase>((ref) {
-  return LogoutAndClearSessionDataUseCase(
-    authRepository: ref.watch(authRepositoryProvider),
-    bookingsLocalDataSource: ref.watch(bookingsLocalDataSourceProvider),
-    favoritesLocalDataSource: ref.watch(favoritesLocalDataSourceProvider),
-  );
-});
+      return LogoutAndClearSessionDataUseCase(
+        authRepository: ref.watch(authRepositoryProvider),
+        bookingsLocalDataSource: ref.watch(bookingsLocalDataSourceProvider),
+        favoritesLocalDataSource: ref.watch(favoritesLocalDataSourceProvider),
+      );
+    });
 
 final authLocalDataSourceProvider = Provider<AuthLocalDataSource>((ref) {
   return AuthLocalDataSourceImpl();

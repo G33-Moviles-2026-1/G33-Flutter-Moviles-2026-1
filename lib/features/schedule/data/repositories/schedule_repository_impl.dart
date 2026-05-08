@@ -172,6 +172,15 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
       return (RecommendedRoomsMapper.fromRaw(raw), updatedAt);
     }
   }
+
+  @override
+  Future<void> refreshScheduleClassesFromRemote() async {
+    final remoteClasses = await remoteDataSource.getScheduleClasses();
+
+    await localDataSource.replaceClasses(
+      classes: ScheduleClassMapper.toEntityList(remoteClasses),
+    );
+  }
 }
 
 List<ManualClassModel> _normalizeManualModelsForBackend(

@@ -1,6 +1,10 @@
 import 'package:andespace/core/error/dio_error_mapper.dart';
+import 'package:andespace/features/schedule/domain/exceptions/schedule_validation_exception.dart';
 
 String mapScheduleErrorMessage(Object error) {
+  if (error is ScheduleValidationException) {
+    return error.message;
+  }
   return DioErrorMapper.map(
     error,
     fallback: 'Something went wrong. Please try again.',
