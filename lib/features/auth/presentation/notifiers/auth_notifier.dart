@@ -1,3 +1,4 @@
+import 'package:andespace/features/schedule/presentation/notifiers/schedule_notifier.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:andespace/core/di/auth_providers.dart';
@@ -112,6 +113,8 @@ class AuthNotifier extends Notifier<AuthState> {
 
     try {
       await _logoutAndClearSessionDataUseCase();
+
+      ref.read(scheduleControllerProvider.notifier).resetState();
 
       state = const AuthState(
         isLoading: false,
