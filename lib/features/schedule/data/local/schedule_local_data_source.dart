@@ -83,7 +83,7 @@ class ScheduleLocalDataSourceImpl implements ScheduleLocalDataSource {
       );
     }).toList();
 
-    return db.upsertScheduleClasses(rows);
+    return db.replaceScheduleClasses(rows);
   }
 
   @override

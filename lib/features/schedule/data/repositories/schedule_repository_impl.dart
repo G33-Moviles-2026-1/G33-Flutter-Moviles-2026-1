@@ -189,10 +189,8 @@ List<ManualClassModel> _normalizeManualModelsForBackend(
   return models.map((model) {
     return ManualClassModel(
       title: model.title,
-      locationText: null,
-      roomId: (model.roomId != null && model.roomId!.trim().isNotEmpty)
-          ? model.roomId!.trim()
-          : model.locationText?.trim(),
+      locationText: model.locationText?.trim(),
+      roomId: model.roomId!.trim(),
       startDate: model.startDate,
       endDate: model.endDate,
       startTime: model.startTime,
