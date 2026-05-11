@@ -91,7 +91,10 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
     return error.response?.statusCode == 404;
   }
 
-  Future<void> loadWeek({DateTime? date}) async {
+  Future<void> loadWeek({
+    DateTime? date,
+    bool refreshFromRemote = false,
+  }) async {
     final targetDate = date ?? state.selectedDate;
 
     state = state.copyWith(
@@ -102,14 +105,16 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
     );
 
     try {
-      try {
-        final refreshRemote = ref.read(
-          refreshScheduleClassesForCurrentUserProvider,
-        );
+      if (refreshFromRemote) {
+        try {
+          final refreshRemote = ref.read(
+            refreshScheduleClassesForCurrentUserProvider,
+          );
 
-        await refreshRemote();
-      } catch (_) {
-        // Offline fallback: use local data.
+          await refreshRemote();
+        } catch (_) {
+          // Local-first fallback: use local schedule.
+        }
       }
 
       final loadWeek = ref.read(loadWeekForCurrentUserProvider);
@@ -153,7 +158,7 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
   }
 
   Future<void> refresh() async {
-    await loadWeek(date: DateTime.now());
+    await loadWeek(date: DateTime.now(), refreshFromRemote: true);
   }
 
   Future<void> selectDay(DateTime date) async {
