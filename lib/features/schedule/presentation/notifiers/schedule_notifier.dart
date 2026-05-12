@@ -261,12 +261,11 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
         propsJson: {'source_screen': 'add_class'},
       );
 
-      state = state.copyWith(
-        infoMessage:
-            'Schedule saved. If you are offline, it will sync when connection returns.',
-      );
+      final infoMessage = await _scheduleChangeSuccessMessage();
 
       await loadWeek(date: state.selectedDate);
+
+      state = state.copyWith(infoMessage: infoMessage);
 
       await _trackScheduleImportStep(
         importSessionId: importSessionId,
@@ -287,15 +286,16 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
     state = state.copyWith(
       status: ScheduleStatus.deleting,
       clearErrorMessage: true,
+      clearInfoMessage: true,
     );
 
     try {
+      final infoMessage = await _scheduleChangeSuccessMessage();
       final deleteFull = ref.read(deleteFullScheduleForCurrentUserProvider);
       await deleteFull();
 
       state = state.copyWith(
-        infoMessage:
-            'Schedule deleted locally. If you are offline, the change will sync later.',
+        infoMessage: infoMessage,
         status: ScheduleStatus.empty,
         clearWeeklySchedule: true,
       );
@@ -311,13 +311,18 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
     state = state.copyWith(
       status: ScheduleStatus.deleting,
       clearErrorMessage: true,
+      clearInfoMessage: true,
     );
 
     try {
+      final infoMessage = await _scheduleChangeSuccessMessage();
+
       final deleteClass = ref.read(deleteScheduleClassForCurrentUserProvider);
 
       await deleteClass(classId: classId);
       await loadWeek(date: state.selectedDate);
+
+      state = state.copyWith(infoMessage: infoMessage);
     } catch (error) {
       state = state.copyWith(
         status: ScheduleStatus.error,
@@ -333,16 +338,20 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
     state = state.copyWith(
       status: ScheduleStatus.deleting,
       clearErrorMessage: true,
+      clearInfoMessage: true,
     );
 
     try {
+      final infoMessage = await _scheduleChangeSuccessMessage();
+
       final deleteOccurrence = ref.read(
         deleteScheduleOccurrenceForCurrentUserProvider,
       );
 
       await deleteOccurrence(classId: classId, date: date);
-
       await loadWeek(date: state.selectedDate);
+
+      state = state.copyWith(infoMessage: infoMessage);
     } catch (error) {
       state = state.copyWith(
         status: ScheduleStatus.error,
@@ -361,7 +370,15 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
 
   Future<(List<RoomSearchItem>, DateTime?)>
   loadRecommendedRoomsForSelectedDay() async {
+    state = state.copyWith(
+      isLoadingRecommendations: true,
+      clearErrorMessage: true,
+      clearInfoMessage: true,
+    );
+
     try {
+      await refreshInternetStatus();
+
       final getRecommendedRooms = ref.read(
         getRecommendedRoomsForCurrentUserProvider,
       );
@@ -373,6 +390,8 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
         errorMessage: mapScheduleErrorMessage(error),
       );
       rethrow;
+    } finally {
+      state = state.copyWith(isLoadingRecommendations: false);
     }
   }
 
@@ -429,6 +448,25 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
 
   void clearInfoMessage() {
     state = state.copyWith(clearInfoMessage: true);
+  }
+
+  Future<bool> refreshInternetStatus() async {
+    final service = ref.read(connectivityStatusServiceProvider);
+    final hasConnection = await service.hasInternetConnection();
+
+    state = state.copyWith(hasInternetConnection: hasConnection);
+
+    return hasConnection;
+  }
+
+  Future<String> _scheduleChangeSuccessMessage() async {
+    final hasConnection = await refreshInternetStatus();
+
+    if (hasConnection) {
+      return 'Changes completed successfully.';
+    }
+
+    return 'Changes saved locally. Connect to the internet to sync them.';
   }
 }
 

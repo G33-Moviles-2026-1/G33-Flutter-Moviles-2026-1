@@ -1,4 +1,5 @@
 import 'package:andespace/core/analytics/analytics_service.dart';
+import 'package:andespace/core/connectivity/connectivity_status_service.dart';
 import 'package:andespace/core/local/app_database.dart';
 import 'package:andespace/core/session/session_controller.dart';
 export 'package:andespace/core/session/session_controller.dart'
@@ -43,6 +44,11 @@ final connectivityQueueServiceProvider =
   final service = ConnectivityQueueService();
   service.init(ref.read(connectivityRecoveryServiceProvider).onRecovered);
   return service;
+});
+
+final connectivityStatusServiceProvider =
+    Provider<ConnectivityStatusService>((ref) {
+  return ConnectivityStatusService();
 });
 
 final appDatabaseProvider = Provider<AppDatabase>((ref) {
