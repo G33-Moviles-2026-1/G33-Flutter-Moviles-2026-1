@@ -6,6 +6,8 @@ import 'package:andespace/features/schedule/data/models/manual_class_dto.dart';
 import 'package:dio/dio.dart';
 
 import '../../domain/entities/free_rooms_for_day.dart';
+import '../../domain/entities/google_calendar_auth_session.dart';
+import '../../domain/entities/google_calendar_source.dart';
 import '../../domain/entities/manual_class.dart';
 import '../../domain/entities/schedule_class.dart';
 import '../../domain/entities/weekly_schedule.dart';
@@ -34,6 +36,37 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   @override
   Future<void> uploadIcsSchedule({required String filePath}) async {
     await remoteDataSource.uploadIcsSchedule(filePath: filePath);
+
+    final remoteClasses = await remoteDataSource.getScheduleClasses();
+
+    await localDataSource.replaceClasses(
+      classes: ScheduleClassMapper.toEntityList(remoteClasses),
+    );
+  }
+
+  @override
+  Future<GoogleCalendarAuthSession> startGoogleCalendarConnection() async {
+    final model = await remoteDataSource.startGoogleCalendarConnection();
+    return model.toEntity();
+  }
+
+  @override
+  Future<List<GoogleCalendarSource>> getGoogleCalendars({
+    required String state,
+  }) async {
+    final models = await remoteDataSource.getGoogleCalendars(state: state);
+    return models.map((model) => model.toEntity()).toList();
+  }
+
+  @override
+  Future<void> uploadGoogleCalendarSchedule({
+    required String state,
+    required List<String> calendarIds,
+  }) async {
+    await remoteDataSource.uploadGoogleCalendarSchedule(
+      state: state,
+      calendarIds: calendarIds,
+    );
 
     final remoteClasses = await remoteDataSource.getScheduleClasses();
 

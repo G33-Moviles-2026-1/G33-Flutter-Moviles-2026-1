@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:andespace/core/di/core_provider.dart';
 import 'package:andespace/features/rooms/domain/entities/room_search.dart';
+import 'package:andespace/features/schedule/domain/entities/google_calendar_auth_session.dart';
+import 'package:andespace/features/schedule/domain/entities/google_calendar_source.dart';
 import 'package:andespace/features/schedule/domain/entities/schedule_class.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:andespace/core/connectivity/pending_action_event.dart';
@@ -84,6 +86,102 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
       stepNumber: 2,
       propsJson: {'source_screen': sourceScreen},
     );
+  }
+
+  Future<void> trackGoogleImportStarted({
+    required String importSessionId,
+    required String sourceScreen,
+  }) {
+    return _trackScheduleImportStep(
+      importSessionId: importSessionId,
+      method: 'google',
+      step: 'started',
+      stepNumber: 1,
+      propsJson: {'source_screen': sourceScreen},
+    );
+  }
+
+  Future<void> trackGoogleCalendarsSelected({
+    required String importSessionId,
+    required String sourceScreen,
+    required int selectedCount,
+  }) {
+    return _trackScheduleImportStep(
+      importSessionId: importSessionId,
+      method: 'google',
+      step: 'calendar_selected',
+      stepNumber: 2,
+      propsJson: {
+        'source_screen': sourceScreen,
+        'selected_count': selectedCount,
+      },
+    );
+  }
+
+  Future<GoogleCalendarAuthSession> startGoogleCalendarConnection() {
+    final startConnection = ref.read(
+      startGoogleCalendarConnectionForCurrentUserProvider,
+    );
+
+    return startConnection();
+  }
+
+  Future<List<GoogleCalendarSource>> loadGoogleCalendars({
+    required String state,
+  }) {
+    final getCalendars = ref.read(getGoogleCalendarsForCurrentUserProvider);
+    return getCalendars(state: state);
+  }
+
+  Future<void> importGoogleCalendars({
+    required String oauthState,
+    required List<String> calendarIds,
+    required String importSessionId,
+  }) async {
+    state = state.copyWith(
+      status: ScheduleStatus.uploading,
+      clearErrorMessage: true,
+      clearInfoMessage: true,
+    );
+
+    try {
+      final importGoogle = ref.read(
+        importGoogleCalendarsForCurrentUserProvider,
+      );
+
+      await importGoogle(state: oauthState, calendarIds: calendarIds);
+
+      await _trackScheduleImportStep(
+        importSessionId: importSessionId,
+        method: 'google',
+        step: 'parsed',
+        stepNumber: 3,
+        propsJson: {'source_screen': 'schedule_load'},
+      );
+
+      await _trackScheduleImportStep(
+        importSessionId: importSessionId,
+        method: 'google',
+        step: 'confirmed',
+        stepNumber: 4,
+        propsJson: {'source_screen': 'schedule_load'},
+      );
+
+      await loadWeek(date: DateTime.now());
+
+      await _trackScheduleImportStep(
+        importSessionId: importSessionId,
+        method: 'google',
+        step: 'completed',
+        stepNumber: 5,
+        propsJson: {'source_screen': 'schedule_load'},
+      );
+    } catch (error) {
+      state = state.copyWith(
+        status: ScheduleStatus.error,
+        errorMessage: mapScheduleErrorMessage(error),
+      );
+    }
   }
 
   Future<void> loadWeek({

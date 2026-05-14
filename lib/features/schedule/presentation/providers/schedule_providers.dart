@@ -8,11 +8,14 @@ import 'package:andespace/features/schedule/domain/usecases/delete_full_schedule
 import 'package:andespace/features/schedule/domain/usecases/delete_schedule_class_for_current_user_usecase.dart';
 import 'package:andespace/features/schedule/domain/usecases/delete_schedule_occurrence_for_current_user_usecase.dart';
 import 'package:andespace/features/schedule/domain/usecases/get_recommended_rooms_for_current_user_usecase.dart';
+import 'package:andespace/features/schedule/domain/usecases/get_google_calendars_for_current_user_usecase.dart';
 import 'package:andespace/features/schedule/domain/usecases/get_schedule_classes_for_current_user_usecase.dart';
+import 'package:andespace/features/schedule/domain/usecases/import_google_calendars_for_current_user_usecase.dart';
 import 'package:andespace/features/schedule/domain/usecases/import_ics_for_current_user_usecase.dart';
 import 'package:andespace/features/schedule/domain/usecases/load_week_for_current_user_usecase.dart';
 import 'package:andespace/features/schedule/domain/usecases/refresh_schedule_classes_for_current_user_usecase.dart';
 import 'package:andespace/features/schedule/domain/usecases/save_manual_class_for_current_user_usecase.dart';
+import 'package:andespace/features/schedule/domain/usecases/start_google_calendar_connection_for_current_user_usecase.dart';
 import 'package:andespace/features/schedule/domain/usecases/validate_schedule_class_requirements_usecase.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -56,6 +59,27 @@ final loadWeekForCurrentUserProvider =
 final importIcsForCurrentUserProvider =
     Provider<ImportIcsForCurrentUserUseCase>((ref) {
   return ImportIcsForCurrentUserUseCase(
+    repository: ref.watch(scheduleRepositoryProvider),
+  );
+});
+
+final startGoogleCalendarConnectionForCurrentUserProvider =
+    Provider<StartGoogleCalendarConnectionForCurrentUserUseCase>((ref) {
+  return StartGoogleCalendarConnectionForCurrentUserUseCase(
+    repository: ref.watch(scheduleRepositoryProvider),
+  );
+});
+
+final getGoogleCalendarsForCurrentUserProvider =
+    Provider<GetGoogleCalendarsForCurrentUserUseCase>((ref) {
+  return GetGoogleCalendarsForCurrentUserUseCase(
+    repository: ref.watch(scheduleRepositoryProvider),
+  );
+});
+
+final importGoogleCalendarsForCurrentUserProvider =
+    Provider<ImportGoogleCalendarsForCurrentUserUseCase>((ref) {
+  return ImportGoogleCalendarsForCurrentUserUseCase(
     repository: ref.watch(scheduleRepositoryProvider),
   );
 });
