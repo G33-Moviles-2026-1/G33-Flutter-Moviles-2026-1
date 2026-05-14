@@ -26,6 +26,11 @@ abstract class ScheduleLocalDataSource {
     required DateTime date,
   });
 
+  Future<void> deleteOccurrencesFromDate({
+    required String classId,
+    required DateTime date,
+  });
+
   Future<void> cacheRecommendedRooms({
     required DateTime date,
     required Map<String, dynamic> raw,
@@ -163,8 +168,122 @@ class ScheduleLocalDataSourceImpl implements ScheduleLocalDataSource {
   Future<void> deleteOccurrence({
     required String classId,
     required DateTime date,
+  }) async {
+    final classes = await getClasses();
+    final target = _findClass(classes, classId);
+
+    if (target == null) return;
+
+    final replacement = _removeSingleOccurrence(target, date);
+
+    await replaceClasses(
+      classes: [...classes.where((e) => e.classId != classId), ...replacement],
+    );
+  }
+
+  @override
+  Future<void> deleteOccurrencesFromDate({
+    required String classId,
+    required DateTime date,
+  }) async {
+    final classes = await getClasses();
+    final target = _findClass(classes, classId);
+
+    if (target == null) return;
+
+    final cutoff = _dateOnly(date);
+    if (cutoff.isAfter(target.endDate)) return;
+
+    final previousDay = cutoff.subtract(const Duration(days: 1));
+    final replacement = previousDay.isBefore(target.startDate)
+        ? <ScheduleClass>[]
+        : [
+            _copyClass(
+              target,
+              classId: '${target.classId}_until_${_formatDateKey(previousDay)}',
+              endDate: previousDay,
+            ),
+          ];
+
+    await replaceClasses(
+      classes: [...classes.where((e) => e.classId != classId), ...replacement],
+    );
+  }
+
+  ScheduleClass? _findClass(List<ScheduleClass> classes, String classId) {
+    for (final scheduleClass in classes) {
+      if (scheduleClass.classId == classId) {
+        return scheduleClass;
+      }
+    }
+
+    return null;
+  }
+
+  List<ScheduleClass> _removeSingleOccurrence(
+    ScheduleClass scheduleClass,
+    DateTime occurrenceDate,
+  ) {
+    final cleanDate = _dateOnly(occurrenceDate);
+    final occurrenceWeekday = _weekdayName(cleanDate);
+
+    final isInsideRange =
+        !cleanDate.isBefore(scheduleClass.startDate) &&
+        !cleanDate.isAfter(scheduleClass.endDate);
+    final matchesWeekday = _normalizeWeekdays(
+      scheduleClass.weekdays,
+    ).contains(occurrenceWeekday);
+
+    if (!isInsideRange || !matchesWeekday) {
+      return [scheduleClass];
+    }
+
+    final previousDay = cleanDate.subtract(const Duration(days: 1));
+    final nextDay = cleanDate.add(const Duration(days: 1));
+    final replacement = <ScheduleClass>[];
+
+    if (!previousDay.isBefore(scheduleClass.startDate)) {
+      replacement.add(
+        _copyClass(
+          scheduleClass,
+          classId:
+              '${scheduleClass.classId}_before_${_formatDateKey(cleanDate)}',
+          endDate: previousDay,
+        ),
+      );
+    }
+
+    if (!nextDay.isAfter(scheduleClass.endDate)) {
+      replacement.add(
+        _copyClass(
+          scheduleClass,
+          classId:
+              '${scheduleClass.classId}_after_${_formatDateKey(cleanDate)}',
+          startDate: nextDay,
+        ),
+      );
+    }
+
+    return replacement;
+  }
+
+  ScheduleClass _copyClass(
+    ScheduleClass scheduleClass, {
+    required String classId,
+    DateTime? startDate,
+    DateTime? endDate,
   }) {
-    return db.deleteScheduleClass(classId);
+    return ScheduleClass(
+      classId: classId,
+      title: scheduleClass.title,
+      locationText: scheduleClass.locationText,
+      roomId: scheduleClass.roomId,
+      startDate: startDate ?? scheduleClass.startDate,
+      endDate: endDate ?? scheduleClass.endDate,
+      startTime: scheduleClass.startTime,
+      endTime: scheduleClass.endTime,
+      weekdays: scheduleClass.weekdays,
+    );
   }
 
   ScheduleClassesTableCompanion _classToCompanion(ScheduleClass entity) {

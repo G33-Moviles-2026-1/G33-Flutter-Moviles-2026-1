@@ -152,6 +152,33 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   }
 
   @override
+  Future<void> deleteScheduleOccurrencesFromDate({
+    required String classId,
+    required DateTime date,
+  }) async {
+    await localDataSource.deleteOccurrencesFromDate(
+      classId: classId,
+      date: date,
+    );
+
+    final localClasses = await localDataSource.getClasses();
+    final normalizedModels = _scheduleClassesToManualModels(localClasses);
+
+    try {
+      await remoteDataSource.uploadManualSchedule(classes: normalizedModels);
+    } catch (e) {
+      if (!_isConnectivityError(e)) rethrow;
+
+      connectivityQueueService.enqueue(
+        _UploadManualSchedulePendingAction(
+          remoteDataSource: remoteDataSource,
+          classes: normalizedModels,
+        ),
+      );
+    }
+  }
+
+  @override
   Future<(List<RoomSearchItem>, DateTime?)> getRecommendedRoomsForDay({
     required DateTime date,
   }) async {
@@ -188,14 +215,36 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   }
 }
 
+List<ManualClassModel> _scheduleClassesToManualModels(
+  List<ScheduleClass> classes,
+) {
+  return _normalizeManualModelsForBackend(
+    classes.map((scheduleClass) {
+      return ManualClassModel(
+        title: scheduleClass.title ?? 'Class',
+        locationText: scheduleClass.locationText,
+        roomId: scheduleClass.roomId ?? scheduleClass.locationText,
+        startDate: scheduleClass.startDate,
+        endDate: scheduleClass.endDate,
+        startTime: scheduleClass.startTime,
+        endTime: scheduleClass.endTime,
+        weekdays: scheduleClass.weekdays,
+      );
+    }).toList(),
+  );
+}
+
 List<ManualClassModel> _normalizeManualModelsForBackend(
   List<ManualClassModel> models,
 ) {
   return models.map((model) {
+    final locationText = model.locationText?.trim();
+    final roomId = model.roomId?.trim();
+
     return ManualClassModel(
       title: model.title,
-      locationText: model.locationText?.trim(),
-      roomId: model.roomId!.trim(),
+      locationText: locationText,
+      roomId: roomId == null || roomId.isEmpty ? locationText : roomId,
       startDate: model.startDate,
       endDate: model.endDate,
       startTime: model.startTime,

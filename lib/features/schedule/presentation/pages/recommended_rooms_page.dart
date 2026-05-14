@@ -102,6 +102,12 @@ class _EmptyRecommendationsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final iconBackground = isOffline
+        ? theme.colorScheme.secondary
+        : theme.colorScheme.secondary.withValues(alpha: 0.14);
+    final iconColor = isOffline
+        ? theme.colorScheme.onSecondary
+        : theme.colorScheme.primary;
 
     return Center(
       child: Padding(
@@ -109,10 +115,20 @@ class _EmptyRecommendationsView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              isOffline ? Icons.wifi_off_rounded : Icons.meeting_room_outlined,
-              size: 56,
-              color: theme.colorScheme.primary,
+            Container(
+              width: 76,
+              height: 76,
+              decoration: BoxDecoration(
+                color: iconBackground,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                isOffline
+                    ? Icons.wifi_off_rounded
+                    : Icons.meeting_room_outlined,
+                size: 40,
+                color: iconColor,
+              ),
             ),
             const SizedBox(height: 16),
             Text(

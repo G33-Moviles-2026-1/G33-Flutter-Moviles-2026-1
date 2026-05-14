@@ -8,6 +8,7 @@ import 'package:andespace/core/connectivity/pending_action_event.dart';
 import 'package:dio/dio.dart';
 
 import '../../domain/entities/manual_class.dart';
+import '../../domain/usecases/delete_schedule_occurrence_for_current_user_usecase.dart';
 import '../mappers/schedule_error_message_mapper.dart';
 import '../providers/schedule_providers.dart';
 import 'schedule_state.dart';
@@ -341,6 +342,8 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
   Future<void> removeOccurrence({
     required String classId,
     required DateTime date,
+    ScheduleOccurrenceDeletionScope scope =
+        ScheduleOccurrenceDeletionScope.thisEvent,
   }) async {
     state = state.copyWith(
       status: ScheduleStatus.deleting,
@@ -355,7 +358,7 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
         deleteScheduleOccurrenceForCurrentUserProvider,
       );
 
-      await deleteOccurrence(classId: classId, date: date);
+      await deleteOccurrence(classId: classId, date: date, scope: scope);
       await loadWeek(date: state.selectedDate);
 
       state = state.copyWith(infoMessage: infoMessage);
