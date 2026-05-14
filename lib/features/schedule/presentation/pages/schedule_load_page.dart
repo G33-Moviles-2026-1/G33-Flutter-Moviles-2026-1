@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'dart:io';
 
+import 'package:andespace/core/di/core_provider.dart';
 import 'package:andespace/core/navigation/app_routes.dart';
 import 'package:andespace/features/schedule/presentation/notifiers/schedule_notifier.dart';
 import 'package:andespace/features/schedule/presentation/notifiers/schedule_state.dart';
@@ -57,15 +57,8 @@ class _ScheduleLoadPageState extends ConsumerState<ScheduleLoadPage> {
   }
 
   Future<bool> _hasInternetConnection() async {
-    try {
-      final result = await InternetAddress.lookup(
-        'google.com',
-      ).timeout(const Duration(seconds: 2));
-
-      return result.isNotEmpty && result.first.rawAddress.isNotEmpty;
-    } catch (_) {
-      return false;
-    }
+    final service = ref.read(connectivityStatusServiceProvider);
+    return service.hasInternetConnection();
   }
 
   void _showIcsOfflineMessage() {

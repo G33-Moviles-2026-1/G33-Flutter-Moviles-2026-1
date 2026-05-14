@@ -5,7 +5,6 @@ import 'package:andespace/features/rooms/domain/entities/room_search.dart';
 import 'package:andespace/features/schedule/domain/entities/schedule_class.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:andespace/core/connectivity/pending_action_event.dart';
-import 'package:dio/dio.dart';
 
 import '../../domain/entities/manual_class.dart';
 import '../../domain/usecases/delete_schedule_occurrence_for_current_user_usecase.dart';
@@ -87,11 +86,6 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
     );
   }
 
-  bool _isMissingScheduleError(Object error) {
-    if (error is! DioException) return false;
-    return error.response?.statusCode == 404;
-  }
-
   Future<void> loadWeek({
     DateTime? date,
     bool refreshFromRemote = false,
@@ -142,14 +136,6 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
         weeklySchedule: schedule,
       );
     } catch (error) {
-      if (_isMissingScheduleError(error)) {
-        state = state.copyWith(
-          status: ScheduleStatus.empty,
-          clearWeeklySchedule: true,
-        );
-        return;
-      }
-
       state = state.copyWith(
         status: ScheduleStatus.error,
         errorMessage: mapScheduleErrorMessage(error),

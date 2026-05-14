@@ -45,8 +45,8 @@ final logoutAndClearSessionDataUseCaseProvider =
     Provider<LogoutAndClearSessionDataUseCase>((ref) {
       return LogoutAndClearSessionDataUseCase(
         authRepository: ref.watch(authRepositoryProvider),
-        bookingsLocalDataSource: ref.watch(bookingsLocalDataSourceProvider),
-        favoritesLocalDataSource: ref.watch(favoritesLocalDataSourceProvider),
+        bookingsRepository: ref.watch(bookingsRepositoryProvider),
+        favoritesRepository: ref.watch(favoritesRepositoryProvider),
       );
     });
 
