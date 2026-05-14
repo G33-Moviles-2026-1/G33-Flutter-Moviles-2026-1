@@ -37,7 +37,7 @@ class _ScheduleEntryPageState extends ConsumerState<ScheduleEntryPage> {
     _requestedInitialLoad = true;
 
     Future.microtask(() async {
-      await ref.read(scheduleControllerProvider.notifier).loadWeek(refreshFromRemote: true,);
+      await ref.read(scheduleControllerProvider.notifier).loadWeek();
     });
   }
 
@@ -115,7 +115,7 @@ class _ScheduleEntryPageState extends ConsumerState<ScheduleEntryPage> {
             height: 56,
             child: ElevatedButton.icon(
               onPressed: () {
-                ref.read(scheduleControllerProvider.notifier).loadWeek(refreshFromRemote: true,);
+                ref.read(scheduleControllerProvider.notifier).loadWeek();
               },
               icon: const Icon(Icons.refresh),
               label: const Text('Retry'),

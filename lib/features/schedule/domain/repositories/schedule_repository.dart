@@ -18,6 +18,8 @@ abstract class ScheduleRepository {
 
   Future<void> deleteFullSchedule();
 
+  Future<void> clearLocalSchedule();
+
   Future<void> deleteScheduleClass({required String classId});
 
   Future<void> refreshScheduleClassesFromRemote();

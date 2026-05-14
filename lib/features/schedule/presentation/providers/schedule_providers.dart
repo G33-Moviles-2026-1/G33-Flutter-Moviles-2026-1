@@ -3,6 +3,7 @@ import 'package:andespace/features/schedule/data/local/schedule_local_data_sourc
 import 'package:andespace/features/schedule/data/remote/schedule_remote_data_source.dart';
 import 'package:andespace/features/schedule/data/repositories/schedule_repository_impl.dart';
 import 'package:andespace/features/schedule/domain/repositories/schedule_repository.dart';
+import 'package:andespace/features/schedule/domain/usecases/clear_local_schedule_for_current_user_usecase.dart';
 import 'package:andespace/features/schedule/domain/usecases/delete_full_schedule_for_current_user_usecase.dart';
 import 'package:andespace/features/schedule/domain/usecases/delete_schedule_class_for_current_user_usecase.dart';
 import 'package:andespace/features/schedule/domain/usecases/delete_schedule_occurrence_for_current_user_usecase.dart';
@@ -82,6 +83,13 @@ final saveManualClassForCurrentUserProvider =
 final deleteFullScheduleForCurrentUserProvider =
     Provider<DeleteFullScheduleForCurrentUserUseCase>((ref) {
   return DeleteFullScheduleForCurrentUserUseCase(
+    repository: ref.watch(scheduleRepositoryProvider),
+  );
+});
+
+final clearLocalScheduleForCurrentUserProvider =
+    Provider<ClearLocalScheduleForCurrentUserUseCase>((ref) {
+  return ClearLocalScheduleForCurrentUserUseCase(
     repository: ref.watch(scheduleRepositoryProvider),
   );
 });

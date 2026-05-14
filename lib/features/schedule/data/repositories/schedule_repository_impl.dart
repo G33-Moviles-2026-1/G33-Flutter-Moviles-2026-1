@@ -104,6 +104,11 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   }
 
   @override
+  Future<void> clearLocalSchedule() {
+    return localDataSource.clearSchedule();
+  }
+
+  @override
   Future<void> deleteScheduleClass({required String classId}) async {
     await localDataSource.deleteClass(classId: classId);
 

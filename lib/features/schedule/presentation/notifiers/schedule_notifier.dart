@@ -307,6 +307,13 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
     }
   }
 
+  Future<void> clearLocalSchedule() async {
+    final clearLocal = ref.read(clearLocalScheduleForCurrentUserProvider);
+
+    await clearLocal();
+    resetState();
+  }
+
   Future<void> removeClass({required String classId}) async {
     state = state.copyWith(
       status: ScheduleStatus.deleting,

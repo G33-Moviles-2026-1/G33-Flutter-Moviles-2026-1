@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:andespace/core/di/core_provider.dart';
 import 'package:andespace/features/schedule/presentation/notifiers/schedule_notifier.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -14,6 +17,7 @@ class AuthNotifier extends Notifier<AuthState> {
   late final SignUpAndFetchCurrentUserUseCase _signUpAndFetchCurrentUserUseCase;
   late final GetCurrentUserUseCase _getCurrentUserUseCase;
   late final LogoutAndClearSessionDataUseCase _logoutAndClearSessionDataUseCase;
+  StreamSubscription<void>? _connectivitySubscription;
 
   @override
   AuthState build() {
@@ -27,6 +31,16 @@ class AuthNotifier extends Notifier<AuthState> {
     _logoutAndClearSessionDataUseCase = ref.read(
       logoutAndClearSessionDataUseCaseProvider,
     );
+    _connectivitySubscription = ref
+        .read(connectivityRecoveryServiceProvider)
+        .onRecovered
+        .listen((_) {
+          _revalidateRemoteSession();
+        });
+
+    ref.onDispose(() {
+      _connectivitySubscription?.cancel();
+    });
 
     return const AuthState();
   }
@@ -56,6 +70,10 @@ class AuthNotifier extends Notifier<AuthState> {
         email: email,
         password: password,
       );
+
+      if (user != null) {
+        await _refreshScheduleCacheAfterLogin();
+      }
 
       state = AuthState(
         isLoading: false,
@@ -114,7 +132,7 @@ class AuthNotifier extends Notifier<AuthState> {
     try {
       await _logoutAndClearSessionDataUseCase();
 
-      ref.read(scheduleControllerProvider.notifier).resetState();
+      await ref.read(scheduleControllerProvider.notifier).clearLocalSchedule();
 
       state = const AuthState(
         isLoading: false,
@@ -135,6 +153,41 @@ class AuthNotifier extends Notifier<AuthState> {
 
   void clearState() {
     state = AuthState(isAuthenticated: state.isAuthenticated, user: state.user);
+  }
+
+  Future<void> _refreshScheduleCacheAfterLogin() async {
+    try {
+      await ref
+          .read(scheduleControllerProvider.notifier)
+          .loadWeek(refreshFromRemote: true);
+    } catch (_) {
+      // A schedule sync failure should not block a valid login.
+    }
+  }
+
+  Future<void> _revalidateRemoteSession() async {
+    if (!state.isAuthenticated || state.user == null) return;
+
+    try {
+      final user = await _getCurrentUserUseCase();
+
+      if (user == null) {
+        ref.read(scheduleControllerProvider.notifier).resetState();
+
+        state = const AuthState(
+          isLoading: false,
+          isAuthenticated: false,
+          user: null,
+          isSuccess: false,
+          error: 'Your session expired. Please log in again.',
+        );
+        return;
+      }
+
+      state = state.copyWith(isAuthenticated: true, user: user, error: null);
+    } catch (_) {
+      // Keep the local-first session if the validation failed for a temporary reason.
+    }
   }
 }
 
