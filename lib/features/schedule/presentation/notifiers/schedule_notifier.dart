@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:andespace/core/di/auth_providers.dart';
 import 'package:andespace/core/di/core_provider.dart';
 import 'package:andespace/features/rooms/domain/entities/room_search.dart';
 import 'package:andespace/features/schedule/domain/entities/google_calendar_auth_session.dart';
@@ -38,7 +39,7 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
       await analyticsService.trackScheduleImportStep(
         sessionId: importSessionId,
         deviceId: 'mobile',
-        userEmail: 'current_user',
+        userEmail: await _getAnalyticsUserEmail(),
         method: method,
         step: step,
         stepNumber: stepNumber,
@@ -46,6 +47,19 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
       );
     } catch (_) {
       // Analytics should never block the main schedule flow.
+    }
+  }
+
+  Future<String?> _getAnalyticsUserEmail() async {
+    try {
+      final user = await ref.read(authLocalDataSourceProvider).getSavedUser();
+      final email = user?.email.trim();
+
+      if (email == null || email.isEmpty) return null;
+
+      return email;
+    } catch (_) {
+      return null;
     }
   }
 
@@ -101,6 +115,32 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
     );
   }
 
+  Future<void> trackGoogleAuthInitiated({
+    required String importSessionId,
+    required String sourceScreen,
+  }) {
+    return _trackScheduleImportStep(
+      importSessionId: importSessionId,
+      method: 'google',
+      step: 'auth_initiated',
+      stepNumber: 2,
+      propsJson: {'source_screen': sourceScreen},
+    );
+  }
+
+  Future<void> trackGoogleAuthGranted({
+    required String importSessionId,
+    required String sourceScreen,
+  }) {
+    return _trackScheduleImportStep(
+      importSessionId: importSessionId,
+      method: 'google',
+      step: 'auth_granted',
+      stepNumber: 3,
+      propsJson: {'source_screen': sourceScreen},
+    );
+  }
+
   Future<void> trackGoogleCalendarsSelected({
     required String importSessionId,
     required String sourceScreen,
@@ -110,7 +150,7 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
       importSessionId: importSessionId,
       method: 'google',
       step: 'calendar_selected',
-      stepNumber: 2,
+      stepNumber: 4,
       propsJson: {
         'source_screen': sourceScreen,
         'selected_count': selectedCount,
@@ -150,22 +190,6 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
       );
 
       await importGoogle(state: oauthState, calendarIds: calendarIds);
-
-      await _trackScheduleImportStep(
-        importSessionId: importSessionId,
-        method: 'google',
-        step: 'parsed',
-        stepNumber: 3,
-        propsJson: {'source_screen': 'schedule_load'},
-      );
-
-      await _trackScheduleImportStep(
-        importSessionId: importSessionId,
-        method: 'google',
-        step: 'confirmed',
-        stepNumber: 4,
-        propsJson: {'source_screen': 'schedule_load'},
-      );
 
       await loadWeek(date: DateTime.now());
 

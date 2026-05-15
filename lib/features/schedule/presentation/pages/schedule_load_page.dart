@@ -5,6 +5,7 @@ import 'package:andespace/core/navigation/app_routes.dart';
 import 'package:andespace/features/schedule/domain/entities/google_calendar_source.dart';
 import 'package:andespace/features/schedule/presentation/notifiers/schedule_notifier.dart';
 import 'package:andespace/features/schedule/presentation/notifiers/schedule_state.dart';
+import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -164,9 +165,19 @@ class _ScheduleLoadPageState extends ConsumerState<ScheduleLoadPage> {
         return;
       }
 
+      await controller.trackGoogleAuthInitiated(
+        importSessionId: importSessionId,
+        sourceScreen: 'schedule_load',
+      );
+
       final calendars = await _waitForGoogleCalendarConnection(auth.state);
 
       if (!mounted || calendars == null || calendars.isEmpty) return;
+
+      await controller.trackGoogleAuthGranted(
+        importSessionId: importSessionId,
+        sourceScreen: 'schedule_load',
+      );
 
       final selected = await _showGoogleCalendarSelectionDialog(calendars);
 
@@ -194,10 +205,47 @@ class _ScheduleLoadPageState extends ConsumerState<ScheduleLoadPage> {
           MaterialPageRoute(builder: (_) => const WeeklySchedulePage()),
         );
       }
-    } catch (error) {
+    } catch (error, stackTrace) {
+      debugPrint('Google Calendar import error: $error');
+      debugPrintStack(stackTrace: stackTrace);
+
       if (!mounted) return;
-      _showSnackBar('Could not import Google Calendar. Please try again.');
+      _showSnackBar(_googleCalendarImportErrorMessage(error));
     }
+  }
+
+  String _googleCalendarImportErrorMessage(Object error) {
+    if (error is DioException) {
+      final detail = _extractDioDetail(error.response?.data);
+
+      if (error.response?.statusCode == 503 &&
+          detail?.toLowerCase().contains('google calendar is not configured') ==
+              true) {
+        return 'Google Calendar is not configured on the server.';
+      }
+
+      if (detail != null && detail.trim().isNotEmpty) {
+        return detail;
+      }
+    }
+
+    return 'Could not import Google Calendar. Please try again.';
+  }
+
+  String? _extractDioDetail(Object? data) {
+    final detail = data is Map ? data['detail'] : null;
+
+    if (detail is String) {
+      return detail;
+    }
+
+    if (detail is List) {
+      return detail
+          .map((e) => e is Map ? (e['msg'] ?? e.toString()) : e.toString())
+          .join(', ');
+    }
+
+    return null;
   }
 
   Future<List<GoogleCalendarSource>?> _waitForGoogleCalendarConnection(
