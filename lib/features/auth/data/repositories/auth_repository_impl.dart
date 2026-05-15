@@ -76,6 +76,13 @@ class AuthRepositoryImpl implements AuthRepository {
         return localDataSource.getSavedUser();
       }
 
+      final statusCode = e.response?.statusCode;
+
+      if (statusCode == 401 || statusCode == 403) {
+        await localDataSource.clearSession();
+        return null;
+      }
+
       rethrow;
     }
   }

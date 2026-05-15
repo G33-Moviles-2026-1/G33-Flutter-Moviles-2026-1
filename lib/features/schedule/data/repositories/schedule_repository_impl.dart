@@ -6,6 +6,8 @@ import 'package:andespace/features/schedule/data/models/manual_class_dto.dart';
 import 'package:dio/dio.dart';
 
 import '../../domain/entities/free_rooms_for_day.dart';
+import '../../domain/entities/google_calendar_auth_session.dart';
+import '../../domain/entities/google_calendar_source.dart';
 import '../../domain/entities/manual_class.dart';
 import '../../domain/entities/schedule_class.dart';
 import '../../domain/entities/weekly_schedule.dart';
@@ -34,6 +36,37 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   @override
   Future<void> uploadIcsSchedule({required String filePath}) async {
     await remoteDataSource.uploadIcsSchedule(filePath: filePath);
+
+    final remoteClasses = await remoteDataSource.getScheduleClasses();
+
+    await localDataSource.replaceClasses(
+      classes: ScheduleClassMapper.toEntityList(remoteClasses),
+    );
+  }
+
+  @override
+  Future<GoogleCalendarAuthSession> startGoogleCalendarConnection() async {
+    final model = await remoteDataSource.startGoogleCalendarConnection();
+    return model.toEntity();
+  }
+
+  @override
+  Future<List<GoogleCalendarSource>> getGoogleCalendars({
+    required String state,
+  }) async {
+    final models = await remoteDataSource.getGoogleCalendars(state: state);
+    return models.map((model) => model.toEntity()).toList();
+  }
+
+  @override
+  Future<void> uploadGoogleCalendarSchedule({
+    required String state,
+    required List<String> calendarIds,
+  }) async {
+    await remoteDataSource.uploadGoogleCalendarSchedule(
+      state: state,
+      calendarIds: calendarIds,
+    );
 
     final remoteClasses = await remoteDataSource.getScheduleClasses();
 
@@ -104,6 +137,11 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   }
 
   @override
+  Future<void> clearLocalSchedule() {
+    return localDataSource.clearSchedule();
+  }
+
+  @override
   Future<void> deleteScheduleClass({required String classId}) async {
     await localDataSource.deleteClass(classId: classId);
 
@@ -147,6 +185,33 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   }
 
   @override
+  Future<void> deleteScheduleOccurrencesFromDate({
+    required String classId,
+    required DateTime date,
+  }) async {
+    await localDataSource.deleteOccurrencesFromDate(
+      classId: classId,
+      date: date,
+    );
+
+    final localClasses = await localDataSource.getClasses();
+    final normalizedModels = _scheduleClassesToManualModels(localClasses);
+
+    try {
+      await remoteDataSource.uploadManualSchedule(classes: normalizedModels);
+    } catch (e) {
+      if (!_isConnectivityError(e)) rethrow;
+
+      connectivityQueueService.enqueue(
+        _UploadManualSchedulePendingAction(
+          remoteDataSource: remoteDataSource,
+          classes: normalizedModels,
+        ),
+      );
+    }
+  }
+
+  @override
   Future<(List<RoomSearchItem>, DateTime?)> getRecommendedRoomsForDay({
     required DateTime date,
   }) async {
@@ -183,16 +248,36 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   }
 }
 
+List<ManualClassModel> _scheduleClassesToManualModels(
+  List<ScheduleClass> classes,
+) {
+  return _normalizeManualModelsForBackend(
+    classes.map((scheduleClass) {
+      return ManualClassModel(
+        title: scheduleClass.title ?? 'Class',
+        locationText: scheduleClass.locationText,
+        roomId: scheduleClass.roomId ?? scheduleClass.locationText,
+        startDate: scheduleClass.startDate,
+        endDate: scheduleClass.endDate,
+        startTime: scheduleClass.startTime,
+        endTime: scheduleClass.endTime,
+        weekdays: scheduleClass.weekdays,
+      );
+    }).toList(),
+  );
+}
+
 List<ManualClassModel> _normalizeManualModelsForBackend(
   List<ManualClassModel> models,
 ) {
   return models.map((model) {
+    final locationText = model.locationText?.trim();
+    final roomId = model.roomId?.trim();
+
     return ManualClassModel(
       title: model.title,
-      locationText: null,
-      roomId: (model.roomId != null && model.roomId!.trim().isNotEmpty)
-          ? model.roomId!.trim()
-          : model.locationText?.trim(),
+      locationText: locationText,
+      roomId: roomId == null || roomId.isEmpty ? locationText : roomId,
       startDate: model.startDate,
       endDate: model.endDate,
       startTime: model.startTime,

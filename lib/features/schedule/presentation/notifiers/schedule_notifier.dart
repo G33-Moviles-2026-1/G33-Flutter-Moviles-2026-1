@@ -1,13 +1,16 @@
 import 'dart:async';
 
+import 'package:andespace/core/di/auth_providers.dart';
 import 'package:andespace/core/di/core_provider.dart';
 import 'package:andespace/features/rooms/domain/entities/room_search.dart';
+import 'package:andespace/features/schedule/domain/entities/google_calendar_auth_session.dart';
+import 'package:andespace/features/schedule/domain/entities/google_calendar_source.dart';
 import 'package:andespace/features/schedule/domain/entities/schedule_class.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:andespace/core/connectivity/pending_action_event.dart';
-import 'package:dio/dio.dart';
 
 import '../../domain/entities/manual_class.dart';
+import '../../domain/usecases/delete_schedule_occurrence_for_current_user_usecase.dart';
 import '../mappers/schedule_error_message_mapper.dart';
 import '../providers/schedule_providers.dart';
 import 'schedule_state.dart';
@@ -36,7 +39,7 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
       await analyticsService.trackScheduleImportStep(
         sessionId: importSessionId,
         deviceId: 'mobile',
-        userEmail: 'current_user',
+        userEmail: await _getAnalyticsUserEmail(),
         method: method,
         step: step,
         stepNumber: stepNumber,
@@ -44,6 +47,19 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
       );
     } catch (_) {
       // Analytics should never block the main schedule flow.
+    }
+  }
+
+  Future<String?> _getAnalyticsUserEmail() async {
+    try {
+      final user = await ref.read(authLocalDataSourceProvider).getSavedUser();
+      final email = user?.email.trim();
+
+      if (email == null || email.isEmpty) return null;
+
+      return email;
+    } catch (_) {
+      return null;
     }
   }
 
@@ -86,12 +102,116 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
     );
   }
 
-  bool _isMissingScheduleError(Object error) {
-    if (error is! DioException) return false;
-    return error.response?.statusCode == 404;
+  Future<void> trackGoogleImportStarted({
+    required String importSessionId,
+    required String sourceScreen,
+  }) {
+    return _trackScheduleImportStep(
+      importSessionId: importSessionId,
+      method: 'google',
+      step: 'started',
+      stepNumber: 1,
+      propsJson: {'source_screen': sourceScreen},
+    );
   }
 
-  Future<void> loadWeek({DateTime? date}) async {
+  Future<void> trackGoogleAuthInitiated({
+    required String importSessionId,
+    required String sourceScreen,
+  }) {
+    return _trackScheduleImportStep(
+      importSessionId: importSessionId,
+      method: 'google',
+      step: 'auth_initiated',
+      stepNumber: 2,
+      propsJson: {'source_screen': sourceScreen},
+    );
+  }
+
+  Future<void> trackGoogleAuthGranted({
+    required String importSessionId,
+    required String sourceScreen,
+  }) {
+    return _trackScheduleImportStep(
+      importSessionId: importSessionId,
+      method: 'google',
+      step: 'auth_granted',
+      stepNumber: 3,
+      propsJson: {'source_screen': sourceScreen},
+    );
+  }
+
+  Future<void> trackGoogleCalendarsSelected({
+    required String importSessionId,
+    required String sourceScreen,
+    required int selectedCount,
+  }) {
+    return _trackScheduleImportStep(
+      importSessionId: importSessionId,
+      method: 'google',
+      step: 'calendar_selected',
+      stepNumber: 4,
+      propsJson: {
+        'source_screen': sourceScreen,
+        'selected_count': selectedCount,
+      },
+    );
+  }
+
+  Future<GoogleCalendarAuthSession> startGoogleCalendarConnection() {
+    final startConnection = ref.read(
+      startGoogleCalendarConnectionForCurrentUserProvider,
+    );
+
+    return startConnection();
+  }
+
+  Future<List<GoogleCalendarSource>> loadGoogleCalendars({
+    required String state,
+  }) {
+    final getCalendars = ref.read(getGoogleCalendarsForCurrentUserProvider);
+    return getCalendars(state: state);
+  }
+
+  Future<void> importGoogleCalendars({
+    required String oauthState,
+    required List<String> calendarIds,
+    required String importSessionId,
+  }) async {
+    state = state.copyWith(
+      status: ScheduleStatus.uploading,
+      clearErrorMessage: true,
+      clearInfoMessage: true,
+    );
+
+    try {
+      final importGoogle = ref.read(
+        importGoogleCalendarsForCurrentUserProvider,
+      );
+
+      await importGoogle(state: oauthState, calendarIds: calendarIds);
+
+      await loadWeek(date: DateTime.now());
+
+      await _trackScheduleImportStep(
+        importSessionId: importSessionId,
+        method: 'google',
+        step: 'completed',
+        stepNumber: 5,
+        propsJson: {'source_screen': 'schedule_load'},
+      );
+    } catch (error) {
+      state = state.copyWith(
+        status: ScheduleStatus.error,
+        errorMessage: mapScheduleErrorMessage(error),
+      );
+    }
+  }
+
+  Future<void> loadWeek({
+    DateTime? date,
+    bool refreshFromRemote = false,
+  }) async {
     final targetDate = date ?? state.selectedDate;
 
     state = state.copyWith(
@@ -102,14 +222,16 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
     );
 
     try {
-      try {
-        final refreshRemote = ref.read(
-          refreshScheduleClassesForCurrentUserProvider,
-        );
+      if (refreshFromRemote) {
+        try {
+          final refreshRemote = ref.read(
+            refreshScheduleClassesForCurrentUserProvider,
+          );
 
-        await refreshRemote();
-      } catch (_) {
-        // Offline fallback: use local data.
+          await refreshRemote();
+        } catch (_) {
+          // Local-first fallback: use local schedule.
+        }
       }
 
       final loadWeek = ref.read(loadWeekForCurrentUserProvider);
@@ -136,14 +258,6 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
         weeklySchedule: schedule,
       );
     } catch (error) {
-      if (_isMissingScheduleError(error)) {
-        state = state.copyWith(
-          status: ScheduleStatus.empty,
-          clearWeeklySchedule: true,
-        );
-        return;
-      }
-
       state = state.copyWith(
         status: ScheduleStatus.error,
         errorMessage: mapScheduleErrorMessage(error),
@@ -153,7 +267,7 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
   }
 
   Future<void> refresh() async {
-    await loadWeek(date: DateTime.now());
+    await loadWeek(date: DateTime.now(), refreshFromRemote: true);
   }
 
   Future<void> selectDay(DateTime date) async {
@@ -256,12 +370,11 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
         propsJson: {'source_screen': 'add_class'},
       );
 
-      state = state.copyWith(
-        infoMessage:
-            'Schedule saved. If you are offline, it will sync when connection returns.',
-      );
+      final infoMessage = await _scheduleChangeSuccessMessage();
 
       await loadWeek(date: state.selectedDate);
+
+      state = state.copyWith(infoMessage: infoMessage);
 
       await _trackScheduleImportStep(
         importSessionId: importSessionId,
@@ -282,15 +395,16 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
     state = state.copyWith(
       status: ScheduleStatus.deleting,
       clearErrorMessage: true,
+      clearInfoMessage: true,
     );
 
     try {
+      final infoMessage = await _scheduleChangeSuccessMessage();
       final deleteFull = ref.read(deleteFullScheduleForCurrentUserProvider);
       await deleteFull();
 
       state = state.copyWith(
-        infoMessage:
-            'Schedule deleted locally. If you are offline, the change will sync later.',
+        infoMessage: infoMessage,
         status: ScheduleStatus.empty,
         clearWeeklySchedule: true,
       );
@@ -302,17 +416,29 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
     }
   }
 
+  Future<void> clearLocalSchedule() async {
+    final clearLocal = ref.read(clearLocalScheduleForCurrentUserProvider);
+
+    await clearLocal();
+    resetState();
+  }
+
   Future<void> removeClass({required String classId}) async {
     state = state.copyWith(
       status: ScheduleStatus.deleting,
       clearErrorMessage: true,
+      clearInfoMessage: true,
     );
 
     try {
+      final infoMessage = await _scheduleChangeSuccessMessage();
+
       final deleteClass = ref.read(deleteScheduleClassForCurrentUserProvider);
 
       await deleteClass(classId: classId);
       await loadWeek(date: state.selectedDate);
+
+      state = state.copyWith(infoMessage: infoMessage);
     } catch (error) {
       state = state.copyWith(
         status: ScheduleStatus.error,
@@ -324,20 +450,26 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
   Future<void> removeOccurrence({
     required String classId,
     required DateTime date,
+    ScheduleOccurrenceDeletionScope scope =
+        ScheduleOccurrenceDeletionScope.thisEvent,
   }) async {
     state = state.copyWith(
       status: ScheduleStatus.deleting,
       clearErrorMessage: true,
+      clearInfoMessage: true,
     );
 
     try {
+      final infoMessage = await _scheduleChangeSuccessMessage();
+
       final deleteOccurrence = ref.read(
         deleteScheduleOccurrenceForCurrentUserProvider,
       );
 
-      await deleteOccurrence(classId: classId, date: date);
-
+      await deleteOccurrence(classId: classId, date: date, scope: scope);
       await loadWeek(date: state.selectedDate);
+
+      state = state.copyWith(infoMessage: infoMessage);
     } catch (error) {
       state = state.copyWith(
         status: ScheduleStatus.error,
@@ -356,7 +488,15 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
 
   Future<(List<RoomSearchItem>, DateTime?)>
   loadRecommendedRoomsForSelectedDay() async {
+    state = state.copyWith(
+      isLoadingRecommendations: true,
+      clearErrorMessage: true,
+      clearInfoMessage: true,
+    );
+
     try {
+      await refreshInternetStatus();
+
       final getRecommendedRooms = ref.read(
         getRecommendedRoomsForCurrentUserProvider,
       );
@@ -368,6 +508,8 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
         errorMessage: mapScheduleErrorMessage(error),
       );
       rethrow;
+    } finally {
+      state = state.copyWith(isLoadingRecommendations: false);
     }
   }
 
@@ -424,6 +566,25 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
 
   void clearInfoMessage() {
     state = state.copyWith(clearInfoMessage: true);
+  }
+
+  Future<bool> refreshInternetStatus() async {
+    final service = ref.read(connectivityStatusServiceProvider);
+    final hasConnection = await service.hasInternetConnection();
+
+    state = state.copyWith(hasInternetConnection: hasConnection);
+
+    return hasConnection;
+  }
+
+  Future<String> _scheduleChangeSuccessMessage() async {
+    final hasConnection = await refreshInternetStatus();
+
+    if (hasConnection) {
+      return 'Changes completed successfully.';
+    }
+
+    return 'Changes saved locally. Connect to the internet to sync them.';
   }
 }
 

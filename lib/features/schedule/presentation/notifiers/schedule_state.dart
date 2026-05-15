@@ -18,6 +18,8 @@ class ScheduleState {
   final String? errorMessage;
   final String? ownerEmail;
   final String? infoMessage;
+  final bool hasInternetConnection;
+  final bool isLoadingRecommendations;
 
   const ScheduleState({
     required this.status,
@@ -26,6 +28,8 @@ class ScheduleState {
     this.errorMessage,
     this.ownerEmail,
     this.infoMessage,
+    this.hasInternetConnection = true,
+    this.isLoadingRecommendations = false,
   });
 
   factory ScheduleState.initial() {
@@ -37,6 +41,8 @@ class ScheduleState {
       errorMessage: null,
       ownerEmail: null,
       infoMessage: null,
+      hasInternetConnection: true,
+      isLoadingRecommendations: false,
     );
   }
 
@@ -51,16 +57,24 @@ class ScheduleState {
     bool clearOwnerEmail = false,
     String? infoMessage,
     bool clearInfoMessage = false,
+    bool? hasInternetConnection,
+    bool? isLoadingRecommendations,
   }) {
     return ScheduleState(
       status: status ?? this.status,
-      weeklySchedule:
-          clearWeeklySchedule ? null : (weeklySchedule ?? this.weeklySchedule),
+      weeklySchedule: clearWeeklySchedule
+          ? null
+          : (weeklySchedule ?? this.weeklySchedule),
       selectedDate: selectedDate ?? this.selectedDate,
-      errorMessage:
-          clearErrorMessage ? null : (errorMessage ?? this.errorMessage),
+      errorMessage: clearErrorMessage
+          ? null
+          : (errorMessage ?? this.errorMessage),
       ownerEmail: clearOwnerEmail ? null : (ownerEmail ?? this.ownerEmail),
       infoMessage: clearInfoMessage ? null : (infoMessage ?? this.infoMessage),
+      hasInternetConnection:
+          hasInternetConnection ?? this.hasInternetConnection,
+      isLoadingRecommendations:
+          isLoadingRecommendations ?? this.isLoadingRecommendations,
     );
   }
 }

@@ -15,7 +15,7 @@ abstract class BookingsRepository {
 
   Future<List<MyBooking>> getMyBookings();
 
-  Future<void> deleteMyBooking({
-    required String bookingId,
-  });
+  Future<void> deleteMyBooking({required String bookingId});
+
+  Future<void> clearLocalData();
 }

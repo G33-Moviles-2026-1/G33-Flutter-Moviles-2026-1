@@ -9,10 +9,12 @@ class RecommendedRoomsPage extends ConsumerWidget {
     super.key,
     required this.items,
     this.lastUpdated,
+    this.isOffline = false,
   });
 
   final List<RoomSearchItem> items;
   final DateTime? lastUpdated;
+  final bool isOffline;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -20,14 +22,14 @@ class RecommendedRoomsPage extends ConsumerWidget {
       appBar: AppBar(title: const Text('Recommended Rooms')),
       body: Column(
         children: [
-          if (lastUpdated != null)
+          if (isOffline && lastUpdated != null)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
               child: _CachedRecommendationsBanner(lastUpdated: lastUpdated!),
             ),
           Expanded(
             child: items.isEmpty
-                ? const _EmptyRecommendationsView()
+                ? _EmptyRecommendationsView(isOffline: isOffline)
                 : ListView.separated(
                     padding: const EdgeInsets.all(16),
                     itemCount: items.length,
@@ -93,49 +95,58 @@ class _CachedRecommendationsBanner extends StatelessWidget {
 }
 
 class _EmptyRecommendationsView extends StatelessWidget {
-  const _EmptyRecommendationsView();
+  const _EmptyRecommendationsView({required this.isOffline});
+
+  final bool isOffline;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final iconBackground = isOffline
+        ? theme.colorScheme.secondary
+        : theme.colorScheme.secondary.withValues(alpha: 0.14);
+    final iconColor = isOffline
+        ? theme.colorScheme.onSecondary
+        : theme.colorScheme.primary;
 
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 420),
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: theme.cardColor,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: theme.dividerColor.withValues(alpha: 0.18),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 76,
+              height: 76,
+              decoration: BoxDecoration(
+                color: iconBackground,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                isOffline
+                    ? Icons.wifi_off_rounded
+                    : Icons.meeting_room_outlined,
+                size: 40,
+                color: iconColor,
+              ),
             ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.meeting_room_outlined,
-                size: 52,
-                color: theme.colorScheme.secondary,
+            const SizedBox(height: 16),
+            Text(
+              isOffline ? 'Internet required' : 'No recommendations found',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w700,
               ),
-              const SizedBox(height: 14),
-              Text(
-                'No recommendations found',
-                textAlign: TextAlign.center,
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                'No recommended rooms were found for this day.',
-                textAlign: TextAlign.center,
-                style: theme.textTheme.bodyLarge,
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              isOffline
+                  ? 'Connect to the internet to find room recommendations for your schedule.'
+                  : 'No recommended rooms were found for this day.',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyLarge,
+            ),
+          ],
         ),
       ),
     );
