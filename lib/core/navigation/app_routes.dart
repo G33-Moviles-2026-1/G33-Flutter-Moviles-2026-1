@@ -5,6 +5,7 @@ import 'package:andespace/features/auth/presentation/pages/signup_page.dart';
 import 'package:andespace/features/bookings/presentation/pages/create_booking_page.dart';
 import 'package:andespace/features/bookings/presentation/pages/my_bookings_page.dart';
 import 'package:andespace/features/rooms/domain/entities/room_search.dart';
+import 'package:andespace/features/rooms/presentation/pages/auto_search_page.dart';
 import 'package:andespace/features/rooms/presentation/pages/home_page.dart';
 import 'package:andespace/features/navigation/presentation/pages/path_page.dart';
 import 'package:andespace/features/rooms/presentation/pages/results_page.dart';
@@ -20,6 +21,7 @@ class AppRoutes {
   static const String login = '/login';
   static const String signup = '/signup';
   static const String results = '/results';
+  static const String autoSearch = '/auto-search';
   static const String roomDetail = '/room-detail';
   static const String createBooking = '/create-booking';
   static const String myBookings = '/my-bookings';
@@ -34,9 +36,11 @@ class AppRoutes {
     login: (context) => const LoginPage(),
     signup: (context) => const SignUpPage(),
     results: (context) => const ResultsPage(),
+    autoSearch: (context) => const AutoSearchPage(),
     schedule: (context) => const ScheduleEntryPage(),
     path: (context) {
-      final room = ModalRoute.of(context)?.settings.arguments as RoomSearchItem?;
+      final room =
+          ModalRoute.of(context)?.settings.arguments as RoomSearchItem?;
       return PathPage(initialDestination: room);
     },
     roomDetail: (context) {

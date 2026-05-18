@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:andespace/core/di/auth_providers.dart';
 import 'package:andespace/core/di/core_provider.dart';
 import 'package:andespace/features/rooms/domain/entities/room_search.dart';
@@ -7,7 +5,6 @@ import 'package:andespace/features/schedule/domain/entities/google_calendar_auth
 import 'package:andespace/features/schedule/domain/entities/google_calendar_source.dart';
 import 'package:andespace/features/schedule/domain/entities/schedule_class.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:andespace/core/connectivity/pending_action_event.dart';
 
 import '../../domain/entities/manual_class.dart';
 import '../../domain/usecases/delete_schedule_occurrence_for_current_user_usecase.dart';
@@ -18,7 +15,6 @@ import 'schedule_state.dart';
 class ScheduleNotifier extends Notifier<ScheduleState> {
   @override
   ScheduleState build() {
-    Future.microtask(listenPendingActionEvents);
     return ScheduleState.initial();
   }
 
@@ -511,57 +507,6 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
     } finally {
       state = state.copyWith(isLoadingRecommendations: false);
     }
-  }
-
-  int _successCount = 0;
-  int _failureCount = 0;
-  Timer? _debounceTimer;
-
-  void listenPendingActionEvents() {
-    ref.listen(
-      connectivityQueueServiceProvider.select((service) => service.events),
-      (_, stream) {
-        stream.listen((event) {
-          if (event is PendingActionSucceeded) {
-            _successCount++;
-          }
-
-          if (event is PendingActionFailed) {
-            _failureCount++;
-          }
-
-          _debounceTimer?.cancel();
-
-          _debounceTimer = Timer(const Duration(seconds: 2), () {
-            _emitGroupedMessage();
-          });
-        });
-      },
-    );
-  }
-
-  void _emitGroupedMessage() {
-    if (_successCount == 0 && _failureCount == 0) return;
-
-    if (_failureCount == 0) {
-      state = state.copyWith(
-        infoMessage: 'All changes synced successfully.',
-        clearErrorMessage: true,
-      );
-    } else if (_successCount == 0) {
-      state = state.copyWith(
-        errorMessage: 'Some changes failed to sync.',
-        clearInfoMessage: true,
-      );
-    } else {
-      state = state.copyWith(
-        errorMessage: 'Some changes failed to sync.',
-        clearInfoMessage: true,
-      );
-    }
-
-    _successCount = 0;
-    _failureCount = 0;
   }
 
   void clearInfoMessage() {
