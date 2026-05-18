@@ -95,42 +95,44 @@ class _HomeBodyState extends ConsumerState<HomeBody> {
   }
 
   void _persistCurrentParams() {
-    ref.read(homeSearchParamsMemoryCacheProvider).save(
-      HomeSearchParamsSnapshot(
-        rawRoomInput: _roomInputCtrl.text,
-        selectedUtilities: Set<String>.from(_selectedUtilities),
-        selectedDate: _selectedDate == null
-            ? null
-            : DateTime(
-                _selectedDate!.year,
-                _selectedDate!.month,
-                _selectedDate!.day,
-              ),
-        since: _since == null
-            ? null
-            : TimeOfDay(hour: _since!.hour, minute: _since!.minute),
-        until: _until == null
-            ? null
-            : TimeOfDay(hour: _until!.hour, minute: _until!.minute),
-        nearMe: _closeToMe,
-      ),
-    );
+    ref
+        .read(homeSearchParamsMemoryCacheProvider)
+        .save(
+          HomeSearchParamsSnapshot(
+            rawRoomInput: _roomInputCtrl.text,
+            selectedUtilities: Set<String>.from(_selectedUtilities),
+            selectedDate: _selectedDate == null
+                ? null
+                : DateTime(
+                    _selectedDate!.year,
+                    _selectedDate!.month,
+                    _selectedDate!.day,
+                  ),
+            since: _since == null
+                ? null
+                : TimeOfDay(hour: _since!.hour, minute: _since!.minute),
+            until: _until == null
+                ? null
+                : TimeOfDay(hour: _until!.hour, minute: _until!.minute),
+            nearMe: _closeToMe,
+          ),
+        );
   }
 
-void _restoreDefaults() {
-  final now = TimeOfDay.now();
+  void _restoreDefaults() {
+    final now = TimeOfDay.now();
 
-  setState(() {
-    _roomInputCtrl.text = '';
-    _selectedUtilities.clear();
-    _selectedDate = DateTime.now();
-    _since = now;
-    _until = _addMinutes(now, 90);
-    _closeToMe = false;
-  });
+    setState(() {
+      _roomInputCtrl.text = '';
+      _selectedUtilities.clear();
+      _selectedDate = DateTime.now();
+      _since = now;
+      _until = _addMinutes(now, 90);
+      _closeToMe = false;
+    });
 
-  _persistCurrentParams();
-}
+    _persistCurrentParams();
+  }
 
   Future<void> _pickTime({required bool isSince}) async {
     final fallback = TimeOfDay.now();
@@ -301,6 +303,10 @@ void _restoreDefaults() {
     }
   }
 
+  void _onAutoSearch() {
+    Navigator.pushNamed(context, AppRoutes.autoSearch);
+  }
+
   @override
   Widget build(BuildContext context) {
     ref.listen<HomeSearchState>(homeSearchControllerProvider, (previous, next) {
@@ -469,13 +475,33 @@ void _restoreDefaults() {
             ],
           ),
           const SizedBox(height: 10),
-          SizedBox(
-            width: double.infinity,
-            child: _CtaButton(
-              label: 'Search',
-              isLoading: state.isLoading,
-              onPressed: state.isLoading ? null : _onSearch,
-            ),
+          Row(
+            children: [
+              Expanded(
+                child: _CtaButton(
+                  label: 'Auto Search',
+                  icon: Icons.auto_awesome,
+                  backgroundColor: theme.brightness == Brightness.dark
+                      ? theme.colorScheme.surface
+                      : Colors.black,
+                  foregroundColor: theme.brightness == Brightness.dark
+                      ? brand.accentYellow
+                      : Colors.white,
+                  borderColor: theme.brightness == Brightness.dark
+                      ? brand.accentYellow
+                      : Colors.black,
+                  onPressed: state.isLoading ? null : _onAutoSearch,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _CtaButton(
+                  label: 'Search',
+                  isLoading: state.isLoading,
+                  onPressed: state.isLoading ? null : _onSearch,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 8),
           TextButton(
@@ -563,10 +589,7 @@ class _SquareIconButton extends StatelessWidget {
               svgAsset,
               width: 22,
               height: 22,
-              colorFilter: ColorFilter.mode(
-                iconColor,
-                BlendMode.srcIn,
-              ),
+              colorFilter: ColorFilter.mode(iconColor, BlendMode.srcIn),
               semanticsLabel: tooltip,
             ),
           ),
@@ -713,31 +736,45 @@ class _CtaButton extends StatelessWidget {
     required this.label,
     required this.onPressed,
     this.isLoading = false,
+    this.icon,
+    this.backgroundColor,
+    this.foregroundColor,
+    this.borderColor,
   });
 
   final String label;
   final VoidCallback? onPressed;
   final bool isLoading;
+  final IconData? icon;
+  final Color? backgroundColor;
+  final Color? foregroundColor;
+  final Color? borderColor;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final brand = theme.extension<BrandColors>()!;
+    final effectiveBackground = backgroundColor ?? brand.accentYellow;
+    final effectiveForeground =
+        foregroundColor ?? theme.colorScheme.onSecondary;
+    final effectiveBorder =
+        borderColor ??
+        (theme.brightness == Brightness.light
+            ? theme.colorScheme.onSurface
+            : Colors.transparent);
 
     return ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
-        backgroundColor: brand.accentYellow,
-        foregroundColor: theme.colorScheme.onSecondary,
-        disabledBackgroundColor: brand.accentYellow,
-        disabledForegroundColor: theme.colorScheme.onSecondary,
+        backgroundColor: effectiveBackground,
+        foregroundColor: effectiveForeground,
+        disabledBackgroundColor: effectiveBackground.withValues(alpha: 0.62),
+        disabledForegroundColor: effectiveForeground.withValues(alpha: 0.62),
         elevation: 0,
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 10),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: theme.brightness == Brightness.light
-              ? BorderSide(color: theme.colorScheme.onSurface, width: 1.4)
-              : BorderSide.none,
+          side: BorderSide(color: effectiveBorder, width: 1.4),
         ),
         textStyle: theme.textTheme.titleMedium?.copyWith(
           fontWeight: FontWeight.w700,
@@ -746,10 +783,7 @@ class _CtaButton extends StatelessWidget {
       child: AnimatedSwitcher(
         duration: const Duration(milliseconds: 180),
         transitionBuilder: (child, animation) {
-          return FadeTransition(
-            opacity: animation,
-            child: child,
-          );
+          return FadeTransition(opacity: animation, child: child);
         },
         child: isLoading
             ? Row(
@@ -763,7 +797,7 @@ class _CtaButton extends StatelessWidget {
                     child: CircularProgressIndicator(
                       strokeWidth: 2.2,
                       valueColor: AlwaysStoppedAnimation<Color>(
-                        theme.colorScheme.onSecondary,
+                        effectiveForeground,
                       ),
                     ),
                   ),
@@ -772,18 +806,32 @@ class _CtaButton extends StatelessWidget {
                     'Searching...',
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w700,
-                      color: theme.colorScheme.onSecondary,
+                      color: effectiveForeground,
                     ),
                   ),
                 ],
               )
-            : Text(
-                label,
+            : Row(
                 key: const ValueKey('idle'),
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: theme.colorScheme.onSecondary,
-                ),
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (icon != null) ...[
+                    Icon(icon, size: 18, color: effectiveForeground),
+                    const SizedBox(width: 6),
+                  ],
+                  Flexible(
+                    child: Text(
+                      label,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: effectiveForeground,
+                      ),
+                    ),
+                  ),
+                ],
               ),
       ),
     );

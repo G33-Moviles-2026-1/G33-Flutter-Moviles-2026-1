@@ -202,7 +202,10 @@ class _ScheduleLoadPageState extends ConsumerState<ScheduleLoadPage> {
       if (newState.status == ScheduleStatus.loaded) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const WeeklySchedulePage()),
+          MaterialPageRoute(
+            settings: const RouteSettings(name: 'weekly_schedule'),
+            builder: (_) => const WeeklySchedulePage(),
+          ),
         );
       }
     } catch (error, stackTrace) {
@@ -256,7 +259,10 @@ class _ScheduleLoadPageState extends ConsumerState<ScheduleLoadPage> {
     if (newState.status == ScheduleStatus.loaded) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const WeeklySchedulePage()),
+        MaterialPageRoute(
+          settings: const RouteSettings(name: 'weekly_schedule'),
+          builder: (_) => const WeeklySchedulePage(),
+        ),
       );
     }
   }
@@ -277,6 +283,7 @@ class _ScheduleLoadPageState extends ConsumerState<ScheduleLoadPage> {
     Navigator.push(
       context,
       MaterialPageRoute(
+        settings: const RouteSettings(name: 'add_schedule_class'),
         builder: (_) => AddClassPage(importSessionId: importSessionId),
       ),
     );

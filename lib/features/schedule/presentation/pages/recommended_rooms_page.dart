@@ -176,7 +176,10 @@ class _RecommendedRoomCard extends StatelessWidget {
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => RoomDetailPage(room: room)),
+            MaterialPageRoute(
+              settings: const RouteSettings(name: 'room_detail'),
+              builder: (_) => RoomDetailPage(room: room),
+            ),
           );
         },
         child: Ink(

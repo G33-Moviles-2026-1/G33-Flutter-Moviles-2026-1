@@ -2,20 +2,20 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../domain/entities/room_date_availability.dart';
+import '../../domain/entities/room_recommendation.dart';
 import '../../domain/entities/room_search.dart';
 import '../../domain/repositories/rooms_repository.dart';
 import '../../domain/usecases/search_rooms_exceptions.dart';
 import '../cache/room_search_memory_cache.dart';
+import '../models/auto_search_rooms_request_dto.dart';
 import '../models/room_date_availability_dto.dart';
+import '../models/room_recommendation_interaction_dto.dart';
 import '../models/room_search_request_dto.dart';
 import '../models/room_search_response_dto.dart';
 import '../remote/rooms_api.dart';
 
 class RoomRepositoryImpl implements RoomRepository {
-  RoomRepositoryImpl({
-    required this.roomsApi,
-    required this.memoryCache,
-  });
+  RoomRepositoryImpl({required this.roomsApi, required this.memoryCache});
 
   final RoomsApi roomsApi;
   final RoomSearchMemoryCache memoryCache;
@@ -42,6 +42,32 @@ class RoomRepositoryImpl implements RoomRepository {
       }
       rethrow;
     }
+  }
+
+  @override
+  Future<List<RoomSearchItem>> autoSearchRooms(
+    AutoSearchRoomsRequest request,
+  ) async {
+    try {
+      final requestDto = AutoSearchRoomsRequestDto(request);
+      final raw = await roomsApi.autoSearchRooms(requestDto.toJson());
+      return raw
+          .map((json) => RoomSearchItemDto.fromJson(json).toDomain())
+          .toList();
+    } on DioException catch (e) {
+      if (_isConnectivityError(e)) {
+        throw const SearchRoomsConnectivityException();
+      }
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> submitRecommendationInteraction(
+    RoomRecommendationInteraction interaction,
+  ) async {
+    final dto = RoomRecommendationInteractionDto(interaction);
+    await roomsApi.submitRecommendationInteraction(dto.toJson());
   }
 
   @override
@@ -85,7 +111,10 @@ class RoomRepositoryImpl implements RoomRepository {
     });
   }
 
-  Future<void> _prefetchPage(RoomSearchRequest baseQuery, int pageNumber) async {
+  Future<void> _prefetchPage(
+    RoomSearchRequest baseQuery,
+    int pageNumber,
+  ) async {
     if (pageNumber < 2 || pageNumber > 3) return;
 
     final offset = (pageNumber - 1) * baseQuery.limit;

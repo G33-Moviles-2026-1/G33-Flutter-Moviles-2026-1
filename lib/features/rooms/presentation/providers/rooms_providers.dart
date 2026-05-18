@@ -3,8 +3,10 @@ import 'package:andespace/features/rooms/data/cache/room_search_memory_cache.dar
 import 'package:andespace/features/rooms/data/remote/rooms_api.dart';
 import 'package:andespace/features/rooms/data/repositories/rooms_repository_impl.dart';
 import 'package:andespace/features/rooms/domain/repositories/rooms_repository.dart';
+import 'package:andespace/features/rooms/domain/usecases/auto_search_rooms.dart';
 import 'package:andespace/features/rooms/domain/usecases/fetch_room_date_availability.dart';
 import 'package:andespace/features/rooms/domain/usecases/search_rooms.dart';
+import 'package:andespace/features/rooms/domain/usecases/submit_room_recommendation_interaction.dart';
 import 'package:andespace/features/rooms/data/cache/home_search_params_memory_cache.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -33,6 +35,17 @@ final roomRepositoryProvider = Provider<RoomRepository>((ref) {
 final searchRoomsUseCaseProvider = Provider<SearchRooms>((ref) {
   return SearchRooms(ref.watch(roomRepositoryProvider));
 });
+
+final autoSearchRoomsUseCaseProvider = Provider<AutoSearchRooms>((ref) {
+  return AutoSearchRooms(ref.watch(roomRepositoryProvider));
+});
+
+final submitRoomRecommendationInteractionUseCaseProvider =
+    Provider<SubmitRoomRecommendationInteraction>((ref) {
+      return SubmitRoomRecommendationInteraction(
+        ref.watch(roomRepositoryProvider),
+      );
+    });
 
 final fetchRoomDateAvailabilityUseCaseProvider =
     Provider<FetchRoomDateAvailability>((ref) {

@@ -129,6 +129,7 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
 
     navigator.push(
       MaterialPageRoute(
+        settings: const RouteSettings(name: 'recommended_rooms'),
         builder: (_) => RecommendedRoomsPage(
           items: items,
           lastUpdated: lastUpdated,
@@ -152,6 +153,7 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
     Navigator.push(
       context,
       MaterialPageRoute(
+        settings: const RouteSettings(name: 'add_schedule_class'),
         builder: (_) => AddClassPage(importSessionId: importSessionId),
       ),
     );
