@@ -1,4 +1,5 @@
 import 'package:andespace/core/error/dio_error_mapper.dart';
+import 'package:andespace/core/di/core_provider.dart';
 import 'package:andespace/core/utils/date_time_utils.dart';
 import 'package:andespace/features/rooms/domain/entities/room_recommendation.dart';
 import 'package:andespace/features/rooms/domain/usecases/auto_search_rooms.dart';
@@ -13,6 +14,7 @@ import 'auto_search_state.dart';
 class AutoSearchNotifier extends AutoDisposeNotifier<AutoSearchState> {
   late final AutoSearchRooms _autoSearchRooms;
   late final SubmitRoomRecommendationInteraction _submitInteraction;
+  late final SessionNotifier _sessionNotifier;
 
   final Set<String> _excludedRoomIds = <String>{};
 
@@ -22,6 +24,7 @@ class AutoSearchNotifier extends AutoDisposeNotifier<AutoSearchState> {
     _submitInteraction = ref.read(
       submitRoomRecommendationInteractionUseCaseProvider,
     );
+    _sessionNotifier = ref.read(sessionControllerProvider.notifier);
     return const AutoSearchState.initial();
   }
 
@@ -34,6 +37,13 @@ class AutoSearchNotifier extends AutoDisposeNotifier<AutoSearchState> {
     final targetDate = DateTimeUtils.toApiDate(now);
     final targetTime = DateTimeUtils.toApiTime(
       TimeOfDay(hour: now.hour, minute: now.minute),
+    );
+    final targetDay = DateTime(now.year, now.month, now.day);
+
+    _sessionNotifier.updateSearchSelection(
+      date: targetDay,
+      startTime: targetTime,
+      endTime: null,
     );
 
     state = AutoSearchState(
@@ -89,7 +99,23 @@ class AutoSearchNotifier extends AutoDisposeNotifier<AutoSearchState> {
     );
     await _safeSubmit(RoomRecommendationAction.skip, room.roomId);
 
-    _excludedRoomIds.add(room.roomId);
+    await _excludeAndAdvance(room.roomId);
+  }
+
+  Future<void> advanceCurrent() async {
+    final room = state.currentRoom;
+    if (room == null || state.isSubmittingInteraction) return;
+
+    state = state.copyWith(
+      isSubmittingInteraction: true,
+      clearErrorMessage: true,
+    );
+
+    await _excludeAndAdvance(room.roomId);
+  }
+
+  Future<void> _excludeAndAdvance(String roomId) async {
+    _excludedRoomIds.add(roomId);
     final nextIndex = state.currentIndex + 1;
 
     if (nextIndex < state.rooms.length) {
@@ -112,7 +138,15 @@ class AutoSearchNotifier extends AutoDisposeNotifier<AutoSearchState> {
       clearErrorMessage: true,
     );
     await _safeSubmit(RoomRecommendationAction.favorite, room.roomId);
+    _excludedRoomIds.add(room.roomId);
     state = state.copyWith(isSubmittingInteraction: false);
+  }
+
+  void undoFavoriteForCurrent() {
+    final room = state.currentRoom;
+    if (room == null) return;
+
+    _excludedRoomIds.remove(room.roomId);
   }
 
   Future<void> recordBook() async {
@@ -124,7 +158,7 @@ class AutoSearchNotifier extends AutoDisposeNotifier<AutoSearchState> {
       clearErrorMessage: true,
     );
     await _safeSubmit(RoomRecommendationAction.book, room.roomId);
-    state = state.copyWith(isSubmittingInteraction: false);
+    await _excludeAndAdvance(room.roomId);
   }
 
   Future<void> _safeSubmit(

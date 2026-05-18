@@ -1,11 +1,11 @@
 import 'package:andespace/core/navigation/app_routes.dart';
+import 'package:andespace/features/bookings/presentation/widgets/quick_booking_dialog.dart';
 import 'package:andespace/features/auth/presentation/notifiers/auth_notifier.dart';
 import 'package:andespace/features/favorites/presentation/providers/favorites_providers.dart';
 import 'package:andespace/features/rooms/domain/entities/room_search.dart';
 import 'package:andespace/features/rooms/presentation/controllers/auto_search_notifier.dart';
 import 'package:andespace/features/rooms/presentation/controllers/auto_search_state.dart';
 import 'package:andespace/shared/theme/app_theme_extension.dart';
-import 'package:andespace/shared/widgets/room_card_bits.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -25,7 +25,7 @@ class _AutoSearchBodyState extends ConsumerState<AutoSearchBody> {
     });
   }
 
-  Future<void> _favorite(RoomSearchItem room) async {
+  Future<void> _toggleFavorite(RoomSearchItem room) async {
     final authState = ref.read(authControllerProvider);
     if (!authState.hasActiveSession) {
       Navigator.pushNamed(context, AppRoutes.favorites);
@@ -33,19 +33,40 @@ class _AutoSearchBodyState extends ConsumerState<AutoSearchBody> {
     }
 
     final favoritesState = ref.read(favoritesControllerProvider);
-    if (!favoritesState.isFavorite(room.roomId)) {
-      await ref
-          .read(favoritesControllerProvider.notifier)
-          .toggleFromSearch(room);
+    final wasFavorite = favoritesState.isFavorite(room.roomId);
+
+    await ref.read(favoritesControllerProvider.notifier).toggleFromSearch(room);
+
+    if (wasFavorite) {
+      ref.read(autoSearchControllerProvider.notifier).undoFavoriteForCurrent();
+      return;
     }
 
     await ref.read(autoSearchControllerProvider.notifier).recordFavorite();
   }
 
   Future<void> _book(RoomSearchItem room) async {
+    final authState = ref.read(authControllerProvider);
+    if (!authState.hasActiveSession) {
+      Navigator.pushNamed(context, AppRoutes.login);
+      return;
+    }
+
+    final result = await showQuickBookingDialog(context: context, room: room);
+    if (!mounted || result == null) return;
+
     await ref.read(autoSearchControllerProvider.notifier).recordBook();
     if (!mounted) return;
-    Navigator.pushNamed(context, AppRoutes.createBooking, arguments: room);
+
+    final message = result == QuickBookingResult.created
+        ? 'Booking created successfully.'
+        : 'Booking queued and will sync when connection returns.';
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
+      );
   }
 
   @override
@@ -135,7 +156,9 @@ class _AutoSearchBodyState extends ConsumerState<AutoSearchBody> {
           isSubmitting: state.isSubmittingInteraction,
           onSkip: () =>
               ref.read(autoSearchControllerProvider.notifier).skipCurrent(),
-          onFavorite: () => _favorite(room),
+          onDone: () =>
+              ref.read(autoSearchControllerProvider.notifier).advanceCurrent(),
+          onFavorite: () => _toggleFavorite(room),
           onBook: () => _book(room),
         );
     }
@@ -148,6 +171,7 @@ class _AutoSearchRecommendation extends ConsumerWidget {
     required this.room,
     required this.isSubmitting,
     required this.onSkip,
+    required this.onDone,
     required this.onFavorite,
     required this.onBook,
   });
@@ -155,6 +179,7 @@ class _AutoSearchRecommendation extends ConsumerWidget {
   final RoomSearchItem room;
   final bool isSubmitting;
   final VoidCallback onSkip;
+  final VoidCallback onDone;
   final Future<void> Function() onFavorite;
   final Future<void> Function() onBook;
 
@@ -244,40 +269,48 @@ class _AutoSearchRecommendation extends ConsumerWidget {
         Row(
           children: [
             _RoundActionButton(
-              tooltip: 'Skip',
-              icon: Icons.close_rounded,
-              backgroundColor: theme.brightness == Brightness.dark
-                  ? const Color(0xFF3B2228)
-                  : const Color(0xFFFFDDE2),
-              foregroundColor: theme.brightness == Brightness.dark
-                  ? const Color(0xFFFFB5C0)
-                  : const Color(0xFF5B1722),
-              onPressed: isSubmitting ? null : onSkip,
+              tooltip: isFavorite ? 'Done' : 'Skip',
+              icon: isFavorite ? Icons.check_rounded : Icons.close_rounded,
+              backgroundColor: isFavorite
+                  ? (theme.brightness == Brightness.dark
+                        ? brand.accentYellow
+                        : const Color(0xFFFFFBA9))
+                  : (theme.brightness == Brightness.dark
+                        ? const Color(0xFF3B2228)
+                        : const Color(0xFFFFDDE2)),
+              foregroundColor: isFavorite
+                  ? Colors.black
+                  : (theme.brightness == Brightness.dark
+                        ? const Color(0xFFFFB5C0)
+                        : const Color(0xFF5B1722)),
+              onPressed: isSubmitting
+                  ? null
+                  : isFavorite
+                  ? onDone
+                  : onSkip,
             ),
             const SizedBox(width: 12),
             _RoundActionButton(
               tooltip: isFavorite ? 'Saved' : 'Save favorite',
-              customIcon: isFavoritePending
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : OutlinedHeartIcon(
-                      isFilled: isFavorite,
-                      fillColor: isFavorite
-                          ? brand.accentYellow
-                          : theme.colorScheme.onSurface,
-                    ),
+              icon: isFavorite ? null : Icons.favorite_border,
               backgroundColor: theme.brightness == Brightness.dark
                   ? const Color(0xFF312742)
                   : const Color(0xFFE9DDFC),
-              foregroundColor: theme.colorScheme.onSurface,
+              foregroundColor: isFavorite
+                  ? brand.accentYellow
+                  : theme.colorScheme.onSurface,
+              isLoading: isFavoritePending,
               onPressed: isSubmitting || isFavoritePending
                   ? null
                   : () {
                       onFavorite();
                     },
+              child: isFavorite
+                  ? _FavoriteActionIcon(
+                      color: brand.accentYellow,
+                      showBlackBorder: theme.brightness == Brightness.light,
+                    )
+                  : null,
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -325,15 +358,17 @@ class _RoundActionButton extends StatelessWidget {
     required this.foregroundColor,
     required this.onPressed,
     this.icon,
-    this.customIcon,
+    this.child,
+    this.isLoading = false,
   });
 
   final String tooltip;
   final IconData? icon;
-  final Widget? customIcon;
+  final Widget? child;
   final Color backgroundColor;
   final Color foregroundColor;
   final VoidCallback? onPressed;
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
@@ -355,19 +390,49 @@ class _RoundActionButton extends StatelessWidget {
             width: 62,
             height: 58,
             child: Center(
-              child:
-                  customIcon ??
-                  Icon(
-                    icon,
-                    color: isEnabled
-                        ? foregroundColor
-                        : Theme.of(context).disabledColor,
-                    size: 26,
-                  ),
+              child: isLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : child ??
+                        Icon(
+                          icon,
+                          color: isEnabled
+                              ? foregroundColor
+                              : Theme.of(context).disabledColor,
+                          size: 26,
+                        ),
             ),
           ),
         ),
       ),
+    );
+  }
+}
+
+class _FavoriteActionIcon extends StatelessWidget {
+  const _FavoriteActionIcon({
+    required this.color,
+    required this.showBlackBorder,
+  });
+
+  final Color color;
+  final bool showBlackBorder;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!showBlackBorder) {
+      return Icon(Icons.favorite, color: color, size: 26);
+    }
+
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        const Icon(Icons.favorite, color: Colors.black, size: 28),
+        Icon(Icons.favorite, color: color, size: 23),
+      ],
     );
   }
 }

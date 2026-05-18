@@ -13,7 +13,6 @@ class AppScaffold extends ConsumerWidget {
     required this.currentTab,
     required this.onTabSelected,
     this.onTapHeaderLeft,
-    this.onTapHeaderSearch,
     this.onLogin,
     this.onSignUp,
     //this.title = 'AndeSpace',
@@ -25,7 +24,6 @@ class AppScaffold extends ConsumerWidget {
   final AppTab currentTab;
   final ValueChanged<AppTab> onTabSelected;
   final VoidCallback? onTapHeaderLeft;
-  final VoidCallback? onTapHeaderSearch;
   final VoidCallback? onLogin;
   final VoidCallback? onSignUp;
   //final String title;
@@ -45,7 +43,6 @@ class AppScaffold extends ConsumerWidget {
       appBar: AppHeader(
         //title: title,
         title: 'AndeSpace',
-        onTapSearch: onTapHeaderSearch,
         onLogin: () {
           Navigator.pushReplacementNamed(context, AppRoutes.login);
         },
