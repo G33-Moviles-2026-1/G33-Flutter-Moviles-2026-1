@@ -2,6 +2,8 @@ import 'package:andespace/core/utils/date_time_utils.dart';
 import 'package:dio/dio.dart';
 
 import '../models/free_rooms_for_day_dto.dart';
+import '../models/google_calendar_auth_session_dto.dart';
+import '../models/google_calendar_source_dto.dart';
 import '../models/manual_class_dto.dart';
 import '../models/schedule_class_dto.dart';
 import '../models/schedule_delete_response_dto.dart';
@@ -17,15 +19,22 @@ abstract class ScheduleRemoteDataSource {
     required List<ManualClassModel> classes,
   });
 
-  Future<WeeklyScheduleModel> getWeeklySchedule({
-    required DateTime date,
+  Future<GoogleCalendarAuthSessionModel> startGoogleCalendarConnection();
+
+  Future<List<GoogleCalendarSourceModel>> getGoogleCalendars({
+    required String state,
   });
+
+  Future<ScheduleUploadResponseModel> uploadGoogleCalendarSchedule({
+    required String state,
+    required List<String> calendarIds,
+  });
+
+  Future<WeeklyScheduleModel> getWeeklySchedule({required DateTime date});
 
   Future<List<ScheduleClassModel>> getScheduleClasses();
 
-  Future<FreeRoomsForDayModel> getFreeRoomsForDay({
-    required DateTime date,
-  });
+  Future<FreeRoomsForDayModel> getFreeRoomsForDay({required DateTime date});
 
   Future<ScheduleDeleteResponseModel> deleteFullSchedule();
 
@@ -46,9 +55,7 @@ abstract class ScheduleRemoteDataSource {
 class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
   final Dio dio;
 
-  const ScheduleRemoteDataSourceImpl({
-    required this.dio,
-  });
+  const ScheduleRemoteDataSourceImpl({required this.dio});
 
   @override
   Future<ScheduleUploadResponseModel> uploadIcsSchedule({
@@ -57,16 +64,10 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
     final fileName = filePath.split('/').last;
 
     final formData = FormData.fromMap({
-      'file': await MultipartFile.fromFile(
-        filePath,
-        filename: fileName,
-      ),
+      'file': await MultipartFile.fromFile(filePath, filename: fileName),
     });
 
-    final response = await dio.post(
-      '/schedule/upload/ics',
-      data: formData,
-    );
+    final response = await dio.post('/schedule/upload/ics', data: formData);
 
     return ScheduleUploadResponseModel.fromJson(
       response.data as Map<String, dynamic>,
@@ -79,9 +80,50 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
   }) async {
     final response = await dio.post(
       '/schedule/upload/manual',
-      data: {
-        'classes': classes.map((e) => e.toJson()).toList(),
-      },
+      data: {'classes': classes.map((e) => e.toJson()).toList()},
+    );
+
+    return ScheduleUploadResponseModel.fromJson(
+      response.data as Map<String, dynamic>,
+    );
+  }
+
+  @override
+  Future<GoogleCalendarAuthSessionModel> startGoogleCalendarConnection() async {
+    final response = await dio.get('/schedule/google/auth-url');
+
+    return GoogleCalendarAuthSessionModel.fromJson(
+      response.data as Map<String, dynamic>,
+    );
+  }
+
+  @override
+  Future<List<GoogleCalendarSourceModel>> getGoogleCalendars({
+    required String state,
+  }) async {
+    final response = await dio.get(
+      '/schedule/google/calendars',
+      queryParameters: {'state': state},
+    );
+
+    final data = response.data as Map<String, dynamic>;
+    final calendars = data['calendars'] as List<dynamic>? ?? [];
+
+    return calendars
+        .map(
+          (e) => GoogleCalendarSourceModel.fromJson(e as Map<String, dynamic>),
+        )
+        .toList();
+  }
+
+  @override
+  Future<ScheduleUploadResponseModel> uploadGoogleCalendarSchedule({
+    required String state,
+    required List<String> calendarIds,
+  }) async {
+    final response = await dio.post(
+      '/schedule/upload/google',
+      data: {'state': state, 'calendar_ids': calendarIds},
     );
 
     return ScheduleUploadResponseModel.fromJson(
@@ -95,24 +137,15 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
   }) async {
     final response = await dio.get(
       '/schedule/week',
-      queryParameters: {
-        'date': _formatDdMmYyyy(date),
-      },
+      queryParameters: {'date': _formatDdMmYyyy(date)},
     );
 
-    return WeeklyScheduleModel.fromJson(
-      response.data as Map<String, dynamic>,
-    );
+    return WeeklyScheduleModel.fromJson(response.data as Map<String, dynamic>);
   }
 
   @override
-  Future<List<ScheduleClassModel>> getScheduleClasses(
-  ) async {
-    final response = await dio.get(
-      '/schedule/classes',
-      queryParameters: {
-      },
-    );
+  Future<List<ScheduleClassModel>> getScheduleClasses() async {
+    final response = await dio.get('/schedule/classes', queryParameters: {});
 
     final data = response.data as Map<String, dynamic>;
     final classes = data['classes'] as List<dynamic>? ?? [];
@@ -128,24 +161,15 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
   }) async {
     final response = await dio.get(
       '/schedule/free-rooms',
-      queryParameters: {
-        'date': _formatDdMmYyyy(date),
-      },
+      queryParameters: {'date': _formatDdMmYyyy(date)},
     );
 
-    return FreeRoomsForDayModel.fromJson(
-      response.data as Map<String, dynamic>,
-    );
+    return FreeRoomsForDayModel.fromJson(response.data as Map<String, dynamic>);
   }
 
   @override
-  Future<ScheduleDeleteResponseModel> deleteFullSchedule(
-  ) async {
-    final response = await dio.delete(
-      '/schedule',
-      queryParameters: {
-      },
-    );
+  Future<ScheduleDeleteResponseModel> deleteFullSchedule() async {
+    final response = await dio.delete('/schedule', queryParameters: {});
 
     return ScheduleDeleteResponseModel.fromJson(
       response.data as Map<String, dynamic>,
@@ -158,8 +182,7 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
   }) async {
     final response = await dio.delete(
       '/schedule/class/$classId',
-      queryParameters: {
-      },
+      queryParameters: {},
     );
 
     return ScheduleDeleteResponseModel.fromJson(
@@ -174,9 +197,7 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
   }) async {
     final response = await dio.delete(
       '/schedule/class/$classId/occurrence',
-      queryParameters: {
-        'date': _formatDdMmYyyy(date),
-      },
+      queryParameters: {'date': _formatDdMmYyyy(date)},
     );
 
     return ScheduleDeleteResponseModel.fromJson(
@@ -191,16 +212,13 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
     return '$dd-$mm-$yyyy';
   }
 
-
   @override
   Future<Map<String, dynamic>> getRecommendedRoomsForDay({
     required DateTime date,
   }) async {
     final response = await dio.get(
       '/schedule/recommendations/day',
-      queryParameters: {
-        'date': DateTimeUtils.toApiDate(date),
-      },
+      queryParameters: {'date': DateTimeUtils.toApiDate(date)},
     );
 
     final data = response.data;

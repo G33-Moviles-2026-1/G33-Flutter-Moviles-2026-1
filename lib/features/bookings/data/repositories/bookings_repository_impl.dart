@@ -58,4 +58,9 @@ class BookingsRepositoryImpl implements BookingsRepository {
     await bookingsApi.deleteMyBooking(bookingId: bookingId);
     await localDataSource.removeBooking(bookingId);
   }
+
+  @override
+  Future<void> clearLocalData() {
+    return localDataSource.clear();
+  }
 }

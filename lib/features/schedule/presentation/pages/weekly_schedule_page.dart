@@ -1,5 +1,7 @@
 import 'package:andespace/core/di/core_provider.dart';
+import 'package:andespace/features/schedule/domain/entities/schedule_occurrence.dart';
 import 'package:andespace/features/schedule/presentation/pages/recommended_rooms_page.dart';
+import 'package:andespace/features/schedule/presentation/widgets/delete_occurrence_scope_dialog.dart';
 import 'package:andespace/features/schedule/presentation/widgets/schedule_confirm_dialog.dart';
 import 'package:andespace/features/schedule/presentation/widgets/schedule_page_scaffold.dart';
 import 'package:flutter/material.dart';
@@ -54,21 +56,18 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
     return '${start.day} of ${_monthName(start.month)} - ${end.day} of ${_monthName(end.month)}';
   }
 
-  Future<void> _confirmDeleteOccurrence({
-    required String classId,
-    required DateTime date,
-  }) async {
-    final confirmed = await showScheduleConfirmDialog(
-      context: context,
-      title: 'Delete occurrence',
-      message: 'Do you want to delete this class occurrence?',
-    );
+  Future<void> _confirmDeleteOccurrence(ScheduleOccurrence occurrence) async {
+    final scope = await showDeleteOccurrenceScopeDialog(context: context);
 
-    if (!confirmed) return;
+    if (scope == null) return;
 
     await ref
         .read(scheduleControllerProvider.notifier)
-        .removeOccurrence(classId: classId, date: date);
+        .removeOccurrence(
+          classId: occurrence.classId,
+          date: occurrence.date,
+          scope: scope,
+        );
   }
 
   Future<void> _confirmDeleteFullSchedule() async {
@@ -121,6 +120,8 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
     );
 
     final result = await controller.loadRecommendedRoomsForSelectedDay();
+
+    final currentState = ref.read(scheduleControllerProvider);
     final items = result.$1;
     final lastUpdated = result.$2;
 
@@ -128,8 +129,12 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
 
     navigator.push(
       MaterialPageRoute(
-        builder: (_) =>
-            RecommendedRoomsPage(items: items, lastUpdated: lastUpdated),
+        settings: const RouteSettings(name: 'recommended_rooms'),
+        builder: (_) => RecommendedRoomsPage(
+          items: items,
+          lastUpdated: lastUpdated,
+          isOffline: !currentState.hasInternetConnection,
+        ),
       ),
     );
   }
@@ -148,6 +153,7 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
     Navigator.push(
       context,
       MaterialPageRoute(
+        settings: const RouteSettings(name: 'add_schedule_class'),
         builder: (_) => AddClassPage(importSessionId: importSessionId),
       ),
     );
@@ -191,12 +197,12 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
     return SchedulePageScaffold(
       body: Builder(
         builder: (context) {
-          
           if (state.weeklySchedule == null) {
             return const SizedBox.shrink();
           }
 
           final schedule = state.weeklySchedule!;
+          final isFilteringFromSchedule = state.isLoadingRecommendations;
 
           return Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
@@ -270,10 +276,7 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
                       controller.selectDay(day);
                     },
                     onDeleteOccurrence: (occurrence) {
-                      _confirmDeleteOccurrence(
-                        classId: occurrence.classId,
-                        date: occurrence.date,
-                      );
+                      _confirmDeleteOccurrence(occurrence);
                     },
                   ),
                 ),
@@ -284,15 +287,33 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
                       child: SizedBox(
                         height: 56,
                         child: ElevatedButton.icon(
-                          onPressed: _filterFromSchedule,
-                          icon: const Icon(Icons.filter_alt_outlined),
-                          label: const Text('Filter from Schedule'),
+                          onPressed: isFilteringFromSchedule
+                              ? null
+                              : _filterFromSchedule,
+                          icon: isFilteringFromSchedule
+                              ? const Padding(
+                                  padding: EdgeInsets.only(right: 16),
+                                  child: SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  ),
+                                )
+                              : const Icon(Icons.filter_alt_outlined),
+                          label: Text(
+                            isFilteringFromSchedule
+                                ? 'Filtering...'
+                                : 'Filter from Schedule',
+                            textAlign: TextAlign.center,
+                          ),
                           style: ElevatedButton.styleFrom(
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(999),
                             ),
                             textStyle: const TextStyle(
-                              fontSize: 12,
+                              fontSize: 14,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
@@ -306,13 +327,16 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
                         child: OutlinedButton.icon(
                           onPressed: _openManualClassPage,
                           icon: const Icon(Icons.add_circle_outline),
-                          label: const Text('Add Class Manually'),
+                          label: const Text(
+                            'Add Class Manually',
+                            textAlign: TextAlign.center,
+                          ),
                           style: OutlinedButton.styleFrom(
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(999),
                             ),
                             textStyle: const TextStyle(
-                              fontSize: 12,
+                              fontSize: 14,
                               fontWeight: FontWeight.w700,
                             ),
                           ),

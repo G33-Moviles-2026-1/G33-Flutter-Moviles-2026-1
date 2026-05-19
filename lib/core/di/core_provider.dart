@@ -1,4 +1,5 @@
 import 'package:andespace/core/analytics/analytics_service.dart';
+import 'package:andespace/core/connectivity/connectivity_status_service.dart';
 import 'package:andespace/core/local/app_database.dart';
 import 'package:andespace/core/session/session_controller.dart';
 export 'package:andespace/core/session/session_controller.dart'
@@ -9,17 +10,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../connectivity/connectivity_queue_service.dart';
 import '../connectivity/connectivity_recovery_service.dart';
+import '../connectivity/pending_action_event.dart';
 
 final cookieJarProvider = Provider<PersistCookieJar>((ref) {
-  throw UnimplementedError(
-    'cookieJarProvider must be overridden in main.dart',
-  );
+  throw UnimplementedError('cookieJarProvider must be overridden in main.dart');
 });
 
 final dioProvider = Provider<Dio>((ref) {
-  throw UnimplementedError(
-    'dioProvider must be overridden in main.dart',
-  );
+  throw UnimplementedError('dioProvider must be overridden in main.dart');
 });
 
 final sessionControllerProvider =
@@ -32,24 +30,39 @@ final analyticsServiceProvider = Provider<AnalyticsService>((ref) {
 });
 
 final connectivityRecoveryServiceProvider =
-    Provider<ConnectivityRecoveryService>((ref) {
-  final service = ConnectivityRecoveryService();
-  service.startMonitoring();
-  return service;
-});
+    Provider<ConnectivityRecoveryService>(_createConnectivityRecoveryService);
 
-final connectivityQueueServiceProvider =
-    Provider<ConnectivityQueueService>((ref) {
-  final service = ConnectivityQueueService();
-  service.init(ref.read(connectivityRecoveryServiceProvider).onRecovered);
-  return service;
-});
+final connectivityQueueServiceProvider = Provider<ConnectivityQueueService>(
+  _createConnectivityQueueService,
+);
+
+final connectivitySyncBatchEventsProvider =
+    StreamProvider<List<PendingActionEvent>>((ref) {
+      return ref.watch(connectivityQueueServiceProvider).batchEvents;
+    });
+
+final connectivityStatusServiceProvider = Provider<ConnectivityStatusService>(
+  (ref) => ConnectivityStatusService(),
+);
 
 final appDatabaseProvider = Provider<AppDatabase>((ref) {
   final db = AppDatabase();
   ref.onDispose(db.close);
   return db;
 });
+
+ConnectivityRecoveryService _createConnectivityRecoveryService(Ref ref) {
+  final service = ConnectivityRecoveryService();
+  service.startMonitoring();
+  return service;
+}
+
+ConnectivityQueueService _createConnectivityQueueService(Ref ref) {
+  final service = ConnectivityQueueService();
+  service.init(ref.read(connectivityRecoveryServiceProvider).onRecovered);
+  ref.onDispose(service.dispose);
+  return service;
+}
 
 String validatedBaseUrl(String rawBaseUrl) {
   final uri = Uri.parse(rawBaseUrl);

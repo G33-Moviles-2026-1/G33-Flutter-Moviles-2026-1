@@ -1,18 +1,24 @@
 import 'dart:async';
-import 'dart:io';
 
+import 'package:andespace/core/di/core_provider.dart';
 import 'package:andespace/core/navigation/app_routes.dart';
+import 'package:andespace/features/schedule/presentation/mappers/google_calendar_import_error_message_mapper.dart';
 import 'package:andespace/features/schedule/presentation/notifiers/schedule_notifier.dart';
 import 'package:andespace/features/schedule/presentation/notifiers/schedule_state.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:andespace/core/navigation/app_tab.dart';
 import 'package:andespace/shared/widgets/app_scaffold.dart';
 
+import '../widgets/google_calendar_connection_dialog.dart';
+import '../widgets/google_calendar_selection_dialog.dart';
 import '../widgets/schedule_import_option_card.dart';
+import '../widgets/schedule_load_header_card.dart';
+import '../widgets/schedule_upload_status_card.dart';
 import 'add_class_page.dart';
 import 'weekly_schedule_page.dart';
 
@@ -57,24 +63,17 @@ class _ScheduleLoadPageState extends ConsumerState<ScheduleLoadPage> {
   }
 
   Future<bool> _hasInternetConnection() async {
-    try {
-      final result = await InternetAddress.lookup(
-        'google.com',
-      ).timeout(const Duration(seconds: 2));
-
-      return result.isNotEmpty && result.first.rawAddress.isNotEmpty;
-    } catch (_) {
-      return false;
-    }
+    final service = ref.read(connectivityStatusServiceProvider);
+    return service.hasInternetConnection();
   }
 
-  void _showIcsOfflineMessage() {
+  void _showImportOfflineMessage(String importName) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text(
-            'ICS import is disabled because you do not have an internet connection.',
+            '$importName import is disabled because you do not have an internet connection.',
           ),
           behavior: SnackBarBehavior.floating,
         ),
@@ -96,7 +95,7 @@ class _ScheduleLoadPageState extends ConsumerState<ScheduleLoadPage> {
       setState(() {
         _isOnline = false;
       });
-      _showIcsOfflineMessage();
+      _showImportOfflineMessage('ICS');
       return;
     }
 
@@ -108,6 +107,12 @@ class _ScheduleLoadPageState extends ConsumerState<ScheduleLoadPage> {
   }
 
   Future<void> _handleGoogleCalendarTap() async {
+    final state = ref.read(scheduleControllerProvider);
+
+    if (state.status == ScheduleStatus.uploading) {
+      return;
+    }
+
     final online = await _hasInternetConnection();
 
     if (!mounted) return;
@@ -116,7 +121,7 @@ class _ScheduleLoadPageState extends ConsumerState<ScheduleLoadPage> {
       setState(() {
         _isOnline = false;
       });
-      _showGoogleCalendarOfflineMessage();
+      _showImportOfflineMessage('Google Calendar');
       return;
     }
 
@@ -124,24 +129,99 @@ class _ScheduleLoadPageState extends ConsumerState<ScheduleLoadPage> {
       _isOnline = true;
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Google Calendar flow coming soon.'),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    await _connectAndImportGoogleCalendar();
   }
 
-  void _showGoogleCalendarOfflineMessage() {
+  Future<void> _connectAndImportGoogleCalendar() async {
+    final controller = ref.read(scheduleControllerProvider.notifier);
+    final importSessionId = const Uuid().v4();
+
+    await controller.trackGoogleImportStarted(
+      importSessionId: importSessionId,
+      sourceScreen: 'schedule_load',
+    );
+
+    try {
+      final auth = await controller.startGoogleCalendarConnection();
+      final launched = await launchUrl(
+        Uri.parse(auth.authUrl),
+        mode: LaunchMode.externalApplication,
+      );
+
+      if (!mounted) return;
+
+      if (!launched) {
+        _showSnackBar('Could not open Google Calendar sign-in.');
+        return;
+      }
+
+      await controller.trackGoogleAuthInitiated(
+        importSessionId: importSessionId,
+        sourceScreen: 'schedule_load',
+      );
+
+      if (!mounted) return;
+
+      final calendars = await showGoogleCalendarConnectionDialog(
+        context: context,
+        state: auth.state,
+      );
+
+      if (!mounted || calendars == null || calendars.isEmpty) return;
+
+      await controller.trackGoogleAuthGranted(
+        importSessionId: importSessionId,
+        sourceScreen: 'schedule_load',
+      );
+
+      if (!mounted) return;
+
+      final selected = await showGoogleCalendarSelectionDialog(
+        context: context,
+        calendars: calendars,
+      );
+
+      if (!mounted || selected == null || selected.isEmpty) return;
+
+      await controller.trackGoogleCalendarsSelected(
+        importSessionId: importSessionId,
+        sourceScreen: 'schedule_load',
+        selectedCount: selected.length,
+      );
+
+      await controller.importGoogleCalendars(
+        oauthState: auth.state,
+        calendarIds: selected.map((calendar) => calendar.id).toList(),
+        importSessionId: importSessionId,
+      );
+
+      if (!mounted) return;
+
+      final newState = ref.read(scheduleControllerProvider);
+
+      if (newState.status == ScheduleStatus.loaded) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            settings: const RouteSettings(name: 'weekly_schedule'),
+            builder: (_) => const WeeklySchedulePage(),
+          ),
+        );
+      }
+    } catch (error, stackTrace) {
+      debugPrint('Google Calendar import error: $error');
+      debugPrintStack(stackTrace: stackTrace);
+
+      if (!mounted) return;
+      _showSnackBar(mapGoogleCalendarImportErrorMessage(error));
+    }
+  }
+
+  void _showSnackBar(String message) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Google Calendar import is disabled because you do not have an internet connection.',
-          ),
-          behavior: SnackBarBehavior.floating,
-        ),
+        SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
       );
   }
 
@@ -179,7 +259,10 @@ class _ScheduleLoadPageState extends ConsumerState<ScheduleLoadPage> {
     if (newState.status == ScheduleStatus.loaded) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const WeeklySchedulePage()),
+        MaterialPageRoute(
+          settings: const RouteSettings(name: 'weekly_schedule'),
+          builder: (_) => const WeeklySchedulePage(),
+        ),
       );
     }
   }
@@ -200,6 +283,7 @@ class _ScheduleLoadPageState extends ConsumerState<ScheduleLoadPage> {
     Navigator.push(
       context,
       MaterialPageRoute(
+        settings: const RouteSettings(name: 'add_schedule_class'),
         builder: (_) => AddClassPage(importSessionId: importSessionId),
       ),
     );
@@ -241,9 +325,8 @@ class _ScheduleLoadPageState extends ConsumerState<ScheduleLoadPage> {
 
     final state = ref.watch(scheduleControllerProvider);
     final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
     final isUploading = state.status == ScheduleStatus.uploading;
-    final canUseIcs = _isOnline && !isUploading;
+    final canUseRemoteImport = _isOnline && !isUploading;
 
     return AppScaffold(
       currentTab: AppTab.schedule,
@@ -256,47 +339,14 @@ class _ScheduleLoadPageState extends ConsumerState<ScheduleLoadPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(22),
-                  decoration: BoxDecoration(
-                    color: theme.cardColor,
-                    borderRadius: BorderRadius.circular(22),
-                    border: Border.all(
-                      color: theme.dividerColor.withValues(alpha: 0.18),
-                    ),
-                  ),
-                  child: Column(
-                    children: [
-                      Icon(
-                        Icons.calendar_month_outlined,
-                        size: 48,
-                        color: theme.colorScheme.secondary,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Load your schedule',
-                        textAlign: TextAlign.center,
-                        style: textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        'Import an ICS file or add classes manually to unlock weekly views and room recommendations.',
-                        textAlign: TextAlign.center,
-                        style: textTheme.bodyMedium,
-                      ),
-                    ],
-                  ),
-                ),
+                const ScheduleLoadHeaderCard(),
                 const SizedBox(height: 24),
 
                 AnimatedOpacity(
                   duration: const Duration(milliseconds: 180),
-                  opacity: canUseIcs ? 1 : 0.45,
+                  opacity: canUseRemoteImport ? 1 : 0.45,
                   child: ColorFiltered(
-                    colorFilter: canUseIcs
+                    colorFilter: canUseRemoteImport
                         ? const ColorFilter.mode(
                             Colors.transparent,
                             BlendMode.multiply,
@@ -317,9 +367,9 @@ class _ScheduleLoadPageState extends ConsumerState<ScheduleLoadPage> {
 
                 AnimatedOpacity(
                   duration: const Duration(milliseconds: 180),
-                  opacity: canUseIcs ? 1 : 0.45,
+                  opacity: canUseRemoteImport ? 1 : 0.45,
                   child: ColorFiltered(
-                    colorFilter: canUseIcs
+                    colorFilter: canUseRemoteImport
                         ? const ColorFilter.mode(
                             Colors.transparent,
                             BlendMode.multiply,
@@ -346,23 +396,8 @@ class _ScheduleLoadPageState extends ConsumerState<ScheduleLoadPage> {
 
                 if (isUploading) ...[
                   const SizedBox(height: 24),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: theme.cardColor,
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(
-                        color: theme.dividerColor.withValues(alpha: 0.18),
-                      ),
-                    ),
-                    child: const Column(
-                      children: [
-                        LinearProgressIndicator(),
-                        SizedBox(height: 12),
-                        Text('Uploading and processing ICS file...'),
-                      ],
-                    ),
+                  const ScheduleUploadStatusCard(
+                    message: 'Uploading and processing schedule...',
                   ),
                 ],
               ],
