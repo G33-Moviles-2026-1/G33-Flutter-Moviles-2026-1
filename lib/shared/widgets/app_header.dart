@@ -1,7 +1,6 @@
 import 'package:andespace/core/navigation/app_routes.dart';
 import 'package:andespace/shared/theme/app_theme_extension.dart';
 import 'package:andespace/shared/widgets/auth_popup_menu.dart';
-import 'package:andespace/shared/widgets/theme_popup_menu.dart';
 import 'package:flutter/material.dart';
 
 class AppHeader extends StatelessWidget implements PreferredSizeWidget {
@@ -39,9 +38,9 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
       scrolledUnderElevation: 0,
       centerTitle: true,
       leadingWidth: 56,
-      leading: ThemePopupMenu(
-        icon: Icons.settings,
-        iconColor: brand.headerForeground,
+      leading: IconButton(
+        icon: Icon(Icons.notifications_none, color: brand.headerForeground),
+        onPressed: () => Navigator.pushNamed(context, AppRoutes.notifications),
       ),
       title: GestureDetector(
         onTap:

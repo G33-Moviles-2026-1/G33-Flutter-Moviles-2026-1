@@ -101,4 +101,34 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<void> clearSavedSession() {
     return localDataSource.clearSession();
   }
+
+  @override
+  Future<void> updateEmail(String newEmail) async {
+    await api.updateEmail(newEmail);
+    final user = await getCurrentUser();
+    if (user != null) await localDataSource.saveSession(user);
+  }
+
+  @override
+  Future<void> updatePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) => api.updatePassword(
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+      );
+
+  @override
+  Future<void> updateStatus(String status) async {
+    await api.updateStatus(status);
+    final user = await getCurrentUser();
+    if (user != null) await localDataSource.saveSession(user);
+  }
+
+  @override
+  Future<void> updateUsername(String username) async {
+    await api.updateUsername(username);
+    final user = await getCurrentUser();
+    if (user != null) await localDataSource.saveSession(user);
+  }
 }
