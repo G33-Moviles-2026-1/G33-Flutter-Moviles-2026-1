@@ -128,10 +128,12 @@ class _ResultsBodyState extends ConsumerState<ResultsBody> {
                   padding: const EdgeInsets.fromLTRB(18, 20, 18, 20),
                   itemCount: items.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 16),
-                  itemBuilder: (context, index) => _RoomCard(
-                    room: items[index],
-                    brand: brand,
-                    searchTime: response?.query.since,
+                  itemBuilder: (context, index) => RepaintBoundary(
+                    child: _RoomCard(
+                      room: items[index],
+                      brand: brand,
+                      searchTime: response?.query.since,
+                    ),
                   ),
                 ),
               if (widget.state.isLoading)
@@ -222,17 +224,20 @@ class _RoomCard extends ConsumerWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final authState = ref.watch(authControllerProvider);
-    final favoritesState = ref.watch(favoritesControllerProvider);
+    final isFavorite = ref.watch(
+      favoritesControllerProvider.select((s) => s.isFavorite(room.roomId)),
+    );
+    final isFavoritePending = ref.watch(
+      favoritesControllerProvider.select(
+        (s) => s.pendingRoomIds.contains(room.roomId),
+      ),
+    );
     final favoritesNotifier = ref.read(favoritesControllerProvider.notifier);
 
-    final isFavorite = favoritesState.isFavorite(room.roomId);
-    final isFavoritePending = favoritesState.pendingRoomIds.contains(
-      room.roomId,
-    );
-
-    final String referenceTime =
-        searchTime ??
-        '${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}';
+    final String referenceTime = searchTime ?? () {
+      final now = DateTime.now();
+      return '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+    }();
 
     final bool isAvailableInQuery = room.isAvailableAt(referenceTime);
 
@@ -454,14 +459,16 @@ extension RoomAvailabilityX on RoomSearchItem {
       return 'From ${current.start} to ${current.end}';
     }
 
-    final nextWindows =
-        matchingWindows
-            .where((w) => w.start.compareTo(referenceTime) > 0)
-            .toList()
-          ..sort((a, b) => a.start.compareTo(b.start));
+    MatchingWindow? next;
+    for (final w in matchingWindows) {
+      if (w.start.compareTo(referenceTime) > 0) {
+        if (next == null || w.start.compareTo(next.start) < 0) {
+          next = w;
+        }
+      }
+    }
 
-    if (nextWindows.isNotEmpty) {
-      final next = nextWindows.first;
+    if (next != null) {
       return 'From ${next.start} to ${next.end}';
     }
 
