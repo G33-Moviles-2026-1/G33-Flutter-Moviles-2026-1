@@ -15,7 +15,6 @@ class ProfilePage extends ConsumerStatefulWidget {
 
 class _ProfilePageState extends ConsumerState<ProfilePage> {
   final _usernameCtrl = TextEditingController();
-  final _emailCtrl = TextEditingController();
   final _currentPwCtrl = TextEditingController();
   final _newPwCtrl = TextEditingController();
   final _confirmPwCtrl = TextEditingController();
@@ -25,12 +24,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   bool _obscureConfirm = true;
 
   bool _usernameLoading = false;
-  bool _emailLoading = false;
   bool _statusLoading = false;
   bool _passwordLoading = false;
 
   String? _usernameError;
-  String? _emailError;
   String? _statusError;
   String? _passwordError;
 
@@ -39,13 +36,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     super.initState();
     final user = ref.read(authControllerProvider).user;
     _usernameCtrl.text = user?.username ?? '';
-    _emailCtrl.text = user?.email ?? '';
   }
 
   @override
   void dispose() {
     _usernameCtrl.dispose();
-    _emailCtrl.dispose();
     _currentPwCtrl.dispose();
     _newPwCtrl.dispose();
     _confirmPwCtrl.dispose();
@@ -69,26 +64,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       if (mounted) setState(() => _usernameError = _mapError(e));
     } finally {
       if (mounted) setState(() => _usernameLoading = false);
-    }
-  }
-
-  Future<void> _submitEmail() async {
-    final email = _emailCtrl.text.trim();
-    if (email.isEmpty || !email.contains('@')) {
-      setState(() => _emailError = 'Enter a valid email.');
-      return;
-    }
-    setState(() {
-      _emailLoading = true;
-      _emailError = null;
-    });
-    try {
-      await ref.read(authControllerProvider.notifier).updateEmail(email);
-      if (mounted) _showSnackBar('Email updated. Changes take effect on next login.');
-    } catch (e) {
-      if (mounted) setState(() => _emailError = _mapError(e));
-    } finally {
-      if (mounted) setState(() => _emailLoading = false);
     }
   }
 
@@ -160,7 +135,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         fallback: 'Something went wrong. Please try again.',
         onBadResponse: (code, detail) {
           if (detail != null && detail.trim().isNotEmpty) return detail.trim();
-          if (code == 429) return 'Email can only be changed once every 30 days.';
           if (code == 400) return 'Invalid request. Check your input.';
           if (code == 401) return 'Current password is incorrect.';
           return 'Something went wrong. Please try again.';
@@ -203,32 +177,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           ),
 
           const SizedBox(height: 28),
-          _SectionHeader(title: 'Email'),
-          const SizedBox(height: 4),
-          Text(
-            'Email can only be changed once every 30 days.',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-            ),
-          ),
-          const SizedBox(height: 12),
-          TextFormField(
-            controller: _emailCtrl,
-            inputFormatters: [LengthLimitingTextInputFormatter(60)],
-            keyboardType: TextInputType.emailAddress,
-            decoration: InputDecoration(
-              hintText: 'Student Mail',
-              errorText: _emailError,
-            ),
-          ),
-          const SizedBox(height: 12),
-          _ActionButton(
-            label: 'Update Email',
-            loading: _emailLoading,
-            onPressed: _submitEmail,
-          ),
-
-          const SizedBox(height: 28),
           _SectionHeader(title: 'Status'),
           const SizedBox(height: 4),
           Text(
@@ -248,10 +196,12 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             const SizedBox(height: 8),
           ],
           if (_statusLoading)
-            const Center(child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 12),
-              child: CircularProgressIndicator(),
-            ))
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 12),
+                child: CircularProgressIndicator(),
+              ),
+            )
           else
             Wrap(
               spacing: 8,

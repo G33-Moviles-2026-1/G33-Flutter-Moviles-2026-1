@@ -19,8 +19,6 @@ abstract class AuthRepository {
 
   Future<void> clearSavedSession();
 
-  Future<void> updateEmail(String newEmail);
-
   Future<void> updatePassword({
     required String currentPassword,
     required String newPassword,

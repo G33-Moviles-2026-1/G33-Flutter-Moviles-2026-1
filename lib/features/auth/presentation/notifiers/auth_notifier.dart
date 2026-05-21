@@ -156,18 +156,6 @@ class AuthNotifier extends Notifier<AuthState> {
     state = AuthState(isAuthenticated: state.isAuthenticated, user: state.user);
   }
 
-  Future<void> updateEmail(String newEmail) async {
-    state = state.copyWith(isLoading: true);
-    try {
-      await ref.read(authRepositoryProvider).updateEmail(newEmail);
-      final user = state.user?.copyWith(email: newEmail);
-      state = state.copyWith(isLoading: false, user: user);
-    } catch (error) {
-      state = state.copyWith(isLoading: false);
-      rethrow;
-    }
-  }
-
   Future<void> updatePassword({
     required String currentPassword,
     required String newPassword,

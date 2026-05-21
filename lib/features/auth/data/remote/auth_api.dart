@@ -23,25 +23,21 @@ class AuthApi {
     return Map<String, dynamic>.from(response.data);
   }
 
-  Future<void> updateEmail(String newEmail) async {
-    await dio.put('/me/email', data: {'new_email': newEmail});
-  }
-
   Future<void> updatePassword({
     required String currentPassword,
     required String newPassword,
   }) async {
-    await dio.put('/me/password', data: {
+    await dio.put('/me/password/', data: {
       'current_password': currentPassword,
       'new_password': newPassword,
     });
   }
 
   Future<void> updateStatus(String status) async {
-    await dio.put('/me/status', data: {'status': status});
+    await dio.put('/me/status/', data: {'status': status});
   }
 
   Future<void> updateUsername(String username) async {
-    await dio.put('/me/username', data: {'username': username});
+    await dio.put('/me/username/', data: {'username': username});
   }
 }

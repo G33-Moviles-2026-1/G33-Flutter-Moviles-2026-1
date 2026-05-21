@@ -103,13 +103,6 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<void> updateEmail(String newEmail) async {
-    await api.updateEmail(newEmail);
-    final user = await getCurrentUser();
-    if (user != null) await localDataSource.saveSession(user);
-  }
-
-  @override
   Future<void> updatePassword({
     required String currentPassword,
     required String newPassword,
