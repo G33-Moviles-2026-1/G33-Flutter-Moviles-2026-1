@@ -1,9 +1,11 @@
 import 'package:andespace/core/navigation/app_routes.dart';
+import 'package:andespace/features/notifications/presentation/notifiers/notifications_notifier.dart';
 import 'package:andespace/shared/theme/app_theme_extension.dart';
 import 'package:andespace/shared/widgets/auth_popup_menu.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class AppHeader extends StatelessWidget implements PreferredSizeWidget {
+class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
   const AppHeader({
     super.key,
     this.title = 'AndeSpace',
@@ -20,14 +22,16 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback? onLogin;
   final VoidCallback? onSignUp;
   final VoidCallback? onLogout;
-
   final String userIconPath;
   final bool isLoggedIn;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final brand = theme.extension<BrandColors>()!;
+    final unread = ref.watch(
+      notificationsControllerProvider.select((s) => s.unread),
+    );
 
     return AppBar(
       backgroundColor: brand.headerBackground,
@@ -38,13 +42,17 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
       scrolledUnderElevation: 0,
       centerTitle: true,
       leadingWidth: 56,
-      leading: IconButton(
-        icon: Icon(Icons.notifications_none, color: brand.headerForeground),
-        onPressed: () => Navigator.pushNamed(context, AppRoutes.notifications),
+      leading: Badge(
+        isLabelVisible: unread > 0,
+        label: Text(unread > 99 ? '99+' : '$unread'),
+        child: IconButton(
+          icon: Icon(Icons.notifications_none, color: brand.headerForeground),
+          onPressed: () =>
+              Navigator.pushNamed(context, AppRoutes.notifications),
+        ),
       ),
       title: GestureDetector(
-        onTap:
-            onTapLogo ??
+        onTap: onTapLogo ??
             () => Navigator.pushReplacementNamed(context, AppRoutes.home),
         behavior: HitTestBehavior.opaque,
         child: Padding(

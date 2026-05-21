@@ -5,16 +5,16 @@ class NotificationsApi {
 
   final Dio _dio;
 
-  Future<List<Map<String, dynamic>>> getNotifications() async {
+  Future<Map<String, dynamic>> getNotifications() async {
     final response = await _dio.get('/notifications/');
-    final data = response.data;
-    if (data is List) {
-      return data.cast<Map<String, dynamic>>();
-    }
-    return [];
+    return Map<String, dynamic>.from(response.data as Map);
   }
 
   Future<void> markRead(String notificationId) async {
     await _dio.put('/notifications/$notificationId/read');
+  }
+
+  Future<void> markAllRead() async {
+    await _dio.put('/notifications/read-all');
   }
 }
