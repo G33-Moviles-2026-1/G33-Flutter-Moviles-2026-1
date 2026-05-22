@@ -18,4 +18,13 @@ abstract class AuthRepository {
   Future<bool> hasSavedSession();
 
   Future<void> clearSavedSession();
+
+  Future<void> updatePassword({
+    required String currentPassword,
+    required String newPassword,
+  });
+
+  Future<void> updateStatus(String status);
+
+  Future<void> updateUsername(String username);
 }

@@ -1,3 +1,4 @@
+import 'package:andespace/core/navigation/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -31,6 +32,14 @@ class AuthPopupMenu extends StatelessWidget {
       builder: (dialogContext) {
         return isLoggedIn
             ? _LoggedInContent(
+                onProfile: () {
+                  Navigator.of(dialogContext).pop();
+                  Navigator.of(context).pushNamed(AppRoutes.profile);
+                },
+                onSettings: () {
+                  Navigator.of(dialogContext).pop();
+                  Navigator.of(context).pushNamed(AppRoutes.settings);
+                },
                 onLogout: () {
                   Navigator.of(dialogContext).pop();
                   onLogout?.call();
@@ -44,6 +53,10 @@ class AuthPopupMenu extends StatelessWidget {
                 onSignUp: () {
                   Navigator.of(dialogContext).pop();
                   onSignUp?.call();
+                },
+                onSettings: () {
+                  Navigator.of(dialogContext).pop();
+                  Navigator.of(context).pushNamed(AppRoutes.settings);
                 },
               );
       },
@@ -77,10 +90,12 @@ class _LoggedOutContent extends StatelessWidget {
   const _LoggedOutContent({
     required this.onLogin,
     required this.onSignUp,
+    required this.onSettings,
   });
 
   final VoidCallback onLogin;
   final VoidCallback onSignUp;
+  final VoidCallback onSettings;
 
   @override
   Widget build(BuildContext context) {
@@ -105,6 +120,16 @@ class _LoggedOutContent extends StatelessWidget {
               : Colors.black12,
           onTap: onSignUp,
         ),
+        const SizedBox(height: 16),
+        _AuthButton(
+          text: 'Settings',
+          backgroundColor: colorScheme.surface,
+          foregroundColor: colorScheme.onSurface,
+          borderColor: Theme.of(context).brightness == Brightness.dark
+              ? Colors.white10
+              : Colors.black12,
+          onTap: onSettings,
+        ),
       ],
     );
   }
@@ -112,23 +137,48 @@ class _LoggedOutContent extends StatelessWidget {
 
 class _LoggedInContent extends StatelessWidget {
   const _LoggedInContent({
+    required this.onProfile,
+    required this.onSettings,
     required this.onLogout,
   });
 
+  final VoidCallback onProfile;
+  final VoidCallback onSettings;
   final VoidCallback onLogout;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final borderColor = isDark ? Colors.white10 : Colors.black12;
 
-    return _AuthButton(
-      text: 'Log out',
-      backgroundColor: colorScheme.secondary,
-      foregroundColor: colorScheme.onSecondary,
-      borderColor: Theme.of(context).brightness == Brightness.dark
-          ? Colors.white10
-          : Colors.black12,
-      onTap: onLogout,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _AuthButton(
+          text: 'Profile',
+          backgroundColor: colorScheme.surface,
+          foregroundColor: colorScheme.onSurface,
+          borderColor: borderColor,
+          onTap: onProfile,
+        ),
+        const SizedBox(height: 16),
+        _AuthButton(
+          text: 'Settings',
+          backgroundColor: colorScheme.surface,
+          foregroundColor: colorScheme.onSurface,
+          borderColor: borderColor,
+          onTap: onSettings,
+        ),
+        const SizedBox(height: 16),
+        _AuthButton(
+          text: 'Log out',
+          backgroundColor: colorScheme.secondary,
+          foregroundColor: colorScheme.onSecondary,
+          borderColor: borderColor,
+          onTap: onLogout,
+        ),
+      ],
     );
   }
 }

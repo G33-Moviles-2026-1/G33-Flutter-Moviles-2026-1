@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:andespace/core/di/core_provider.dart';
+import 'package:andespace/features/auth/domain/entities/user_status.dart';
 import 'package:andespace/features/schedule/presentation/notifiers/schedule_notifier.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -153,6 +154,49 @@ class AuthNotifier extends Notifier<AuthState> {
 
   void clearState() {
     state = AuthState(isAuthenticated: state.isAuthenticated, user: state.user);
+  }
+
+  Future<void> updatePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    state = state.copyWith(isLoading: true);
+    try {
+      await ref.read(authRepositoryProvider).updatePassword(
+            currentPassword: currentPassword,
+            newPassword: newPassword,
+          );
+      state = state.copyWith(isLoading: false);
+    } catch (error) {
+      state = state.copyWith(isLoading: false);
+      rethrow;
+    }
+  }
+
+  Future<void> updateStatus(String status) async {
+    state = state.copyWith(isLoading: true);
+    try {
+      await ref.read(authRepositoryProvider).updateStatus(status);
+      final updated = state.user?.copyWith(
+        status: UserStatus.fromBackendKey(status),
+      );
+      state = state.copyWith(isLoading: false, user: updated);
+    } catch (error) {
+      state = state.copyWith(isLoading: false);
+      rethrow;
+    }
+  }
+
+  Future<void> updateUsername(String username) async {
+    state = state.copyWith(isLoading: true);
+    try {
+      await ref.read(authRepositoryProvider).updateUsername(username);
+      final updated = state.user?.copyWith(username: username);
+      state = state.copyWith(isLoading: false, user: updated);
+    } catch (error) {
+      state = state.copyWith(isLoading: false);
+      rethrow;
+    }
   }
 
   Future<void> _refreshScheduleCacheAfterLogin() async {
