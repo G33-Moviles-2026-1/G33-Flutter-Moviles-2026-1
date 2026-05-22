@@ -91,8 +91,8 @@ class AuthPopupMenu extends ConsumerWidget {
       icon: Center(
         child: SvgPicture.asset(
           iconPath,
-          width: 24,
-          height: 24,
+          width: 22,
+          height: 22,
           fit: BoxFit.contain,
           colorFilter: ColorFilter.mode(resolvedIconColor, BlendMode.srcIn),
         ),

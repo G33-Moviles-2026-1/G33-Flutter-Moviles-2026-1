@@ -185,7 +185,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                         _ProfileSection(
                           icon: Icons.badge_outlined,
                           title: 'Account',
-                          subtitle: 'Keep your public name easy to recognize.',
+                          subtitle: 'Change your username at any time.',
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
@@ -194,11 +194,25 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                                 inputFormatters: [
                                   LengthLimitingTextInputFormatter(30),
                                 ],
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: theme.colorScheme.onSurface,
+                                ),
                                 decoration: InputDecoration(
                                   labelText: 'Username',
                                   hintText: 'Username',
                                   errorText: _usernameError,
-                                  prefixIcon: const Icon(Icons.person_outline),
+                              
+                                  floatingLabelStyle: theme.textTheme.bodySmall
+                                      ?.copyWith(
+                                        color: theme.colorScheme.secondary,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                          
+                                  prefixIcon: Icon(
+                                    Icons.person_outline,
+                                    color: theme.colorScheme.onSurface
+                                        .withValues(alpha: 0.62),
+                                  ),
                                 ),
                               ),
                               const SizedBox(height: 12),
@@ -259,8 +273,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                         _ProfileSection(
                           icon: Icons.lock_outline,
                           title: 'Security',
-                          subtitle:
-                              'Use a strong password with at least 8 characters.',
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
@@ -437,13 +449,13 @@ class _ProfileSection extends StatelessWidget {
   const _ProfileSection({
     required this.icon,
     required this.title,
-    required this.subtitle,
+    this.subtitle,
     required this.child,
   });
 
   final IconData icon;
   final String title;
-  final String subtitle;
+  final String? subtitle;
   final Widget child;
 
   @override
@@ -482,15 +494,17 @@ class _ProfileSection extends StatelessWidget {
                         fontWeight: FontWeight.w800,
                       ),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitle,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurface.withValues(
-                          alpha: 0.58,
+                    if (subtitle?.trim().isNotEmpty == true) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle!,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurface.withValues(
+                            alpha: 0.58,
+                          ),
                         ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),
@@ -663,17 +677,48 @@ class _PasswordField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    final fieldTextColor = theme.colorScheme.onSurface;
+    final subtleTextColor = theme.colorScheme.onSurface.withValues(alpha: 0.62);
+
     return TextFormField(
       controller: controller,
       obscureText: obscure,
+      style: theme.textTheme.bodySmall?.copyWith(
+        color: fieldTextColor,
+        fontSize: 13,
+      ),
       inputFormatters: [LengthLimitingTextInputFormatter(60)],
       decoration: InputDecoration(
         labelText: hint,
         hintText: hint,
         errorText: errorText,
-        prefixIcon: const Icon(Icons.lock_outline),
+        labelStyle: theme.textTheme.bodySmall?.copyWith(
+          color: subtleTextColor,
+          fontSize: 12,
+        ),
+        floatingLabelStyle: theme.textTheme.bodySmall?.copyWith(
+          color: theme.colorScheme.secondary,
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+        ),
+        hintStyle: theme.textTheme.bodySmall?.copyWith(
+          color: subtleTextColor,
+          fontSize: 12,
+        ),
+        errorStyle: theme.textTheme.bodySmall?.copyWith(
+          color: theme.colorScheme.error,
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+        ),
+        prefixIcon: Icon(Icons.lock_outline, size: 20, color: subtleTextColor),
         suffixIcon: IconButton(
-          icon: Icon(obscure ? Icons.visibility_off : Icons.visibility),
+          icon: Icon(
+            obscure ? Icons.visibility_off : Icons.visibility,
+            size: 20,
+            color: subtleTextColor,
+          ),
           onPressed: onToggle,
         ),
       ),

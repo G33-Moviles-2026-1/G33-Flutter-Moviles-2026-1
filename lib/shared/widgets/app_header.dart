@@ -54,7 +54,7 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
             icon: Icon(
               Icons.notifications_none,
               color: brand.headerForeground,
-              size: 24,
+              size: 27,
             ),
             onPressed: () =>
                 Navigator.pushNamed(context, AppRoutes.notifications),
