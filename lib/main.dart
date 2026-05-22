@@ -19,6 +19,8 @@ import 'features/favorites/data/local/favorites_local_datasource.dart';
 import 'features/favorites/presentation/providers/favorites_providers.dart';
 import 'features/navigation/data/local/path_local_data_source.dart';
 import 'features/navigation/presentation/providers/navigation_providers.dart';
+import 'features/friendships/data/local/friendships_local_datasource.dart';
+import 'features/friendships/presentation/providers/friendships_providers.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,6 +32,7 @@ Future<void> main() async {
   final appDatabase = AppDatabase();
   final bookingsLocalDs = BookingsLocalDataSource(appDatabase);
   final favoritesLocalDs = FavoritesLocalDataSource(appDatabase);
+  final friendshipsLocalDs = FriendshipsLocalDataSource(appDatabase);
   final pathLocalDs = PathLocalDataSource(appDatabase);
 
   final appDir = await getApplicationDocumentsDirectory();
@@ -62,6 +65,7 @@ Future<void> main() async {
       analyticsServiceProvider.overrideWithValue(analyticsService),
       bookingsLocalDataSourceProvider.overrideWithValue(bookingsLocalDs),
       favoritesLocalDataSourceProvider.overrideWithValue(favoritesLocalDs),
+      friendshipsLocalDataSourceProvider.overrideWithValue(friendshipsLocalDs),
       pathLocalDataSourceProvider.overrideWithValue(pathLocalDs),
     ],
   );

@@ -15,6 +15,8 @@ import 'package:andespace/features/favorites/presentation/pages/favorites_page.d
 import 'package:andespace/features/auth/presentation/pages/profile_page.dart';
 import 'package:andespace/features/auth/presentation/pages/settings_page.dart';
 import 'package:andespace/features/notifications/presentation/notifications_page.dart';
+import 'package:andespace/features/friendships/presentation/pages/friends_page.dart';
+import 'package:andespace/features/friendships/presentation/pages/add_friends_page.dart';
 import 'package:andespace/features/rooms/presentation/pages/no_internet_page.dart';
 import 'package:flutter/material.dart';
 
@@ -35,6 +37,8 @@ class AppRoutes {
   static const String profile = '/profile';
   static const String settings = '/settings';
   static const String notifications = '/notifications';
+  static const String friends = '/friends';
+  static const String addFriends = '/friends/add';
 
   static Map<String, WidgetBuilder> routes = {
     authGate: (context) => const AuthGatePage(),
@@ -63,6 +67,8 @@ class AppRoutes {
     profile: (context) => const ProfilePage(),
     settings: (context) => const SettingsPage(),
     notifications: (context) => const NotificationsPage(),
+    friends: (context) => const FriendsPage(),
+    addFriends: (context) => const AddFriendsPage(),
   };
 
   static void handleTabSelection(BuildContext context, AppTab tab) {
