@@ -58,14 +58,18 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<AuthUser?> getCurrentUser() async {
     try {
       final data = await api.me();
+      final usernameData = await _readUsernameData();
 
       final activeUser = data['active_user'];
-      if (activeUser == null) {
+      if (activeUser == null && usernameData?['email'] == null) {
         await localDataSource.clearSession();
         return null;
       }
 
-      final model = AuthUserModel.fromMeResponse(data);
+      final model = AuthUserModel.fromMeResponse({
+        ...data,
+        if (usernameData != null) ...usernameData,
+      });
       final user = model.toEntity();
 
       await localDataSource.saveSession(user);
@@ -107,9 +111,9 @@ class AuthRepositoryImpl implements AuthRepository {
     required String currentPassword,
     required String newPassword,
   }) => api.updatePassword(
-        currentPassword: currentPassword,
-        newPassword: newPassword,
-      );
+    currentPassword: currentPassword,
+    newPassword: newPassword,
+  );
 
   @override
   Future<void> updateStatus(String status) async {
@@ -123,5 +127,13 @@ class AuthRepositoryImpl implements AuthRepository {
     await api.updateUsername(username);
     final user = await getCurrentUser();
     if (user != null) await localDataSource.saveSession(user);
+  }
+
+  Future<Map<String, dynamic>?> _readUsernameData() async {
+    try {
+      return await api.readMyUsername();
+    } catch (_) {
+      return null;
+    }
   }
 }

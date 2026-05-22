@@ -86,12 +86,16 @@ class AuthPopupMenu extends ConsumerWidget {
 
     return IconButton(
       tooltip: 'Account',
+      constraints: const BoxConstraints.tightFor(width: 48, height: 48),
       onPressed: () => _showAuthDialog(context, ref),
-      icon: SvgPicture.asset(
-        iconPath,
-        width: 24,
-        height: 24,
-        colorFilter: ColorFilter.mode(resolvedIconColor, BlendMode.srcIn),
+      icon: Center(
+        child: SvgPicture.asset(
+          iconPath,
+          width: 24,
+          height: 24,
+          fit: BoxFit.contain,
+          colorFilter: ColorFilter.mode(resolvedIconColor, BlendMode.srcIn),
+        ),
       ),
     );
   }
@@ -117,11 +121,7 @@ class _LoggedOutContent extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _MenuHeader(
-          icon: Icons.person_outline,
-          title: 'Welcome to AndeSpace',
-          subtitle: 'Sign in to manage your spaces and preferences.',
-        ),
+        _MenuHeader(icon: Icons.person_outline, title: 'Welcome to AndeSpace'),
         const SizedBox(height: 16),
         _AuthButton(
           text: 'Log in',
@@ -145,7 +145,6 @@ class _LoggedOutContent extends StatelessWidget {
         _MenuActionTile(
           icon: Icons.palette_outlined,
           title: 'Theme',
-          subtitle: 'Light, dark, system, or automatic',
           onTap: onTheme,
         ),
       ],
@@ -172,29 +171,23 @@ class _LoggedInContent extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final resolvedName = username?.trim().isNotEmpty == true
         ? username!.trim()
-        : 'there';
+        : 'username';
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _MenuHeader(
-          icon: Icons.person,
-          title: 'Hello, $resolvedName',
-          subtitle: 'Manage your account and app preferences.',
-        ),
+        _MenuHeader(icon: Icons.person, title: 'Hello, $resolvedName'),
         const SizedBox(height: 16),
         _MenuActionTile(
           icon: Icons.account_circle_outlined,
           title: 'Profile',
-          subtitle: 'Username, status, and password',
           onTap: onProfile,
         ),
         const SizedBox(height: 8),
         _MenuActionTile(
           icon: Icons.palette_outlined,
           title: 'Theme',
-          subtitle: 'Change the app appearance',
           onTap: onTheme,
         ),
         const SizedBox(height: 14),
@@ -211,66 +204,39 @@ class _LoggedInContent extends StatelessWidget {
 }
 
 class _MenuHeader extends StatelessWidget {
-  const _MenuHeader({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-  });
+  const _MenuHeader({required this.icon, required this.title});
 
   final IconData icon;
   final String title;
-  final String subtitle;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: colorScheme.secondary.withValues(alpha: 0.14),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: colorScheme.secondary.withValues(alpha: 0.28),
+    return Row(
+      children: [
+        Container(
+          width: 42,
+          height: 42,
+          decoration: BoxDecoration(
+            color: colorScheme.secondary,
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: colorScheme.onSecondary, size: 22),
         ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: colorScheme.secondary,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: colorScheme.onSecondary, size: 22),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  subtitle,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurface.withValues(alpha: 0.66),
-                  ),
-                ),
-              ],
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w800,
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -279,13 +245,11 @@ class _MenuActionTile extends StatelessWidget {
   const _MenuActionTile({
     required this.icon,
     required this.title,
-    required this.subtitle,
     required this.onTap,
   });
 
   final IconData icon;
   final String title;
-  final String subtitle;
   final VoidCallback onTap;
 
   @override
@@ -312,23 +276,11 @@ class _MenuActionTile extends StatelessWidget {
               Icon(icon, color: colorScheme.secondary, size: 22),
               const SizedBox(width: 12),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitle,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurface.withValues(alpha: 0.62),
-                      ),
-                    ),
-                  ],
+                child: Text(
+                  title,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
               Icon(

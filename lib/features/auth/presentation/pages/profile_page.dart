@@ -178,7 +178,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                       children: [
                         _ProfileHero(
                           username: user?.username,
-                          email: user?.email,
                           status: currentStatus,
                           semester: user?.firstSemester,
                         ),
@@ -317,13 +316,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 class _ProfileHero extends StatelessWidget {
   const _ProfileHero({
     required this.username,
-    required this.email,
     required this.status,
     required this.semester,
   });
 
   final String? username;
-  final String? email;
   final UserStatus status;
   final String? semester;
 
@@ -334,7 +331,7 @@ class _ProfileHero extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final displayName = username?.trim().isNotEmpty == true
         ? username!.trim()
-        : 'AndeSpace user';
+        : 'Username';
 
     return Container(
       padding: const EdgeInsets.all(18),
@@ -380,17 +377,6 @@ class _ProfileHero extends StatelessWidget {
                     fontWeight: FontWeight.w800,
                   ),
                 ),
-                if (email?.trim().isNotEmpty == true) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    email!.trim(),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: brand.headerForeground.withValues(alpha: 0.68),
-                    ),
-                  ),
-                ],
                 const SizedBox(height: 12),
                 Wrap(
                   spacing: 8,

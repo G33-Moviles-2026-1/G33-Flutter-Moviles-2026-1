@@ -44,13 +44,21 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
       scrolledUnderElevation: 0,
       centerTitle: true,
       leadingWidth: 56,
-      leading: Badge(
-        isLabelVisible: unread > 0,
-        label: Text(unread > 99 ? '99+' : '$unread'),
-        child: IconButton(
-          icon: Icon(Icons.notifications_none, color: brand.headerForeground),
-          onPressed: () =>
-              Navigator.pushNamed(context, AppRoutes.notifications),
+      leading: Center(
+        child: Badge(
+          isLabelVisible: unread > 0,
+          label: Text(unread > 99 ? '99+' : '$unread'),
+          child: IconButton(
+            tooltip: 'Notifications',
+            constraints: const BoxConstraints.tightFor(width: 48, height: 48),
+            icon: Icon(
+              Icons.notifications_none,
+              color: brand.headerForeground,
+              size: 24,
+            ),
+            onPressed: () =>
+                Navigator.pushNamed(context, AppRoutes.notifications),
+          ),
         ),
       ),
       title: GestureDetector(

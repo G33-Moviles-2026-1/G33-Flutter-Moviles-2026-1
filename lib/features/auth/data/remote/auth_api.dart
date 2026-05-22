@@ -23,14 +23,19 @@ class AuthApi {
     return Map<String, dynamic>.from(response.data);
   }
 
+  Future<Map<String, dynamic>> readMyUsername() async {
+    final response = await dio.get('/me/username');
+    return Map<String, dynamic>.from(response.data);
+  }
+
   Future<void> updatePassword({
     required String currentPassword,
     required String newPassword,
   }) async {
-    await dio.put('/me/password/', data: {
-      'current_password': currentPassword,
-      'new_password': newPassword,
-    });
+    await dio.put(
+      '/me/password/',
+      data: {'current_password': currentPassword, 'new_password': newPassword},
+    );
   }
 
   Future<void> updateStatus(String status) async {
