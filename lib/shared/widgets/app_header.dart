@@ -15,6 +15,7 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
     this.onLogout,
     this.userIconPath = 'assets/icons/user.svg',
     this.isLoggedIn = false,
+    this.username,
   });
 
   final String title;
@@ -24,6 +25,7 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
   final VoidCallback? onLogout;
   final String userIconPath;
   final bool isLoggedIn;
+  final String? username;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -52,7 +54,8 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
         ),
       ),
       title: GestureDetector(
-        onTap: onTapLogo ??
+        onTap:
+            onTapLogo ??
             () => Navigator.pushReplacementNamed(context, AppRoutes.home),
         behavior: HitTestBehavior.opaque,
         child: Padding(
@@ -71,6 +74,7 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
           padding: const EdgeInsets.only(right: 8),
           child: AuthPopupMenu(
             isLoggedIn: isLoggedIn,
+            username: username,
             onLogin: onLogin,
             onSignUp: onSignUp,
             onLogout: onLogout,

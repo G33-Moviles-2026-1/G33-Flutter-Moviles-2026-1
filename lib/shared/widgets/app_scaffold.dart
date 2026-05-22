@@ -57,6 +57,7 @@ class AppScaffold extends ConsumerWidget {
           }
         },
         isLoggedIn: authState.isAuthenticated,
+        username: authState.user?.username ?? authState.user?.email,
       ),
       body: SafeArea(child: body),
       bottomNavigationBar: AppFooter(
