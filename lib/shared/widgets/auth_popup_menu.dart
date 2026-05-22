@@ -36,6 +36,10 @@ class AuthPopupMenu extends StatelessWidget {
                   Navigator.of(dialogContext).pop();
                   Navigator.of(context).pushNamed(AppRoutes.profile);
                 },
+                onFriends: () {
+                  Navigator.of(dialogContext).pop();
+                  Navigator.of(context).pushNamed(AppRoutes.friends);
+                },
                 onSettings: () {
                   Navigator.of(dialogContext).pop();
                   Navigator.of(context).pushNamed(AppRoutes.settings);
@@ -138,11 +142,13 @@ class _LoggedOutContent extends StatelessWidget {
 class _LoggedInContent extends StatelessWidget {
   const _LoggedInContent({
     required this.onProfile,
+    required this.onFriends,
     required this.onSettings,
     required this.onLogout,
   });
 
   final VoidCallback onProfile;
+  final VoidCallback onFriends;
   final VoidCallback onSettings;
   final VoidCallback onLogout;
 
@@ -161,6 +167,14 @@ class _LoggedInContent extends StatelessWidget {
           foregroundColor: colorScheme.onSurface,
           borderColor: borderColor,
           onTap: onProfile,
+        ),
+        const SizedBox(height: 16),
+        _AuthButton(
+          text: 'Friends',
+          backgroundColor: colorScheme.surface,
+          foregroundColor: colorScheme.onSurface,
+          borderColor: borderColor,
+          onTap: onFriends,
         ),
         const SizedBox(height: 16),
         _AuthButton(
