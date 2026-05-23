@@ -193,9 +193,12 @@ class _LoggedInContent extends StatelessWidget {
         const SizedBox(height: 16),
         _AuthButton(
           text: 'Friends',
+          icon: Icons.people_outline,
           backgroundColor: colorScheme.surface,
           foregroundColor: colorScheme.onSurface,
-          borderColor: borderColor,
+          borderColor: theme.brightness == Brightness.dark
+              ? Colors.white10
+              : Colors.black12,
           onTap: onFriends,
         ),
         const SizedBox(height: 8),
@@ -312,15 +315,15 @@ class _MenuActionTile extends StatelessWidget {
 class _AuthButton extends StatelessWidget {
   const _AuthButton({
     required this.text,
-    required this.icon,
     required this.backgroundColor,
     required this.foregroundColor,
     required this.onTap,
+    this.icon,
     this.borderColor,
   });
 
   final String text;
-  final IconData icon;
+  final IconData? icon;
   final Color backgroundColor;
   final Color foregroundColor;
   final VoidCallback onTap;
@@ -350,8 +353,10 @@ class _AuthButton extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, color: foregroundColor, size: 20),
-              const SizedBox(width: 8),
+              if (icon != null) ...[
+                Icon(icon, color: foregroundColor, size: 20),
+                const SizedBox(width: 8),
+              ],
               Text(
                 text,
                 style:
