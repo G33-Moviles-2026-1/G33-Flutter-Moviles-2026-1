@@ -1,5 +1,7 @@
 import 'package:andespace/core/di/theme_mode_provider.dart';
-import 'package:andespace/shared/theme/app_theme_extension.dart';
+import 'package:andespace/core/navigation/app_routes.dart';
+import 'package:andespace/core/navigation/app_tab.dart';
+import 'package:andespace/shared/widgets/app_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -9,20 +11,21 @@ class SettingsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final brand = theme.extension<BrandColors>()!;
     final preference = ref.watch(themeModeProvider).preference;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-        backgroundColor: brand.headerBackground,
-        foregroundColor: brand.headerForeground,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-      ),
+    return AppScaffold(
+      currentTab: AppTab.rooms,
+      onTabSelected: (tab) => AppRoutes.handleTabSelection(context, tab),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
+          Text(
+            'Settings',
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 24),
           Text(
             'Theme',
             style: theme.textTheme.titleMedium?.copyWith(
@@ -124,7 +127,9 @@ class _ThemeOptionTile extends StatelessWidget {
                   ],
                 ),
               ),
-              if (selected) Icon(Icons.check, size: 18, color: theme.colorScheme.secondary),
+              if (selected)
+                Icon(Icons.check,
+                    size: 18, color: theme.colorScheme.secondary),
             ],
           ),
         ),

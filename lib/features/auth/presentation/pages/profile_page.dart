@@ -1,7 +1,9 @@
 import 'package:andespace/core/error/dio_error_mapper.dart';
+import 'package:andespace/core/navigation/app_routes.dart';
+import 'package:andespace/core/navigation/app_tab.dart';
 import 'package:andespace/features/auth/domain/entities/user_status.dart';
 import 'package:andespace/features/auth/presentation/notifiers/auth_notifier.dart';
-import 'package:andespace/shared/theme/app_theme_extension.dart';
+import 'package:andespace/shared/widgets/app_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -144,21 +146,23 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final brand = theme.extension<BrandColors>()!;
     final user = ref.watch(authControllerProvider).user;
     final currentStatus = user?.status ?? UserStatus.incognito;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'),
-        backgroundColor: brand.headerBackground,
-        foregroundColor: brand.headerForeground,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-      ),
+    return AppScaffold(
+      currentTab: AppTab.rooms,
+      onTabSelected: (tab) => AppRoutes.handleTabSelection(context, tab),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
+          Text(
+            'Profile',
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 24),
+
           _SectionHeader(title: 'Username'),
           const SizedBox(height: 12),
           TextFormField(
