@@ -73,6 +73,7 @@ class AuthNotifier extends Notifier<AuthState> {
       );
 
       if (user != null) {
+        await ref.read(appDatabaseProvider).clearFriendshipsLocalData();
         await _refreshScheduleCacheAfterLogin();
       }
 
@@ -108,6 +109,10 @@ class AuthNotifier extends Notifier<AuthState> {
         firstSemester: firstSemester,
       );
 
+      if (user != null) {
+        await ref.read(appDatabaseProvider).clearFriendshipsLocalData();
+      }
+
       state = AuthState(
         isLoading: false,
         isAuthenticated: user != null,
@@ -134,6 +139,7 @@ class AuthNotifier extends Notifier<AuthState> {
       await _logoutAndClearSessionDataUseCase();
 
       await ref.read(scheduleControllerProvider.notifier).clearLocalSchedule();
+      await ref.read(appDatabaseProvider).clearFriendshipsLocalData();
 
       state = const AuthState(
         isLoading: false,
@@ -222,6 +228,7 @@ class AuthNotifier extends Notifier<AuthState> {
 
       if (user == null) {
         ref.read(scheduleControllerProvider.notifier).resetState();
+        await ref.read(appDatabaseProvider).clearFriendshipsLocalData();
 
         state = const AuthState(
           isLoading: false,

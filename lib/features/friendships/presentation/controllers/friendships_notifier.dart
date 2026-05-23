@@ -55,7 +55,7 @@ class FriendshipsNotifier extends Notifier<FriendshipsState> {
     final cachedFriends = await _repository.getCachedFriends();
 
     state = state.copyWith(
-      friends: cachedFriends.isNotEmpty ? cachedFriends : state.friends,
+      friends: cachedFriends,
       myStatus: cachedStatus,
       isFriendsLoading: true,
       clearErrorMessage: true,
@@ -63,14 +63,19 @@ class FriendshipsNotifier extends Notifier<FriendshipsState> {
 
     try {
       final fresh = await _repository.loadFriends();
+
       state = state.copyWith(
         isFriendsLoading: false,
         friends: fresh,
       );
     } catch (error) {
+      final cachedAfterFailure = await _repository.getCachedFriends();
+
       state = state.copyWith(
         isFriendsLoading: false,
-        errorMessage: _mapError(error),
+        friends: cachedAfterFailure,
+        errorMessage: cachedAfterFailure.isEmpty ? _mapError(error) : null,
+        clearErrorMessage: cachedAfterFailure.isNotEmpty,
       );
     }
   }
@@ -82,6 +87,9 @@ class FriendshipsNotifier extends Notifier<FriendshipsState> {
 
     if (!hasInternet) {
       state = state.copyWith(
+        incomingRequests: const [],
+        outgoingRequests: const [],
+        suggestions: const [],
         onlineSectionsOffline: true,
         isOnlineSectionsLoading: false,
       );
@@ -91,6 +99,9 @@ class FriendshipsNotifier extends Notifier<FriendshipsState> {
     state = state.copyWith(
       isOnlineSectionsLoading: true,
       onlineSectionsOffline: false,
+      incomingRequests: const [],
+      outgoingRequests: const [],
+      suggestions: const [],
       clearErrorMessage: true,
     );
 
@@ -104,10 +115,15 @@ class FriendshipsNotifier extends Notifier<FriendshipsState> {
         incomingRequests: incoming,
         outgoingRequests: outgoing,
         suggestions: suggestions,
+        onlineSectionsOffline: false,
       );
     } catch (error) {
       state = state.copyWith(
         isOnlineSectionsLoading: false,
+        incomingRequests: const [],
+        outgoingRequests: const [],
+        suggestions: const [],
+        onlineSectionsOffline: false,
         errorMessage: _mapError(error),
       );
     }
@@ -117,12 +133,12 @@ class FriendshipsNotifier extends Notifier<FriendshipsState> {
     state = state.copyWith(addFriendInput: value);
   }
 
-  Future<void> sendFriendRequest([String? rawUsername]) async {
+  Future<bool> sendFriendRequest([String? rawUsername]) async {
     final username = (rawUsername ?? state.addFriendInput).trim().toLowerCase();
 
     if (username.isEmpty) {
       state = state.copyWith(errorMessage: 'Type a username first.');
-      return;
+      return false;
     }
 
     final hasInternet = await ref
@@ -131,9 +147,10 @@ class FriendshipsNotifier extends Notifier<FriendshipsState> {
 
     if (!hasInternet) {
       state = state.copyWith(
-        errorMessage: 'No internet connection. Friend requests cannot be sent offline.',
+        errorMessage:
+            'No internet connection. Friend requests cannot be sent offline.',
       );
-      return;
+      return false;
     }
 
     state = state.copyWith(
@@ -143,13 +160,23 @@ class FriendshipsNotifier extends Notifier<FriendshipsState> {
 
     try {
       await _repository.sendFriendRequest(username);
-      state = state.copyWith(addFriendInput: '');
+
+      state = state.copyWith(
+        addFriendInput: '',
+        suggestions: state.suggestions
+            .where((suggestion) => suggestion.toLowerCase() != username)
+            .toList(),
+      );
+
       await loadOnlineSections();
+      return true;
     } catch (error) {
       state = state.copyWith(errorMessage: _mapError(error));
+      return false;
     } finally {
       state = state.copyWith(
-        pendingFriendUsernames: {...state.pendingFriendUsernames}..remove(username),
+        pendingFriendUsernames: {...state.pendingFriendUsernames}
+          ..remove(username),
       );
     }
   }
@@ -161,7 +188,8 @@ class FriendshipsNotifier extends Notifier<FriendshipsState> {
 
     if (!hasInternet) {
       state = state.copyWith(
-        errorMessage: 'No internet connection. Requests cannot be accepted offline.',
+        errorMessage:
+            'No internet connection. Requests cannot be accepted offline.',
       );
       return;
     }
@@ -181,7 +209,8 @@ class FriendshipsNotifier extends Notifier<FriendshipsState> {
 
     if (!hasInternet) {
       state = state.copyWith(
-        errorMessage: 'No internet connection. Requests cannot be changed offline.',
+        errorMessage:
+            'No internet connection. Requests cannot be changed offline.',
       );
       return;
     }
@@ -206,10 +235,12 @@ class FriendshipsNotifier extends Notifier<FriendshipsState> {
 
     try {
       await _repository.removeFriend(friend);
+
       final cached = await _repository.getCachedFriends();
       state = state.copyWith(friends: cached);
     } catch (error) {
       final cached = await _repository.getCachedFriends();
+
       state = state.copyWith(
         friends: cached,
         errorMessage: _mapError(error),
@@ -243,6 +274,22 @@ class FriendshipsNotifier extends Notifier<FriendshipsState> {
     }
   }
 
+  Future<void> clearLocalData() async {
+    await _repository.clearLocalData();
+
+    state = state.copyWith(
+      friends: const [],
+      incomingRequests: const [],
+      outgoingRequests: const [],
+      suggestions: const [],
+      myStatus: UserStatus.incognito,
+      pendingFriendUsernames: const {},
+      addFriendInput: '',
+      onlineSectionsOffline: false,
+      clearErrorMessage: true,
+    );
+  }
+
   String _mapError(Object error) {
     final mapped = DioErrorMapper.map(
       error,
@@ -253,7 +300,9 @@ class FriendshipsNotifier extends Notifier<FriendshipsState> {
         }
 
         if (statusCode == 404) return 'User was not found.';
-        if (statusCode == 409) return 'This friendship already exists or is pending.';
+        if (statusCode == 409) {
+          return 'This friendship already exists or is pending.';
+        }
         if (statusCode == 401) return 'Please log in again.';
 
         return 'Something went wrong. Please try again.';

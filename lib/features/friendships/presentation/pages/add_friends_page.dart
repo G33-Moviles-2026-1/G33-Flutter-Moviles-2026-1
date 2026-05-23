@@ -22,8 +22,14 @@ class _AddFriendsPageState extends ConsumerState<AddFriendsPage> {
   @override
   void initState() {
     super.initState();
+
     final cachedInput = ref.read(friendshipsControllerProvider).addFriendInput;
     _controller = TextEditingController(text: cachedInput);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(friendshipsControllerProvider.notifier).loadOnlineSections();
+    });
   }
 
   @override
@@ -122,7 +128,13 @@ class _AddFriendsPageState extends ConsumerState<AddFriendsPage> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                onPressed: () => notifier.sendFriendRequest(_controller.text),
+                onPressed: () async {
+                  final sent = await notifier.sendFriendRequest(_controller.text);
+
+                  if (sent && mounted) {
+                    _controller.clear();
+                  }
+                },
                 child: const Text(
                   'Send friend request',
                   style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18),

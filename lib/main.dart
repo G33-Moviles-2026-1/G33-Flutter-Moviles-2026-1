@@ -66,6 +66,7 @@ Future<void> main() async {
       bookingsLocalDataSourceProvider.overrideWithValue(bookingsLocalDs),
       favoritesLocalDataSourceProvider.overrideWithValue(favoritesLocalDs),
       friendshipsLocalDataSourceProvider.overrideWithValue(friendshipsLocalDs),
+      appDatabaseProvider.overrideWithValue(appDatabase),
       pathLocalDataSourceProvider.overrideWithValue(pathLocalDs),
     ],
   );

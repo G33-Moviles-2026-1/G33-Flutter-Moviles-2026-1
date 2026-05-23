@@ -117,7 +117,7 @@ class FriendsPage extends ConsumerWidget {
                   return _FriendCard(
                     friend: friend,
                     isPending: isPending,
-                    onDelete: () => notifier.removeFriend(friend),
+                    onDelete: () => _confirmRemoveFriend(context, notifier, friend),
                   );
                 },
               ),
@@ -140,7 +140,48 @@ class FriendsPage extends ConsumerWidget {
       ),
     );
   }
+
+  Future<void> _confirmRemoveFriend(
+    BuildContext context,
+    FriendshipsNotifier notifier,
+    Friend friend,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        final theme = Theme.of(dialogContext);
+        final colorScheme = theme.colorScheme;
+
+        return AlertDialog(
+          title: const Text('Remove friend?'),
+          content: Text(
+            'Are you sure you want to remove ${friend.username} from your friends?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: colorScheme.error,
+                foregroundColor: colorScheme.onError,
+              ),
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('Remove'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true) {
+      await notifier.removeFriend(friend);
+    }
+  }
 }
+
+
 
 class _TopActionButton extends StatelessWidget {
   const _TopActionButton({

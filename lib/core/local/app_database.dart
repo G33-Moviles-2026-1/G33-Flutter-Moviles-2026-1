@@ -381,6 +381,22 @@ class AppDatabase extends _$AppDatabase {
     return (delete(friendsTable)..where((t) => t.email.equals(email))).go();
   }
 
+  Future<void> deleteFriendByIdentifier(String identifier) {
+    return (delete(friendsTable)
+          ..where(
+            (t) =>
+                t.email.equals(identifier) |
+                t.username.equals(identifier),
+          ))
+        .go();
+  }
+
+  Future<void> clearFriendshipsLocalData() => transaction(() async {
+    await delete(friendsTable).go();
+    await delete(friendMutationsTable).go();
+    await delete(myStatusTable).go();
+  });
+
   Future<List<FriendMutationsTableData>> getPendingFriendMutations() {
     return (select(friendMutationsTable)
           ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]))
