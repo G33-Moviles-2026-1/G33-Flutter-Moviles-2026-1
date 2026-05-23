@@ -199,6 +199,11 @@ class AuthNotifier extends Notifier<AuthState> {
     }
   }
 
+  void applyLocalStatus(UserStatus status) {
+    final updated = state.user?.copyWith(status: status);
+    state = state.copyWith(user: updated);
+  }
+
   Future<void> _refreshScheduleCacheAfterLogin() async {
     try {
       await ref

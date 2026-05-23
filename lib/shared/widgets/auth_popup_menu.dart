@@ -49,6 +49,10 @@ class AuthPopupMenu extends ConsumerWidget {
                   Navigator.of(dialogContext).pop();
                   Navigator.of(context).pushNamed(AppRoutes.profile);
                 },
+                onFriends: () {
+                  Navigator.of(dialogContext).pop();
+                  Navigator.of(context).pushNamed(AppRoutes.friends);
+                },
                 onTheme: () {
                   Navigator.of(dialogContext).pop();
                   _showTheme(context, ref);
@@ -156,12 +160,14 @@ class _LoggedInContent extends StatelessWidget {
   const _LoggedInContent({
     required this.username,
     required this.onProfile,
+    required this.onFriends,
     required this.onTheme,
     required this.onLogout,
   });
 
   final String? username;
   final VoidCallback onProfile;
+  final VoidCallback onFriends;
   final VoidCallback onTheme;
   final VoidCallback onLogout;
 
@@ -183,6 +189,14 @@ class _LoggedInContent extends StatelessWidget {
           icon: Icons.account_circle_outlined,
           title: 'Profile',
           onTap: onProfile,
+        ),
+        const SizedBox(height: 16),
+        _AuthButton(
+          text: 'Friends',
+          backgroundColor: colorScheme.surface,
+          foregroundColor: colorScheme.onSurface,
+          borderColor: borderColor,
+          onTap: onFriends,
         ),
         const SizedBox(height: 8),
         _MenuActionTile(
