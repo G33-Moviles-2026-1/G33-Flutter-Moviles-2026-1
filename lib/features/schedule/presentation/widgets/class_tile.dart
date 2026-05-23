@@ -5,11 +5,12 @@ class ClassTile extends StatelessWidget {
   final ScheduleOccurrence occurrence;
   final VoidCallback? onDelete;
 
-  const ClassTile({
-    super.key,
-    required this.occurrence,
-    this.onDelete,
-  });
+  static const _cardMargin = EdgeInsets.symmetric(vertical: 6);
+  static const _contentPadding = EdgeInsets.all(14);
+  static const _stripeBorderRadius = BorderRadius.all(Radius.circular(999));
+  static const _cardBorderRadius = BorderRadius.all(Radius.circular(16));
+
+  const ClassTile({super.key, required this.occurrence, this.onDelete});
 
   String _formatDisplayTime(String raw) {
     final value = raw.trim();
@@ -33,16 +34,14 @@ class ClassTile extends StatelessWidget {
     final room = (occurrence.roomId ?? '').trim();
 
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 6),
+      margin: _cardMargin,
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(
-          color: theme.dividerColor.withValues(alpha: 0.18),
-        ),
+        borderRadius: _cardBorderRadius,
+        side: BorderSide(color: theme.dividerColor.withValues(alpha: 0.18)),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(14),
+        padding: _contentPadding,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -51,7 +50,7 @@ class ClassTile extends StatelessWidget {
               height: 56,
               decoration: BoxDecoration(
                 color: theme.colorScheme.secondary,
-                borderRadius: BorderRadius.circular(999),
+                borderRadius: _stripeBorderRadius,
               ),
             ),
             const SizedBox(width: 12),
@@ -72,10 +71,7 @@ class ClassTile extends StatelessWidget {
                   ),
                   if (room.isNotEmpty) ...[
                     const SizedBox(height: 4),
-                    Text(
-                      'Room: $room',
-                      style: theme.textTheme.bodySmall,
-                    ),
+                    Text('Room: $room', style: theme.textTheme.bodySmall),
                   ],
                 ],
               ),

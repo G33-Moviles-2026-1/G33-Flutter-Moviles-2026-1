@@ -4,6 +4,8 @@ import 'package:andespace/features/rooms/domain/entities/room_search.dart';
 import 'package:andespace/features/schedule/domain/entities/google_calendar_auth_session.dart';
 import 'package:andespace/features/schedule/domain/entities/google_calendar_source.dart';
 import 'package:andespace/features/schedule/domain/entities/schedule_class.dart';
+import 'package:andespace/features/schedule/domain/entities/schedule_occurrence.dart';
+import 'package:andespace/features/schedule/domain/entities/weekly_schedule.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/manual_class.dart';
@@ -20,6 +22,76 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
 
   void resetState() {
     state = ScheduleState.initial();
+  }
+
+  List<ScheduleDayOccurrences> _buildWeekDays(
+    WeeklySchedule schedule, {
+    List<ScheduleDayOccurrences> previous = const [],
+  }) {
+    final grouped = <DateTime, List<ScheduleOccurrence>>{};
+    final previousByDay = <String, ScheduleDayOccurrences>{
+      for (final dayData in previous) _dateKey(dayData.day): dayData,
+    };
+
+    for (final occurrence in schedule.occurrences) {
+      if (occurrence.date.weekday == DateTime.sunday) continue;
+
+      final key = DateTime(
+        occurrence.date.year,
+        occurrence.date.month,
+        occurrence.date.day,
+      );
+
+      grouped.putIfAbsent(key, () => <ScheduleOccurrence>[]).add(occurrence);
+    }
+
+    return List<ScheduleDayOccurrences>.unmodifiable(
+      List.generate(6, (index) {
+        final day = schedule.weekStart.add(Duration(days: index));
+        final key = DateTime(day.year, day.month, day.day);
+        final occurrences = grouped[key] ?? const <ScheduleOccurrence>[];
+        final previousDay = previousByDay[_dateKey(key)];
+
+        if (previousDay != null &&
+            _sameOccurrences(previousDay.occurrences, occurrences)) {
+          return previousDay;
+        }
+
+        return ScheduleDayOccurrences(
+          day: key,
+          occurrences: List<ScheduleOccurrence>.unmodifiable(occurrences),
+        );
+      }),
+    );
+  }
+
+  String _dateKey(DateTime date) {
+    return '${date.year}-${date.month}-${date.day}';
+  }
+
+  bool _sameOccurrences(
+    List<ScheduleOccurrence> first,
+    List<ScheduleOccurrence> second,
+  ) {
+    if (identical(first, second)) return true;
+    if (first.length != second.length) return false;
+
+    for (var index = 0; index < first.length; index++) {
+      if (!_sameOccurrence(first[index], second[index])) return false;
+    }
+
+    return true;
+  }
+
+  bool _sameOccurrence(ScheduleOccurrence first, ScheduleOccurrence second) {
+    return first.classId == second.classId &&
+        first.title == second.title &&
+        first.locationText == second.locationText &&
+        first.roomId == second.roomId &&
+        first.date == second.date &&
+        first.weekday == second.weekday &&
+        first.startTime == second.startTime &&
+        first.endTime == second.endTime;
   }
 
   Future<void> _trackScheduleImportStep({
@@ -237,12 +309,14 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
         final existingClasses = await ref.read(
           getScheduleClassesForCurrentUserProvider,
         )();
+        final weekDays = _buildWeekDays(schedule, previous: state.weekDays);
 
         state = state.copyWith(
           status: existingClasses.isEmpty
               ? ScheduleStatus.empty
               : ScheduleStatus.loaded,
           weeklySchedule: schedule,
+          weekDays: weekDays,
           clearErrorMessage: true,
           clearInfoMessage: true,
         );
@@ -252,6 +326,7 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
       state = state.copyWith(
         status: ScheduleStatus.loaded,
         weeklySchedule: schedule,
+        weekDays: _buildWeekDays(schedule, previous: state.weekDays),
       );
     } catch (error) {
       state = state.copyWith(

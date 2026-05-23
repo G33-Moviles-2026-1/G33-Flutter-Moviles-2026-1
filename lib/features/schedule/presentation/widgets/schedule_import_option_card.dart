@@ -5,6 +5,13 @@ class ScheduleImportOptionCard extends StatelessWidget {
   final VoidCallback onTap;
   final IconData icon;
 
+  static const _cardBorderRadius = BorderRadius.all(Radius.circular(18));
+  static const _iconBorderRadius = BorderRadius.all(Radius.circular(14));
+  static const _contentPadding = EdgeInsets.symmetric(
+    horizontal: 20,
+    vertical: 18,
+  );
+
   const ScheduleImportOptionCard({
     super.key,
     required this.title,
@@ -21,23 +28,21 @@ class ScheduleImportOptionCard extends StatelessWidget {
       child: Card(
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18),
-          side: BorderSide(
-            color: theme.dividerColor.withValues(alpha: 0.16),
-          ),
+          borderRadius: _cardBorderRadius,
+          side: BorderSide(color: theme.dividerColor.withValues(alpha: 0.16)),
         ),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: _cardBorderRadius,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+            padding: _contentPadding,
             child: Row(
               children: [
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     color: theme.colorScheme.secondary.withValues(alpha: 0.16),
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: _iconBorderRadius,
                   ),
                   child: Icon(icon, size: 22),
                 ),

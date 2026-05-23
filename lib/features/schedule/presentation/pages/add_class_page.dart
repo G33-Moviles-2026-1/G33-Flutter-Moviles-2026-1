@@ -21,25 +21,36 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
 
   final _titleController = TextEditingController();
   final _roomIdController = TextEditingController();
+  late final ValueNotifier<Map<String, bool>> _weekdaysNotifier;
 
   TimeOfDay? _startTime;
   TimeOfDay? _endTime;
   DateTime? _startDate;
   DateTime? _endDate;
 
-  final Map<String, bool> _weekdays = {
-    ScheduleWeekday.monday: false,
-    ScheduleWeekday.tuesday: false,
-    ScheduleWeekday.wednesday: false,
-    ScheduleWeekday.thursday: false,
-    ScheduleWeekday.friday: false,
-    ScheduleWeekday.saturday: false,
-  };
+  static const _weekdayKeys = [
+    ScheduleWeekday.monday,
+    ScheduleWeekday.tuesday,
+    ScheduleWeekday.wednesday,
+    ScheduleWeekday.thursday,
+    ScheduleWeekday.friday,
+    ScheduleWeekday.saturday,
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+
+    _weekdaysNotifier = ValueNotifier<Map<String, bool>>({
+      for (final day in _weekdayKeys) day: false,
+    });
+  }
 
   @override
   void dispose() {
     _titleController.dispose();
     _roomIdController.dispose();
+    _weekdaysNotifier.dispose();
     super.dispose();
   }
 
@@ -109,7 +120,7 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
   }
 
   List<String> _selectedWeekdays() {
-    return _weekdays.entries
+    return _weekdaysNotifier.value.entries
         .where((entry) => entry.value)
         .map((entry) => entry.key)
         .toList();
@@ -119,10 +130,7 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          behavior: SnackBarBehavior.floating,
-        ),
+        SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
       );
   }
 
@@ -168,18 +176,26 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
 
   @override
   Widget build(BuildContext context) {
-    ref.listen<ScheduleState>(scheduleControllerProvider, (_, next) {
-      final message = next.errorMessage;
+    ref.listen<(ScheduleStatus, String?)>(
+      scheduleControllerProvider.select(
+        (state) => (state.status, state.errorMessage),
+      ),
+      (_, next) {
+        final message = next.$2;
 
-      if (next.status == ScheduleStatus.error &&
-          message != null &&
-          message.trim().isNotEmpty) {
-        _showSnackBar(message);
-      }
-    });
+        if (next.$1 == ScheduleStatus.error &&
+            message != null &&
+            message.trim().isNotEmpty) {
+          _showSnackBar(message);
+        }
+      },
+    );
 
-    final state = ref.watch(scheduleControllerProvider);
-    final isSaving = state.status == ScheduleStatus.savingManualClass;
+    final isSaving = ref.watch(
+      scheduleControllerProvider.select(
+        (state) => state.status == ScheduleStatus.savingManualClass,
+      ),
+    );
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
 
@@ -227,14 +243,7 @@ class _AddClassPageState extends ConsumerState<AddClassPage> {
                   formatDate: _formatDate,
                 ),
                 const SizedBox(height: 16),
-                _WeekdaysCard(
-                  weekdays: _weekdays,
-                  onChanged: (day, value) {
-                    setState(() {
-                      _weekdays[day] = value;
-                    });
-                  },
-                ),
+                _WeekdaysCard(weekdays: _weekdaysNotifier),
                 const SizedBox(height: 24),
                 SizedBox(
                   width: double.infinity,
@@ -398,7 +407,9 @@ class _DateTimeCard extends StatelessWidget {
                     onPressed: onPickStartTime,
                     icon: const Icon(Icons.schedule_outlined),
                     label: Text(
-                      startTime == null ? 'Start Time' : startTime!.format(context),
+                      startTime == null
+                          ? 'Start Time'
+                          : startTime!.format(context),
                     ),
                   ),
                 ),
@@ -425,13 +436,13 @@ class _DateTimeCard extends StatelessWidget {
 }
 
 class _WeekdaysCard extends StatelessWidget {
-  const _WeekdaysCard({
-    required this.weekdays,
-    required this.onChanged,
-  });
+  const _WeekdaysCard({required this.weekdays});
 
-  final Map<String, bool> weekdays;
-  final void Function(String day, bool value) onChanged;
+  final ValueNotifier<Map<String, bool>> weekdays;
+
+  void _setDay(String day, bool value) {
+    weekdays.value = {...weekdays.value, day: value};
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -450,28 +461,39 @@ class _WeekdaysCard extends StatelessWidget {
             style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: weekdays.keys.map((day) {
-              final selected = weekdays[day] ?? false;
+          ValueListenableBuilder<Map<String, bool>>(
+            valueListenable: weekdays,
+            builder: (context, values, _) {
+              return Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: values.keys.map((day) {
+                  final selected = values[day] ?? false;
 
-              return FilterChip(
-                label: Text(
-                  ScheduleWeekday.shortLabel(day),
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                selected: selected,
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                visualDensity: const VisualDensity(horizontal: -2, vertical: -2),
-                labelPadding: const EdgeInsets.symmetric(horizontal: 6),
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                onSelected: (value) => onChanged(day, value),
+                  return FilterChip(
+                    label: Text(
+                      ScheduleWeekday.shortLabel(day),
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    selected: selected,
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    visualDensity: const VisualDensity(
+                      horizontal: -2,
+                      vertical: -2,
+                    ),
+                    labelPadding: const EdgeInsets.symmetric(horizontal: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 4,
+                    ),
+                    onSelected: (value) => _setDay(day, value),
+                  );
+                }).toList(),
               );
-            }).toList(),
+            },
           ),
         ],
       ),
