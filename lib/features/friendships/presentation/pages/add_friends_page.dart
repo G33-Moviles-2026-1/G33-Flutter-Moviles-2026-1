@@ -172,7 +172,10 @@ class _SectionTitle extends StatelessWidget {
 }
 
 class _PendingRequestsBox extends StatelessWidget {
-  const _PendingRequestsBox({required this.state, required this.notifier});
+  const _PendingRequestsBox({
+    required this.state,
+    required this.notifier,
+  });
 
   final FriendshipsState state;
   final dynamic notifier;
@@ -187,6 +190,11 @@ class _PendingRequestsBox extends StatelessWidget {
 
     if (state.isOnlineSectionsLoading && state.pendingRequests.isEmpty) {
       return const _LoadingBox();
+    }
+
+    if (state.requestsErrorMessage != null &&
+        state.requestsErrorMessage!.trim().isNotEmpty) {
+      return _InfoBox(message: state.requestsErrorMessage!);
     }
 
     if (state.pendingRequests.isEmpty) {
@@ -210,7 +218,10 @@ class _PendingRequestsBox extends StatelessWidget {
 }
 
 class _SuggestionsBox extends StatelessWidget {
-  const _SuggestionsBox({required this.state, required this.notifier});
+  const _SuggestionsBox({
+    required this.state,
+    required this.notifier,
+  });
 
   final FriendshipsState state;
   final dynamic notifier;
@@ -227,7 +238,11 @@ class _SuggestionsBox extends StatelessWidget {
       return const _LoadingBox();
     }
 
-    if (state.suggestions.isEmpty) {
+    if (state.suggestionsErrorMessage != null) {
+      return _InfoBox(message: state.suggestionsErrorMessage!);
+    }
+
+    if (state.hasLoadedOnlineSections && state.suggestions.isEmpty) {
       return const _InfoBox(message: 'No suggestions available right now.');
     }
 

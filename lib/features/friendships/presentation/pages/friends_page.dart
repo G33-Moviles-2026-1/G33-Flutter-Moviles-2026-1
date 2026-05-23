@@ -6,6 +6,7 @@ import 'package:andespace/features/friendships/domain/entities/friend.dart';
 import 'package:andespace/features/friendships/presentation/controllers/friendships_state.dart';
 import 'package:andespace/features/friendships/presentation/providers/friendships_providers.dart';
 import 'package:andespace/features/friendships/presentation/controllers/friendships_notifier.dart';
+import 'package:andespace/features/friendships/domain/entities/friendship_request.dart';
 import 'package:andespace/shared/widgets/app_scaffold.dart';
 import 'package:andespace/shared/widgets/auth_required_scaffold.dart';
 import 'package:flutter/material.dart';
@@ -83,6 +84,9 @@ class FriendsPage extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 18),
+            _SectionTitle('Pending requests:'),
+            _PendingRequestsBox(state: state, notifier: notifier),
+            const SizedBox(height: 22),
             if (state.isFriendsLoading && state.friends.isEmpty)
               const Padding(
                 padding: EdgeInsets.only(top: 80),
@@ -181,7 +185,200 @@ class FriendsPage extends ConsumerWidget {
   }
 }
 
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle(this.text);
 
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w800,
+            fontSize: 20,
+          ),
+    );
+  }
+}
+
+class _PendingRequestsBox extends StatelessWidget {
+  const _PendingRequestsBox({
+    required this.state,
+    required this.notifier,
+  });
+
+  final FriendshipsState state;
+  final FriendshipsNotifier notifier;
+
+  @override
+  Widget build(BuildContext context) {
+    if (state.onlineSectionsOffline) {
+      return const _InfoBox(
+        message: 'No internet connection. Pending requests cannot be loaded.',
+      );
+    }
+
+    if (state.isOnlineSectionsLoading && state.pendingRequests.isEmpty) {
+      return const _LoadingBox();
+    }
+
+    if (state.requestsErrorMessage != null &&
+        state.requestsErrorMessage!.trim().isNotEmpty) {
+      return _InfoBox(message: state.requestsErrorMessage!);
+    }
+
+    if (state.pendingRequests.isEmpty) {
+      return const _InfoBox(message: 'No pending requests.');
+    }
+
+    return _BoxContainer(
+      child: Column(
+        children: [
+          for (final request in state.pendingRequests)
+            _RequestRow(
+              request: request,
+              onAccept: () => notifier.acceptRequest(request.username),
+              onDeclineOrCancel: () =>
+                  notifier.declineOrCancelRequest(request.username),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RequestRow extends StatelessWidget {
+  const _RequestRow({
+    required this.request,
+    required this.onAccept,
+    required this.onDeclineOrCancel,
+  });
+
+  final FriendshipRequest request;
+  final VoidCallback onAccept;
+  final VoidCallback onDeclineOrCancel;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return _RowCard(
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              request.username,
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+          ),
+          if (request.isIncoming) ...[
+            OutlinedButton(
+              onPressed: onDeclineOrCancel,
+              child: const Text('Decline'),
+            ),
+            const SizedBox(width: 8),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: colorScheme.secondary,
+                foregroundColor: colorScheme.onSecondary,
+              ),
+              onPressed: onAccept,
+              child: const Text('Accept'),
+            ),
+          ] else ...[
+            OutlinedButton(onPressed: null, child: const Text('Pending')),
+            const SizedBox(width: 8),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: colorScheme.error,
+                foregroundColor: colorScheme.onError,
+              ),
+              onPressed: onDeclineOrCancel,
+              child: const Text('Cancel'),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _BoxContainer extends StatelessWidget {
+  const _BoxContainer({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      margin: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.18)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: child,
+    );
+  }
+}
+
+class _RowCard extends StatelessWidget {
+  const _RowCard({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: theme.scaffoldBackgroundColor.withValues(alpha: 0.55),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.14)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        child: child,
+      ),
+    );
+  }
+}
+
+class _InfoBox extends StatelessWidget {
+  const _InfoBox({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return _BoxContainer(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Text(message, textAlign: TextAlign.center),
+      ),
+    );
+  }
+}
+
+class _LoadingBox extends StatelessWidget {
+  const _LoadingBox();
+
+  @override
+  Widget build(BuildContext context) {
+    return const _BoxContainer(
+      child: Padding(
+        padding: EdgeInsets.all(18),
+        child: Center(child: CircularProgressIndicator()),
+      ),
+    );
+  }
+}
 
 class _TopActionButton extends StatelessWidget {
   const _TopActionButton({
