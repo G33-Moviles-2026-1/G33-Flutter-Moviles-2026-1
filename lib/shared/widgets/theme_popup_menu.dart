@@ -4,96 +4,98 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/di/theme_mode_provider.dart';
 import 'anchored_popup_dialog.dart';
 
+Future<void> showThemePopupDialog(
+  BuildContext context,
+  WidgetRef ref, {
+  double? left = 12,
+  double? right,
+}) {
+  final theme = Theme.of(context);
+  final currentPreference = ref.read(themeModeProvider).preference;
+
+  return showAnchoredPopupDialog<void>(
+    context: context,
+    barrierLabel: 'Theme menu',
+    left: left,
+    right: right,
+    width: 280,
+    padding: const EdgeInsets.all(18),
+    builder: (dialogContext) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Theme',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 14),
+          _ThemeOptionTile(
+            label: 'Automatic',
+            subtitle: 'Uses ambient light sensor',
+            selected: currentPreference == AppThemePreference.automatic,
+            onTap: () async {
+              await ref
+                  .read(themeModeProvider.notifier)
+                  .setPreference(AppThemePreference.automatic);
+              if (dialogContext.mounted) {
+                Navigator.of(dialogContext).pop();
+              }
+            },
+          ),
+          const SizedBox(height: 10),
+          _ThemeOptionTile(
+            label: 'System',
+            subtitle: 'Follows device theme',
+            selected: currentPreference == AppThemePreference.system,
+            onTap: () async {
+              await ref
+                  .read(themeModeProvider.notifier)
+                  .setPreference(AppThemePreference.system);
+              if (dialogContext.mounted) {
+                Navigator.of(dialogContext).pop();
+              }
+            },
+          ),
+          const SizedBox(height: 10),
+          _ThemeOptionTile(
+            label: 'Light',
+            selected: currentPreference == AppThemePreference.light,
+            onTap: () async {
+              await ref
+                  .read(themeModeProvider.notifier)
+                  .setPreference(AppThemePreference.light);
+              if (dialogContext.mounted) {
+                Navigator.of(dialogContext).pop();
+              }
+            },
+          ),
+          const SizedBox(height: 10),
+          _ThemeOptionTile(
+            label: 'Dark',
+            selected: currentPreference == AppThemePreference.dark,
+            onTap: () async {
+              await ref
+                  .read(themeModeProvider.notifier)
+                  .setPreference(AppThemePreference.dark);
+              if (dialogContext.mounted) {
+                Navigator.of(dialogContext).pop();
+              }
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
+
 class ThemePopupMenu extends ConsumerWidget {
-  const ThemePopupMenu({
-    super.key,
-    this.icon = Icons.settings,
-    this.iconColor,
-  });
+  const ThemePopupMenu({super.key, this.icon = Icons.settings, this.iconColor});
 
   final IconData icon;
   final Color? iconColor;
-
-  void _showThemeDialog(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final currentPreference = ref.read(themeModeProvider).preference;
-
-    showAnchoredPopupDialog(
-      context: context,
-      barrierLabel: 'Theme menu',
-      left: 12,
-      width: 280,
-      padding: const EdgeInsets.all(18),
-      builder: (dialogContext) {
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Theme',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 14),
-            _ThemeOptionTile(
-              label: 'Automatic',
-              subtitle: 'Uses ambient light sensor',
-              selected: currentPreference == AppThemePreference.automatic,
-              onTap: () async {
-                await ref
-                    .read(themeModeProvider.notifier)
-                    .setPreference(AppThemePreference.automatic);
-                if (dialogContext.mounted) {
-                  Navigator.of(dialogContext).pop();
-                }
-              },
-            ),
-            const SizedBox(height: 10),
-            _ThemeOptionTile(
-              label: 'System',
-              subtitle: 'Follows device theme',
-              selected: currentPreference == AppThemePreference.system,
-              onTap: () async {
-                await ref
-                    .read(themeModeProvider.notifier)
-                    .setPreference(AppThemePreference.system);
-                if (dialogContext.mounted) {
-                  Navigator.of(dialogContext).pop();
-                }
-              },
-            ),
-            const SizedBox(height: 10),
-            _ThemeOptionTile(
-              label: 'Light',
-              selected: currentPreference == AppThemePreference.light,
-              onTap: () async {
-                await ref
-                    .read(themeModeProvider.notifier)
-                    .setPreference(AppThemePreference.light);
-                if (dialogContext.mounted) {
-                  Navigator.of(dialogContext).pop();
-                }
-              },
-            ),
-            const SizedBox(height: 10),
-            _ThemeOptionTile(
-              label: 'Dark',
-              selected: currentPreference == AppThemePreference.dark,
-              onTap: () async {
-                await ref
-                    .read(themeModeProvider.notifier)
-                    .setPreference(AppThemePreference.dark);
-                if (dialogContext.mounted) {
-                  Navigator.of(dialogContext).pop();
-                }
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -104,11 +106,8 @@ class ThemePopupMenu extends ConsumerWidget {
         theme.colorScheme.onSurface;
 
     return IconButton(
-      onPressed: () => _showThemeDialog(context, ref),
-      icon: Icon(
-        icon,
-        color: resolvedIconColor,
-      ),
+      onPressed: () => showThemePopupDialog(context, ref),
+      icon: Icon(icon, color: resolvedIconColor),
     );
   }
 }
@@ -163,10 +162,7 @@ class _ThemeOptionTile extends StatelessWidget {
                     ),
                     if (subtitle != null) ...[
                       const SizedBox(height: 2),
-                      Text(
-                        subtitle!,
-                        style: theme.textTheme.bodySmall,
-                      ),
+                      Text(subtitle!, style: theme.textTheme.bodySmall),
                     ],
                   ],
                 ),

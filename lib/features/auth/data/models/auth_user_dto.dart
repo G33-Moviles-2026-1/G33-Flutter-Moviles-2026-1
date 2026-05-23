@@ -15,13 +15,13 @@ class AuthUserModel {
   });
 
   factory AuthUserModel.fromMeResponse(Map<String, dynamic> json) {
-    final activeUser = json['active_user'] as String?;
-    if (activeUser == null) {
-      throw const FormatException('active_user is missing');
+    final email = json['active_user'] as String? ?? json['email'] as String?;
+    if (email == null) {
+      throw const FormatException('user email is missing');
     }
 
     return AuthUserModel(
-      email: activeUser,
+      email: email,
       firstSemester: json['first_semester'] as String?,
       username: json['username'] as String?,
       status: json['status'] as String?,

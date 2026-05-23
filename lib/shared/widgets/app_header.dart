@@ -15,6 +15,7 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
     this.onLogout,
     this.userIconPath = 'assets/icons/user.svg',
     this.isLoggedIn = false,
+    this.username,
   });
 
   final String title;
@@ -24,6 +25,7 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
   final VoidCallback? onLogout;
   final String userIconPath;
   final bool isLoggedIn;
+  final String? username;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -42,17 +44,26 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
       scrolledUnderElevation: 0,
       centerTitle: true,
       leadingWidth: 56,
-      leading: Badge(
-        isLabelVisible: unread > 0,
-        label: Text(unread > 99 ? '99+' : '$unread'),
-        child: IconButton(
-          icon: Icon(Icons.notifications_none, color: brand.headerForeground),
-          onPressed: () =>
-              Navigator.pushNamed(context, AppRoutes.notifications),
+      leading: Center(
+        child: Badge(
+          isLabelVisible: unread > 0,
+          label: Text(unread > 99 ? '99+' : '$unread'),
+          child: IconButton(
+            tooltip: 'Notifications',
+            constraints: const BoxConstraints.tightFor(width: 48, height: 48),
+            icon: Icon(
+              Icons.notifications_none,
+              color: brand.headerForeground,
+              size: 27,
+            ),
+            onPressed: () =>
+                Navigator.pushNamed(context, AppRoutes.notifications),
+          ),
         ),
       ),
       title: GestureDetector(
-        onTap: onTapLogo ??
+        onTap:
+            onTapLogo ??
             () => Navigator.pushReplacementNamed(context, AppRoutes.home),
         behavior: HitTestBehavior.opaque,
         child: Padding(
@@ -71,6 +82,7 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
           padding: const EdgeInsets.only(right: 8),
           child: AuthPopupMenu(
             isLoggedIn: isLoggedIn,
+            username: username,
             onLogin: onLogin,
             onSignUp: onSignUp,
             onLogout: onLogout,

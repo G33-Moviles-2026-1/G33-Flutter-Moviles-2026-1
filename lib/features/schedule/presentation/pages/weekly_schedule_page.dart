@@ -189,89 +189,42 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
       }
     });
 
-    final state = ref.watch(scheduleControllerProvider);
     final controller = ref.read(scheduleControllerProvider.notifier);
-    final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
+    final weekRange = ref.watch(
+      scheduleControllerProvider.select((state) {
+        final schedule = state.weeklySchedule;
+
+        return (start: schedule?.weekStart, end: schedule?.weekEnd);
+      }),
+    );
 
     return SchedulePageScaffold(
       body: Builder(
         builder: (context) {
-          if (state.weeklySchedule == null) {
+          final weekStart = weekRange.start;
+          final weekEnd = weekRange.end;
+
+          if (weekStart == null || weekEnd == null) {
             return const SizedBox.shrink();
           }
-
-          final schedule = state.weeklySchedule!;
-          final isFilteringFromSchedule = state.isLoadingRecommendations;
 
           return Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
             child: Column(
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: theme.cardColor,
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(
-                      color: theme.dividerColor.withValues(alpha: 0.2),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        onPressed: controller.goToPreviousWeek,
-                        icon: const Icon(Icons.chevron_left),
-                      ),
-                      Expanded(
-                        child: Column(
-                          children: [
-                            Text('Week', style: textTheme.bodySmall),
-                            const SizedBox(height: 2),
-                            Text(
-                              _formatWeekRange(
-                                schedule.weekStart,
-                                schedule.weekEnd,
-                              ),
-                              textAlign: TextAlign.center,
-                              style: textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      IconButton(
-                        onPressed: controller.goToNextWeek,
-                        icon: const Icon(Icons.chevron_right),
-                      ),
-                    ],
-                  ),
+                _WeekHeader(
+                  label: _formatWeekRange(weekStart, weekEnd),
+                  onPreviousWeek: controller.goToPreviousWeek,
+                  onNextWeek: controller.goToNextWeek,
                 ),
                 const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    IconButton(
-                      tooltip: 'Reload',
-                      onPressed: controller.refresh,
-                      icon: const Icon(Icons.refresh),
-                    ),
-                    IconButton(
-                      tooltip: 'Delete schedule',
-                      onPressed: _confirmDeleteFullSchedule,
-                      icon: const Icon(Icons.delete_outline),
-                    ),
-                  ],
+                _ScheduleToolbar(
+                  onRefresh: controller.refresh,
+                  onDeleteSchedule: _confirmDeleteFullSchedule,
                 ),
                 const SizedBox(height: 8),
                 Expanded(
                   child: WeeklyCalendarView(
-                    schedule: schedule,
-                    selectedDate: state.selectedDate,
                     onDaySelected: (day) {
                       controller.selectDay(day);
                     },
@@ -281,81 +234,199 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: SizedBox(
-                        height: 56,
-                        child: ElevatedButton.icon(
-                          onPressed: isFilteringFromSchedule
-                              ? null
-                              : _filterFromSchedule,
-                          icon: isFilteringFromSchedule
-                              ? const Padding(
-                                  padding: EdgeInsets.only(right: 16),
-                                  child: SizedBox(
-                                    width: 18,
-                                    height: 18,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
-                                  ),
-                                )
-                              : const Icon(Icons.filter_alt_outlined),
-                          label: Text(
-                            isFilteringFromSchedule
-                                ? 'Filtering...'
-                                : 'Filter from Schedule',
-                            textAlign: TextAlign.center,
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                            textStyle: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: SizedBox(
-                        height: 56,
-                        child: OutlinedButton.icon(
-                          onPressed: _openManualClassPage,
-                          icon: const Icon(Icons.add_circle_outline),
-                          label: const Text(
-                            'Add Class Manually',
-                            textAlign: TextAlign.center,
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                            textStyle: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                _ScheduleActions(
+                  onFilterFromSchedule: _filterFromSchedule,
+                  onAddManualClass: _openManualClassPage,
                 ),
-                if (state.status == ScheduleStatus.deleting ||
-                    state.status == ScheduleStatus.loading)
-                  const Padding(
-                    padding: EdgeInsets.only(top: 16),
-                    child: LinearProgressIndicator(),
-                  ),
+                const _ScheduleProgressIndicator(),
               ],
             ),
           );
         },
       ),
+    );
+  }
+}
+
+class _WeekHeader extends StatelessWidget {
+  final String label;
+  final VoidCallback onPreviousWeek;
+  final VoidCallback onNextWeek;
+
+  const _WeekHeader({
+    required this.label,
+    required this.onPreviousWeek,
+    required this.onNextWeek,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: const BorderRadius.all(Radius.circular(18)),
+        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        children: [
+          IconButton(
+            onPressed: onPreviousWeek,
+            icon: const Icon(Icons.chevron_left),
+          ),
+          Expanded(
+            child: Column(
+              children: [
+                Text('Week', style: textTheme.bodySmall),
+                const SizedBox(height: 2),
+                Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  style: textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: onNextWeek,
+            icon: const Icon(Icons.chevron_right),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ScheduleToolbar extends StatelessWidget {
+  final VoidCallback onRefresh;
+  final VoidCallback onDeleteSchedule;
+
+  const _ScheduleToolbar({
+    required this.onRefresh,
+    required this.onDeleteSchedule,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        IconButton(
+          tooltip: 'Reload',
+          onPressed: onRefresh,
+          icon: const Icon(Icons.refresh),
+        ),
+        IconButton(
+          tooltip: 'Delete schedule',
+          onPressed: onDeleteSchedule,
+          icon: const Icon(Icons.delete_outline),
+        ),
+      ],
+    );
+  }
+}
+
+class _ScheduleActions extends ConsumerWidget {
+  final VoidCallback onFilterFromSchedule;
+  final VoidCallback onAddManualClass;
+
+  const _ScheduleActions({
+    required this.onFilterFromSchedule,
+    required this.onAddManualClass,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isFilteringFromSchedule = ref.watch(
+      scheduleControllerProvider.select(
+        (state) => state.isLoadingRecommendations,
+      ),
+    );
+
+    return Row(
+      children: [
+        Expanded(
+          child: SizedBox(
+            height: 56,
+            child: ElevatedButton.icon(
+              onPressed: isFilteringFromSchedule ? null : onFilterFromSchedule,
+              icon: isFilteringFromSchedule
+                  ? const Padding(
+                      padding: EdgeInsets.only(right: 16),
+                      child: SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    )
+                  : const Icon(Icons.filter_alt_outlined),
+              label: Text(
+                isFilteringFromSchedule
+                    ? 'Filtering...'
+                    : 'Filter from Schedule',
+                textAlign: TextAlign.center,
+              ),
+              style: ElevatedButton.styleFrom(
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(999)),
+                ),
+                textStyle: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: SizedBox(
+            height: 56,
+            child: OutlinedButton.icon(
+              onPressed: onAddManualClass,
+              icon: const Icon(Icons.add_circle_outline),
+              label: const Text(
+                'Add Class Manually',
+                textAlign: TextAlign.center,
+              ),
+              style: OutlinedButton.styleFrom(
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(999)),
+                ),
+                textStyle: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ScheduleProgressIndicator extends ConsumerWidget {
+  const _ScheduleProgressIndicator();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final status = ref.watch(
+      scheduleControllerProvider.select((state) => state.status),
+    );
+
+    if (status != ScheduleStatus.deleting && status != ScheduleStatus.loading) {
+      return const SizedBox.shrink();
+    }
+
+    return const Padding(
+      padding: EdgeInsets.only(top: 16),
+      child: LinearProgressIndicator(),
     );
   }
 }

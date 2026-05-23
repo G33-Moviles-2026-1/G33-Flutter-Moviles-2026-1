@@ -13,7 +13,6 @@ import 'package:andespace/features/rooms/presentation/pages/room_detail_page.dar
 import 'package:andespace/features/schedule/presentation/pages/schedule_entry_page.dart';
 import 'package:andespace/features/favorites/presentation/pages/favorites_page.dart';
 import 'package:andespace/features/auth/presentation/pages/profile_page.dart';
-import 'package:andespace/features/auth/presentation/pages/settings_page.dart';
 import 'package:andespace/features/notifications/presentation/notifications_page.dart';
 import 'package:andespace/features/rooms/presentation/pages/no_internet_page.dart';
 import 'package:flutter/material.dart';
@@ -33,7 +32,6 @@ class AppRoutes {
   static const String favorites = '/favorites';
   static const String noInternet = '/no-internet';
   static const String profile = '/profile';
-  static const String settings = '/settings';
   static const String notifications = '/notifications';
 
   static Map<String, WidgetBuilder> routes = {
@@ -61,7 +59,6 @@ class AppRoutes {
     favorites: (context) => const FavoritesPage(),
     noInternet: (context) => const NoInternetPage(),
     profile: (context) => const ProfilePage(),
-    settings: (context) => const SettingsPage(),
     notifications: (context) => const NotificationsPage(),
   };
 
