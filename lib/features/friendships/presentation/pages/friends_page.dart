@@ -6,6 +6,7 @@ import 'package:andespace/features/friendships/domain/entities/friend.dart';
 import 'package:andespace/features/friendships/presentation/controllers/friendships_notifier.dart';
 import 'package:andespace/features/friendships/presentation/controllers/friendships_state.dart';
 import 'package:andespace/features/friendships/presentation/pages/add_friends_page.dart';
+import 'package:andespace/features/friendships/presentation/pages/friend_schedule_page.dart';
 import 'package:andespace/features/friendships/presentation/providers/friendships_providers.dart';
 import 'package:andespace/shared/theme/app_theme_extension.dart';
 import 'package:andespace/shared/widgets/app_scaffold.dart';
@@ -130,6 +131,13 @@ class FriendsPage extends ConsumerWidget {
                     return _FriendCard(
                       friend: friend,
                       isPending: isPending,
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => FriendSchedulePage(friend: friend),
+                          ),
+                        );
+                      },
                       onDelete: () =>
                           _confirmRemoveFriend(context, notifier, friend),
                     );
@@ -263,11 +271,13 @@ class _FriendCard extends StatelessWidget {
   const _FriendCard({
     required this.friend,
     required this.isPending,
+    required this.onTap,
     required this.onDelete,
   });
 
   final Friend friend;
   final bool isPending;
+  final VoidCallback onTap;
   final VoidCallback onDelete;
 
   @override
@@ -279,87 +289,82 @@ class _FriendCard extends StatelessWidget {
       elevation: 4,
       shadowColor: Colors.black.withValues(alpha: 0.22),
       borderRadius: BorderRadius.circular(8),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: _borderColor(context)),
-        ),
-        child: Stack(
-          children: [
-            Positioned(
-              top: 9,
-              left: 9,
-              child: _SvgIcon(
-                assetPath: 'assets/icons/schedule.svg',
-                size: 29,
-                color: _primaryIconColor(context),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: _borderColor(context)),
+          ),
+          child: Stack(
+            children: [
+              Positioned(
+                top: 0,
+                right: 0,
+                child: isPending
+                    ? const Padding(
+                        padding: EdgeInsets.all(12),
+                        child: SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      )
+                    : IconButton(
+                        tooltip: 'Remove friend',
+                        constraints: const BoxConstraints.tightFor(
+                          width: 42,
+                          height: 42,
+                        ),
+                        icon: const Icon(Icons.delete_outline, size: 31),
+                        color: _primaryIconColor(context),
+                        onPressed: onDelete,
+                      ),
               ),
-            ),
-            Positioned(
-              top: 0,
-              right: 0,
-              child: isPending
-                  ? const Padding(
-                      padding: EdgeInsets.all(12),
-                      child: SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(10, 34, 10, 10),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _SvgIcon(
+                        assetPath: _statusAssetPath(friend.status),
+                        size: 74,
+                        color: _primaryIconColor(context),
                       ),
-                    )
-                  : IconButton(
-                      tooltip: 'Remove friend',
-                      constraints: const BoxConstraints.tightFor(
-                        width: 42,
-                        height: 42,
-                      ),
-                      icon: const Icon(Icons.delete_outline, size: 31),
-                      color: _primaryIconColor(context),
-                      onPressed: onDelete,
-                    ),
-            ),
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(10, 34, 10, 10),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _SvgIcon(
-                      assetPath: _statusAssetPath(friend.status),
-                      size: 74,
-                      color: _primaryIconColor(context),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      friend.username,
-                      textAlign: TextAlign.center,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w900,
-                        fontSize: 25,
-                        height: 1,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      friend.status.label,
-                      textAlign: TextAlign.center,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontSize: 16,
-                        height: 1.05,
-                        color: theme.colorScheme.onSurface.withValues(
-                          alpha: 0.78,
+                      const SizedBox(height: 8),
+                      Text(
+                        friend.username,
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 25,
+                          height: 1,
                         ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 2),
+                      Text(
+                        friend.status.label,
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontSize: 16,
+                          height: 1.05,
+                          color: theme.colorScheme.onSurface.withValues(
+                            alpha: 0.78,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

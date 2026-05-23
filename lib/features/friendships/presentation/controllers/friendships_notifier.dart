@@ -7,7 +7,6 @@ import 'package:andespace/features/auth/presentation/notifiers/auth_notifier.dar
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/friend.dart';
-import '../../domain/entities/friendship_request.dart';
 import '../../domain/repositories/friendships_repository.dart';
 import '../providers/friendships_providers.dart';
 import 'friendships_state.dart';

@@ -32,6 +32,11 @@ abstract class ScheduleRemoteDataSource {
 
   Future<WeeklyScheduleModel> getWeeklySchedule({required DateTime date});
 
+  Future<WeeklyScheduleModel> getFriendWeeklySchedule({
+    required String friendEmail,
+    required DateTime date,
+  });
+
   Future<List<ScheduleClassModel>> getScheduleClasses();
 
   Future<FreeRoomsForDayModel> getFreeRoomsForDay({required DateTime date});
@@ -137,6 +142,19 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
   }) async {
     final response = await dio.get(
       '/schedule/week',
+      queryParameters: {'date': _formatDdMmYyyy(date)},
+    );
+
+    return WeeklyScheduleModel.fromJson(response.data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<WeeklyScheduleModel> getFriendWeeklySchedule({
+    required String friendEmail,
+    required DateTime date,
+  }) async {
+    final response = await dio.get(
+      '/schedule/${Uri.encodeComponent(friendEmail)}/week',
       queryParameters: {'date': _formatDdMmYyyy(date)},
     );
 

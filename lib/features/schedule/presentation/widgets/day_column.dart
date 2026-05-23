@@ -9,6 +9,7 @@ class DayColumn extends StatelessWidget {
   final List<ScheduleOccurrence> occurrences;
   final void Function(ScheduleOccurrence occurrence)? onDeleteOccurrence;
   final VoidCallback? onTap;
+  final DateTime? selectedDate;
 
   const DayColumn({
     super.key,
@@ -16,6 +17,7 @@ class DayColumn extends StatelessWidget {
     required this.occurrences,
     this.onDeleteOccurrence,
     this.onTap,
+    this.selectedDate,
   });
 
   static String _weekdayLabel(DateTime date) {
@@ -61,6 +63,7 @@ class DayColumn extends StatelessWidget {
             day: day,
             label: '${_weekdayLabel(day)} ${day.day}',
             onTap: onTap,
+            selectedDate: selectedDate,
           ),
           const SizedBox(height: 10),
           _OccurrencesList(
@@ -77,8 +80,14 @@ class _DayHeader extends ConsumerWidget {
   final DateTime day;
   final String label;
   final VoidCallback? onTap;
+  final DateTime? selectedDate;
 
-  const _DayHeader({required this.day, required this.label, this.onTap});
+  const _DayHeader({
+    required this.day,
+    required this.label,
+    this.onTap,
+    this.selectedDate,
+  });
 
   static bool _isSameDay(DateTime first, DateTime second) {
     return first.year == second.year &&
@@ -88,10 +97,15 @@ class _DayHeader extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final selectedDate = ref.watch(
-      scheduleControllerProvider.select((state) => state.selectedDate),
-    );
-    final isSelected = _isSameDay(day, selectedDate);
+    final DateTime resolvedSelectedDate;
+    if (selectedDate != null) {
+      resolvedSelectedDate = selectedDate!;
+    } else {
+      resolvedSelectedDate = ref.watch(
+        scheduleControllerProvider.select((state) => state.selectedDate),
+      );
+    }
+    final isSelected = _isSameDay(day, resolvedSelectedDate);
     final theme = Theme.of(context);
     final selectedBackground = theme.colorScheme.secondary.withValues(
       alpha: 0.22,
