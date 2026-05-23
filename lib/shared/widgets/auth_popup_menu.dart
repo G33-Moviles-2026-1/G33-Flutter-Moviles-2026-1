@@ -47,11 +47,11 @@ class AuthPopupMenu extends ConsumerWidget {
                 username: username,
                 onProfile: () {
                   Navigator.of(dialogContext).pop();
-                  Navigator.of(context).pushNamed(AppRoutes.profile);
+                  Navigator.of(context).pushReplacementNamed(AppRoutes.profile);
                 },
                 onFriends: () {
                   Navigator.of(dialogContext).pop();
-                  Navigator.of(context).pushNamed(AppRoutes.friends);
+                  Navigator.of(context).pushReplacementNamed(AppRoutes.friends);
                 },
                 onTheme: () {
                   Navigator.of(dialogContext).pop();
