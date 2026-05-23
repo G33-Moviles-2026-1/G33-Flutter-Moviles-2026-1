@@ -4,6 +4,9 @@ import 'package:andespace/core/di/core_provider.dart';
 import 'package:andespace/features/auth/domain/entities/user_status.dart';
 import 'package:andespace/features/auth/presentation/notifiers/auth_notifier.dart';
 import 'package:andespace/features/auth/presentation/notifiers/auth_state.dart';
+import 'package:andespace/features/friendships/domain/entities/friendship_request.dart';
+import 'package:andespace/features/friendships/presentation/providers/friendships_providers.dart';
+import 'package:andespace/features/notifications/data/local/notifications_local_datasource.dart';
 import 'package:andespace/features/notifications/data/remote/notifications_api.dart';
 import 'package:andespace/features/notifications/domain/entities/app_notification.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,22 +15,28 @@ class NotificationsState {
   final int total;
   final int unread;
   final List<AppNotification> items;
+  final List<FriendshipRequest> pendingRequests;
 
   const NotificationsState({
     this.total = 0,
     this.unread = 0,
     this.items = const [],
+    this.pendingRequests = const [],
   });
+
+  int get badgeCount => unread + pendingRequests.length;
 
   NotificationsState copyWith({
     int? total,
     int? unread,
     List<AppNotification>? items,
+    List<FriendshipRequest>? pendingRequests,
   }) {
     return NotificationsState(
       total: total ?? this.total,
       unread: unread ?? this.unread,
       items: items ?? this.items,
+      pendingRequests: pendingRequests ?? this.pendingRequests,
     );
   }
 }
@@ -69,22 +78,70 @@ class NotificationsNotifier extends Notifier<NotificationsState> {
     final hasInternet = await ref
         .read(connectivityStatusServiceProvider)
         .hasInternetConnection();
-    if (!hasInternet) return;
+
+    if (!hasInternet) {
+      await _loadFromCache();
+      return;
+    }
 
     try {
-      final data = await ref.read(notificationsApiProvider).getNotifications();
-      final items = (data['items'] as List? ?? [])
+      final results = await Future.wait([
+        ref.read(notificationsApiProvider).getNotifications(),
+        ref.read(friendshipsApiProvider).fetchIncomingRequests(),
+      ]);
+
+      final notifData = results[0];
+      final reqData = results[1];
+
+      final items = (notifData['items'] as List? ?? [])
           .cast<Map<String, dynamic>>()
           .map(AppNotification.fromJson)
           .toList();
 
+      final pendingRequests = (reqData['items'] as List? ?? [])
+          .cast<Map<String, dynamic>>()
+          .map(
+            (m) => FriendshipRequest(
+              email: m['email'] as String? ?? '',
+              username: m['username'] as String? ?? m['email'] as String? ?? '',
+              status: UserStatus.fromBackendKey(
+                m['status'] as String? ?? 'incognito',
+              ),
+              isIncoming: true,
+            ),
+          )
+          .toList();
+
       state = state.copyWith(
-        total: data['total'] as int? ?? 0,
-        unread: data['unread'] as int? ?? 0,
+        total: notifData['total'] as int? ?? 0,
+        unread: notifData['unread'] as int? ?? 0,
         items: items,
+        pendingRequests: pendingRequests,
       );
+
+      _saveToCache(items).ignore();
     } catch (_) {
+      await _loadFromCache();
     }
+  }
+
+  Future<void> _loadFromCache() async {
+    try {
+      final cached = await ref
+          .read(notificationsLocalDataSourceProvider)
+          .getSavedNotifications();
+      if (cached.isNotEmpty) {
+        state = state.copyWith(items: cached);
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _saveToCache(List<AppNotification> items) async {
+    try {
+      await ref
+          .read(notificationsLocalDataSourceProvider)
+          .saveNotifications(items);
+    } catch (_) {}
   }
 
   Future<void> markRead(String id) async {
@@ -109,11 +166,30 @@ class NotificationsNotifier extends Notifier<NotificationsState> {
     } catch (_) {}
   }
 
+  Future<void> clearAll() async {
+    try {
+      await ref.read(notificationsApiProvider).markAllRead();
+    } catch (_) {}
+    try {
+      await ref
+          .read(notificationsLocalDataSourceProvider)
+          .saveNotifications([]);
+    } catch (_) {}
+    state = state.copyWith(unread: 0, total: 0, items: []);
+  }
+
   Future<void> refresh() => _poll();
 }
 
 final notificationsApiProvider = Provider<NotificationsApi>((ref) {
   return NotificationsApi(ref.watch(dioProvider));
+});
+
+final notificationsLocalDataSourceProvider =
+    Provider<NotificationsLocalDataSource>((ref) {
+  throw UnimplementedError(
+    'notificationsLocalDataSourceProvider must be overridden in main.dart',
+  );
 });
 
 final notificationsControllerProvider =

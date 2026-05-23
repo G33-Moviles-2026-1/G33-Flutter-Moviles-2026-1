@@ -147,6 +147,21 @@ class CachedRecommendedRoomsTable extends Table {
   Set<Column> get primaryKey => {cacheKey};
 }
 
+class CachedNotificationsTable extends Table {
+  @override
+  String get tableName => 'cached_notifications';
+
+  TextColumn get id => text()();
+  TextColumn get type => text()();
+  TextColumn get payloadJson => text().withDefault(const Constant('{}'))();
+  BoolColumn get isRead => boolean()();
+  DateTimeColumn get createdAt => dateTime()();
+  DateTimeColumn get savedAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 @DriftDatabase(
   tables: [
     MyBookingsTable,
@@ -158,13 +173,14 @@ class CachedRecommendedRoomsTable extends Table {
     MyStatusTable,
     CachedPathsTable,
     CachedRecommendedRoomsTable,
+    CachedNotificationsTable,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(driftDatabase(name: 'andespace_db'));
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -272,7 +288,23 @@ class AppDatabase extends _$AppDatabase {
     await delete(myStatusTable).go();
     await delete(scheduleClassesTable).go();
     await delete(cachedRecommendedRoomsTable).go();
+    await delete(cachedNotificationsTable).go();
   });
+
+  Future<List<CachedNotificationsTableData>> getCachedNotifications() =>
+      (select(cachedNotificationsTable)
+            ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+          .get();
+
+  Future<void> replaceCachedNotifications(
+    List<CachedNotificationsTableCompanion> rows,
+  ) =>
+      transaction(() async {
+        await delete(cachedNotificationsTable).go();
+        if (rows.isNotEmpty) {
+          await batch((b) => b.insertAll(cachedNotificationsTable, rows));
+        }
+      });
 
   Future<List<ScheduleClassesTableData>> getScheduleClasses() {
     return (select(scheduleClassesTable)).get();

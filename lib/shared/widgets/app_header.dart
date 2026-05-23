@@ -31,8 +31,8 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final brand = theme.extension<BrandColors>()!;
-    final unread = ref.watch(
-      notificationsControllerProvider.select((s) => s.unread),
+    final badgeCount = ref.watch(
+      notificationsControllerProvider.select((s) => s.badgeCount),
     );
 
     return AppBar(
@@ -46,8 +46,8 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
       leadingWidth: 56,
       leading: Center(
         child: Badge(
-          isLabelVisible: unread > 0,
-          label: Text(unread > 99 ? '99+' : '$unread'),
+          isLabelVisible: badgeCount > 0,
+          label: Text(badgeCount > 99 ? '99+' : '$badgeCount'),
           child: IconButton(
             tooltip: 'Notifications',
             constraints: const BoxConstraints.tightFor(width: 48, height: 48),
@@ -57,7 +57,7 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
               size: 27,
             ),
             onPressed: () =>
-                Navigator.pushNamed(context, AppRoutes.notifications),
+                Navigator.pushReplacementNamed(context, AppRoutes.notifications),
           ),
         ),
       ),
