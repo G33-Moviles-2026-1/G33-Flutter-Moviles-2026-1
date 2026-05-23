@@ -217,6 +217,30 @@ class _PendingRequestsBox extends StatelessWidget {
   }
 }
 
+ButtonStyle _compactElevatedButtonStyle(
+  BuildContext context, {
+  Color? backgroundColor,
+  Color? foregroundColor,
+}) {
+  return ElevatedButton.styleFrom(
+    backgroundColor: backgroundColor,
+    foregroundColor: foregroundColor,
+    minimumSize: const Size(0, 40),
+    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    visualDensity: VisualDensity.compact,
+  );
+}
+
+ButtonStyle _compactOutlinedButtonStyle() {
+  return OutlinedButton.styleFrom(
+    minimumSize: const Size(0, 40),
+    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    visualDensity: VisualDensity.compact,
+  );
+}
+
 class _SuggestionsBox extends StatelessWidget {
   const _SuggestionsBox({
     required this.state,
@@ -282,17 +306,22 @@ class _RequestRow extends StatelessWidget {
           Expanded(
             child: Text(
               request.username,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.bodyLarge,
             ),
           ),
+          const SizedBox(width: 8),
           if (request.isIncoming) ...[
             OutlinedButton(
+              style: _compactOutlinedButtonStyle(),
               onPressed: onDeclineOrCancel,
               child: const Text('Decline'),
             ),
             const SizedBox(width: 8),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(
+              style: _compactElevatedButtonStyle(
+                context,
                 backgroundColor: colorScheme.secondary,
                 foregroundColor: colorScheme.onSecondary,
               ),
@@ -300,10 +329,15 @@ class _RequestRow extends StatelessWidget {
               child: const Text('Accept'),
             ),
           ] else ...[
-            OutlinedButton(onPressed: null, child: const Text('Pending')),
+            OutlinedButton(
+              style: _compactOutlinedButtonStyle(),
+              onPressed: null,
+              child: const Text('Pending'),
+            ),
             const SizedBox(width: 8),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(
+              style: _compactElevatedButtonStyle(
+                context,
                 backgroundColor: colorScheme.error,
                 foregroundColor: colorScheme.onError,
               ),
@@ -336,10 +370,17 @@ class _SuggestionRow extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            child: Text(username, style: Theme.of(context).textTheme.bodyLarge),
+            child: Text(
+              username,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
           ),
+          const SizedBox(width: 8),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(
+            style: _compactElevatedButtonStyle(
+              context,
               backgroundColor: colorScheme.secondary,
               foregroundColor: colorScheme.onSecondary,
             ),
