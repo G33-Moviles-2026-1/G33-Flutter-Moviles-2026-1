@@ -50,8 +50,13 @@ class _AddFriendsPageState extends ConsumerState<AddFriendsPage> {
 
     final state = ref.watch(friendshipsControllerProvider);
     final notifier = ref.read(friendshipsControllerProvider.notifier);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
-    ref.listen<FriendshipsState>(friendshipsControllerProvider, (previous, next) {
+    ref.listen<FriendshipsState>(friendshipsControllerProvider, (
+      previous,
+      next,
+    ) {
       final previousError = previous?.errorMessage;
       final nextError = next.errorMessage;
 
@@ -69,7 +74,7 @@ class _AddFriendsPageState extends ConsumerState<AddFriendsPage> {
         onRefresh: notifier.loadOnlineSections,
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(18, 10, 18, 24),
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
           children: [
             Align(
               alignment: Alignment.centerLeft,
@@ -78,31 +83,30 @@ class _AddFriendsPageState extends ConsumerState<AddFriendsPage> {
                 icon: const Icon(Icons.arrow_back, size: 34),
               ),
             ),
-            Center(
-              child: Text(
-                'Add friends',
-                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                      fontSize: 34,
-                      fontWeight: FontWeight.w800,
-                    ),
+            Text(
+              'Add friends',
+              style: theme.textTheme.headlineMedium?.copyWith(
+                fontWeight: FontWeight.w800,
               ),
             ),
             const SizedBox(height: 20),
             Material(
-              color: Theme.of(context).cardColor,
-              elevation: 4,
+              color: theme.cardColor,
+              elevation: 0,
               borderRadius: BorderRadius.circular(8),
-              child: TextField(
-                controller: _controller,
-                onChanged: notifier.setAddFriendInput,
-                decoration: const InputDecoration(
-                  hintText: 'Search by username',
-                  prefixIcon: SizedBox(width: 12),
-                  suffixIcon: Icon(Icons.search, size: 38),
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 18,
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: theme.dividerColor.withValues(alpha: 0.18),
+                  ),
+                ),
+                child: TextField(
+                  controller: _controller,
+                  onChanged: notifier.setAddFriendInput,
+                  decoration: const InputDecoration(
+                    hintText: 'Search by username',
+                    prefixIcon: Icon(Icons.search),
                   ),
                 ),
               ),
@@ -112,11 +116,10 @@ class _AddFriendsPageState extends ConsumerState<AddFriendsPage> {
               height: 56,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.yellow,
-                  foregroundColor: Colors.black,
-                  side: const BorderSide(color: Colors.black),
+                  backgroundColor: colorScheme.secondary,
+                  foregroundColor: colorScheme.onSecondary,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                 ),
                 onPressed: () => notifier.sendFriendRequest(_controller.text),
@@ -149,18 +152,15 @@ class _SectionTitle extends StatelessWidget {
     return Text(
       text,
       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w800,
-            fontSize: 20,
-          ),
+        fontWeight: FontWeight.w800,
+        fontSize: 20,
+      ),
     );
   }
 }
 
 class _PendingRequestsBox extends StatelessWidget {
-  const _PendingRequestsBox({
-    required this.state,
-    required this.notifier,
-  });
+  const _PendingRequestsBox({required this.state, required this.notifier});
 
   final FriendshipsState state;
   final dynamic notifier;
@@ -198,10 +198,7 @@ class _PendingRequestsBox extends StatelessWidget {
 }
 
 class _SuggestionsBox extends StatelessWidget {
-  const _SuggestionsBox({
-    required this.state,
-    required this.notifier,
-  });
+  const _SuggestionsBox({required this.state, required this.notifier});
 
   final FriendshipsState state;
   final dynamic notifier;
@@ -250,6 +247,8 @@ class _RequestRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return _RowCard(
       child: Row(
         children: [
@@ -267,22 +266,19 @@ class _RequestRow extends StatelessWidget {
             const SizedBox(width: 8),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.yellow,
-                foregroundColor: Colors.black,
+                backgroundColor: colorScheme.secondary,
+                foregroundColor: colorScheme.onSecondary,
               ),
               onPressed: onAccept,
               child: const Text('Accept'),
             ),
           ] else ...[
-            OutlinedButton(
-              onPressed: null,
-              child: const Text('Pending'),
-            ),
+            OutlinedButton(onPressed: null, child: const Text('Pending')),
             const SizedBox(width: 8),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.redAccent,
-                foregroundColor: Colors.black,
+                backgroundColor: colorScheme.error,
+                foregroundColor: colorScheme.onError,
               ),
               onPressed: onDeclineOrCancel,
               child: const Text('Cancel'),
@@ -307,19 +303,18 @@ class _SuggestionRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return _RowCard(
       child: Row(
         children: [
           Expanded(
-            child: Text(
-              username,
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
+            child: Text(username, style: Theme.of(context).textTheme.bodyLarge),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.yellow,
-              foregroundColor: Colors.black,
+              backgroundColor: colorScheme.secondary,
+              foregroundColor: colorScheme.onSecondary,
             ),
             onPressed: isPending ? null : onAdd,
             child: Text(isPending ? 'Sending...' : 'Add friend +'),
@@ -337,12 +332,14 @@ class _BoxContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Container(
       margin: const EdgeInsets.only(top: 8),
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFFFDD),
-        border: Border.all(color: Colors.black54),
+        color: theme.cardColor,
+        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.18)),
         borderRadius: BorderRadius.circular(8),
       ),
       child: child,
@@ -357,11 +354,17 @@ class _RowCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    final theme = Theme.of(context);
+
+    return Container(
       margin: const EdgeInsets.only(bottom: 8),
-      elevation: 3,
+      decoration: BoxDecoration(
+        color: theme.scaffoldBackgroundColor.withValues(alpha: 0.55),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.14)),
+      ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         child: child,
       ),
     );

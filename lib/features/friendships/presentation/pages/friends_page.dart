@@ -29,8 +29,12 @@ class FriendsPage extends ConsumerWidget {
 
     final state = ref.watch(friendshipsControllerProvider);
     final notifier = ref.read(friendshipsControllerProvider.notifier);
+    final theme = Theme.of(context);
 
-    ref.listen<FriendshipsState>(friendshipsControllerProvider, (previous, next) {
+    ref.listen<FriendshipsState>(friendshipsControllerProvider, (
+      previous,
+      next,
+    ) {
       final previousError = previous?.errorMessage;
       final nextError = next.errorMessage;
 
@@ -48,15 +52,12 @@ class FriendsPage extends ConsumerWidget {
         onRefresh: notifier.refreshAll,
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(18, 18, 18, 24),
+          padding: const EdgeInsets.fromLTRB(20, 22, 20, 28),
           children: [
-            Center(
-              child: Text(
-                'My Friends',
-                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                      fontSize: 34,
-                      fontWeight: FontWeight.w800,
-                    ),
+            Text(
+              'My Friends',
+              style: theme.textTheme.headlineMedium?.copyWith(
+                fontWeight: FontWeight.w800,
               ),
             ),
             const SizedBox(height: 18),
@@ -66,7 +67,8 @@ class FriendsPage extends ConsumerWidget {
                   child: _TopActionButton(
                     label: 'My status:',
                     icon: _statusIcon(state.myStatus),
-                    onTap: () => _showStatusDialog(context, state.myStatus, notifier),
+                    onTap: () =>
+                        _showStatusDialog(context, state.myStatus, notifier),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -74,7 +76,8 @@ class FriendsPage extends ConsumerWidget {
                   child: _TopActionButton(
                     label: 'Add friends',
                     icon: Icons.group_add,
-                    onTap: () => Navigator.pushNamed(context, AppRoutes.addFriends),
+                    onTap: () =>
+                        Navigator.pushNamed(context, AppRoutes.addFriends),
                   ),
                 ),
               ],
@@ -91,7 +94,7 @@ class FriendsPage extends ConsumerWidget {
                 child: Text(
                   'You have no friends yet.\nTap Add friends to send your first request.',
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyLarge,
+                  style: theme.textTheme.bodyLarge,
                 ),
               )
             else
@@ -102,13 +105,14 @@ class FriendsPage extends ConsumerWidget {
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
                   mainAxisSpacing: 12,
-                  crossAxisSpacing: 10,
-                  childAspectRatio: 0.84,
+                  crossAxisSpacing: 12,
+                  childAspectRatio: 0.92,
                 ),
                 itemBuilder: (context, index) {
                   final friend = state.friends[index];
-                  final isPending =
-                      state.pendingFriendUsernames.contains(friend.username);
+                  final isPending = state.pendingFriendUsernames.contains(
+                    friend.username,
+                  );
 
                   return _FriendCard(
                     friend: friend,
@@ -152,28 +156,45 @@ class _TopActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Material(
-      color: const Color(0xFFFFFBA9),
+      color: theme.cardColor,
       borderRadius: BorderRadius.circular(8),
-      elevation: 3,
+      elevation: 0,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(8),
-        child: Padding(
+        child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: theme.dividerColor.withValues(alpha: 0.18),
+            ),
+          ),
           child: Row(
             children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: colorScheme.secondary.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, color: colorScheme.secondary, size: 20),
+              ),
+              const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   label,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: Colors.black,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
               ),
-              Icon(icon, color: Colors.black, size: 32),
             ],
           ),
         ),
@@ -196,66 +217,92 @@ class _FriendCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Material(
       color: theme.cardColor,
-      elevation: 4,
+      elevation: 0,
       borderRadius: BorderRadius.circular(8),
-      child: Stack(
-        children: [
-          Positioned(
-            top: 6,
-            left: 6,
-            child: Icon(Icons.calendar_month, size: 28, color: theme.colorScheme.onSurface),
-          ),
-          Positioned(
-            top: 6,
-            right: 6,
-            child: isPending
-                ? const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : IconButton(
-                    tooltip: 'Remove friend',
-                    icon: const Icon(Icons.delete_outline),
-                    color: theme.colorScheme.onSurface,
-                    onPressed: onDelete,
-                  ),
-          ),
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(8, 32, 8, 10),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    _statusIcon(friend.status),
-                    size: 58,
-                    color: theme.colorScheme.onSurface,
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    friend.username,
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w900,
-                      fontSize: 24,
-                    ),
-                  ),
-                  Text(
-                    friend.status.label,
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.bodyLarge,
-                  ),
-                ],
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: theme.dividerColor.withValues(alpha: 0.18)),
+        ),
+        child: Stack(
+          children: [
+            Positioned(
+              top: 8,
+              left: 8,
+              child: Icon(
+                Icons.calendar_month_outlined,
+                size: 22,
+                color: colorScheme.secondary,
               ),
             ),
-          ),
-        ],
+            Positioned(
+              top: 2,
+              right: 2,
+              child: isPending
+                  ? const Padding(
+                      padding: EdgeInsets.all(12),
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    )
+                  : IconButton(
+                      tooltip: 'Remove friend',
+                      icon: const Icon(Icons.delete_outline),
+                      color: colorScheme.onSurface.withValues(alpha: 0.72),
+                      onPressed: onDelete,
+                    ),
+            ),
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(10, 34, 10, 12),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 58,
+                      height: 58,
+                      decoration: BoxDecoration(
+                        color: colorScheme.secondary.withValues(alpha: 0.16),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        _statusIcon(friend.status),
+                        size: 30,
+                        color: colorScheme.secondary,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      friend.username,
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      friend.status.label,
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurface.withValues(alpha: 0.66),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -294,10 +341,12 @@ class _StatusCarouselDialogState extends State<_StatusCarouselDialog> {
   @override
   Widget build(BuildContext context) {
     final status = UserStatus.values[_index];
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Dialog(
-      backgroundColor: const Color(0xFFFFFBA9),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+      backgroundColor: theme.cardColor,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       child: Stack(
         children: [
           Padding(
@@ -307,34 +356,43 @@ class _StatusCarouselDialogState extends State<_StatusCarouselDialog> {
               children: [
                 Text(
                   'My status:',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w900,
-                        color: Colors.black,
-                      ),
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
                 const SizedBox(height: 18),
-                Icon(_statusIcon(status), size: 96, color: Colors.black),
+                Container(
+                  width: 96,
+                  height: 96,
+                  decoration: BoxDecoration(
+                    color: colorScheme.secondary.withValues(alpha: 0.18),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    _statusIcon(status),
+                    size: 48,
+                    color: colorScheme.secondary,
+                  ),
+                ),
                 const SizedBox(height: 24),
                 Row(
                   children: [
                     IconButton(
                       onPressed: () => _move(-1),
                       icon: const Icon(Icons.chevron_left, size: 42),
-                      color: Colors.black,
+                      color: colorScheme.onSurface,
                     ),
                     Expanded(
                       child: Text(
                         status.label,
                         textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              color: Colors.black,
-                            ),
+                        style: theme.textTheme.titleLarge,
                       ),
                     ),
                     IconButton(
                       onPressed: () => _move(1),
                       icon: const Icon(Icons.chevron_right, size: 42),
-                      color: Colors.black,
+                      color: colorScheme.onSurface,
                     ),
                   ],
                 ),
@@ -357,7 +415,7 @@ class _StatusCarouselDialogState extends State<_StatusCarouselDialog> {
             right: 6,
             child: IconButton(
               onPressed: () => Navigator.pop(context),
-              icon: const Icon(Icons.close, color: Colors.black),
+              icon: const Icon(Icons.close),
             ),
           ),
         ],

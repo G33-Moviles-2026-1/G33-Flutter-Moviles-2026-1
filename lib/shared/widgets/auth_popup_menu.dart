@@ -95,8 +95,8 @@ class AuthPopupMenu extends ConsumerWidget {
       icon: Center(
         child: SvgPicture.asset(
           iconPath,
-          width: 22,
-          height: 22,
+          width: 24,
+          height: 24,
           fit: BoxFit.contain,
           colorFilter: ColorFilter.mode(resolvedIconColor, BlendMode.srcIn),
         ),
@@ -190,15 +190,10 @@ class _LoggedInContent extends StatelessWidget {
           title: 'Profile',
           onTap: onProfile,
         ),
-        const SizedBox(height: 16),
-        _AuthButton(
-          text: 'Friends',
+        const SizedBox(height: 8),
+        _MenuActionTile(
           icon: Icons.people_outline,
-          backgroundColor: colorScheme.surface,
-          foregroundColor: colorScheme.onSurface,
-          borderColor: theme.brightness == Brightness.dark
-              ? Colors.white10
-              : Colors.black12,
+          title: 'Friends',
           onTap: onFriends,
         ),
         const SizedBox(height: 8),
