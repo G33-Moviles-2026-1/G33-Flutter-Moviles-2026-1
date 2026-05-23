@@ -6,6 +6,7 @@ import 'package:andespace/features/auth/presentation/notifiers/auth_notifier.dar
 import 'package:andespace/features/auth/presentation/notifiers/auth_state.dart';
 import 'package:andespace/features/friendships/domain/entities/friendship_request.dart';
 import 'package:andespace/features/friendships/presentation/providers/friendships_providers.dart';
+import 'package:andespace/features/notifications/data/local/notifications_local_datasource.dart';
 import 'package:andespace/features/notifications/data/remote/notifications_api.dart';
 import 'package:andespace/features/notifications/domain/entities/app_notification.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -77,7 +78,11 @@ class NotificationsNotifier extends Notifier<NotificationsState> {
     final hasInternet = await ref
         .read(connectivityStatusServiceProvider)
         .hasInternetConnection();
-    if (!hasInternet) return;
+
+    if (!hasInternet) {
+      await _loadFromCache();
+      return;
+    }
 
     try {
       final results = await Future.wait([
@@ -113,9 +118,30 @@ class NotificationsNotifier extends Notifier<NotificationsState> {
         items: items,
         pendingRequests: pendingRequests,
       );
+
+      _saveToCache(items).ignore();
     } catch (_) {
-      // Silent — background poll must not disrupt the app
+      await _loadFromCache();
     }
+  }
+
+  Future<void> _loadFromCache() async {
+    try {
+      final cached = await ref
+          .read(notificationsLocalDataSourceProvider)
+          .getSavedNotifications();
+      if (cached.isNotEmpty) {
+        state = state.copyWith(items: cached);
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _saveToCache(List<AppNotification> items) async {
+    try {
+      await ref
+          .read(notificationsLocalDataSourceProvider)
+          .saveNotifications(items);
+    } catch (_) {}
   }
 
   Future<void> markRead(String id) async {
@@ -140,11 +166,30 @@ class NotificationsNotifier extends Notifier<NotificationsState> {
     } catch (_) {}
   }
 
+  Future<void> clearAll() async {
+    try {
+      await ref.read(notificationsApiProvider).markAllRead();
+    } catch (_) {}
+    try {
+      await ref
+          .read(notificationsLocalDataSourceProvider)
+          .saveNotifications([]);
+    } catch (_) {}
+    state = state.copyWith(unread: 0, total: 0, items: []);
+  }
+
   Future<void> refresh() => _poll();
 }
 
 final notificationsApiProvider = Provider<NotificationsApi>((ref) {
   return NotificationsApi(ref.watch(dioProvider));
+});
+
+final notificationsLocalDataSourceProvider =
+    Provider<NotificationsLocalDataSource>((ref) {
+  throw UnimplementedError(
+    'notificationsLocalDataSourceProvider must be overridden in main.dart',
+  );
 });
 
 final notificationsControllerProvider =

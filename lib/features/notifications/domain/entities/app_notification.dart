@@ -23,14 +23,28 @@ class AppNotification {
     );
   }
 
+  String get friendUsername => payload['friend_username'] as String? ?? '';
+  String get roomId => payload['room_id'] as String? ?? '';
+  String get bookingDate => payload['date'] as String? ?? '';
+  String get startTime =>
+      (payload['start_time'] as String? ?? '').substring(0, 5);
+  String get endTime => (payload['end_time'] as String? ?? '').substring(0, 5);
+
   String get displayMessage {
-    if (type == 'friend_booking') {
-      final friend = payload['friend_username'] as String?;
-      final room = payload['room_name'] as String?;
-      if (friend != null && room != null) return '$friend booked $room';
-      if (friend != null) return '$friend made a booking';
+    if (type == 'friend_booking' && friendUsername.isNotEmpty) {
+      if (roomId.isNotEmpty) return '$friendUsername booked $roomId';
+      return '$friendUsername made a booking';
     }
     return 'New notification';
+  }
+
+  String get displaySubtitle {
+    if (type == 'friend_booking' && bookingDate.isNotEmpty) {
+      final timePart =
+          startTime.isNotEmpty && endTime.isNotEmpty ? ' · $startTime–$endTime' : '';
+      return '$bookingDate$timePart';
+    }
+    return '';
   }
 
   static AppNotification fromJson(Map<String, dynamic> json) {
