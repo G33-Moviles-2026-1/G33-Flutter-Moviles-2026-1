@@ -41,14 +41,20 @@ class FriendshipsRepositoryImpl implements FriendshipsRepository {
   Future<List<FriendshipRequest>> loadIncomingRequests() async {
     final raw = await api.fetchIncomingRequests();
     final response = FriendsResponseDto.fromJson(raw);
-    return response.items.map((dto) => dto.toRequest(isIncoming: true)).toList();
+
+    return response.items
+        .map((dto) => dto.toRequest(isIncoming: true))
+        .toList();
   }
 
   @override
   Future<List<FriendshipRequest>> loadOutgoingRequests() async {
     final raw = await api.fetchOutgoingRequests();
     final response = FriendsResponseDto.fromJson(raw);
-    return response.items.map((dto) => dto.toRequest(isIncoming: false)).toList();
+
+    return response.items
+        .map((dto) => dto.toRequest(isIncoming: false))
+        .toList();
   }
 
   @override
@@ -84,7 +90,9 @@ class FriendshipsRepositoryImpl implements FriendshipsRepository {
     Future(() async {
       try {
         await syncPendingMutations();
-      } catch (_) {}
+      } catch (_) {
+        // The pending mutation remains stored and will retry on recovery/manual refresh.
+      }
     });
   }
 
@@ -102,7 +110,9 @@ class FriendshipsRepositoryImpl implements FriendshipsRepository {
     Future(() async {
       try {
         await syncPendingMutations();
-      } catch (_) {}
+      } catch (_) {
+        // The pending mutation remains stored and will retry on recovery/manual refresh.
+      }
     });
   }
 
@@ -114,17 +124,22 @@ class FriendshipsRepositoryImpl implements FriendshipsRepository {
       try {
         if (mutation.operation == 'delete_friend') {
           final identifier = mutation.identifier;
+
           if (identifier != null && identifier.trim().isNotEmpty) {
             try {
               await api.deleteFriendship(identifier);
             } on DioException catch (error) {
+              // If backend no longer has the friendship, local pending removal is already valid.
               if (error.response?.statusCode != 404) rethrow;
             }
+
+            await localDataSource.hardDeleteFriend(identifier);
           }
 
           await localDataSource.clearMutation(mutation.opId);
         } else if (mutation.operation == 'update_status') {
           final statusKey = mutation.status;
+
           if (statusKey != null && statusKey.trim().isNotEmpty) {
             final status = UserStatus.fromBackendKey(statusKey);
             await api.updateMyStatus(status.backendKey);
@@ -142,5 +157,15 @@ class FriendshipsRepositoryImpl implements FriendshipsRepository {
         );
       }
     }
+  }
+
+  @override
+  Future<void> clearLocalData() {
+    return localDataSource.clearLocalData();
+  }
+
+  @override
+  Future<void> ensureLocalCacheForUser(String userEmail) {
+    return localDataSource.ensureCacheBelongsToUser(userEmail);
   }
 }

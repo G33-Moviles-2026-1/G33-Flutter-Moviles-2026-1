@@ -44,7 +44,10 @@ class FriendshipsLocalDataSource {
       FriendMutationsTableCompanion(
         opId: Value(_uuid.v4()),
         operation: const Value('delete_friend'),
-        identifier: Value(friend.username),
+
+        // Guardamos email porque es identificador estable y el backend también lo acepta.
+        identifier: Value(friend.email),
+
         status: const Value(null),
         attemptCount: const Value(0),
         lastError: const Value(null),
@@ -54,7 +57,9 @@ class FriendshipsLocalDataSource {
     );
   }
 
-  Future<UserStatus> getMyStatus({UserStatus fallback = UserStatus.incognito}) async {
+  Future<UserStatus> getMyStatus({
+    UserStatus fallback = UserStatus.incognito,
+  }) async {
     final row = await _db.getMyStatusRow();
     if (row == null) return fallback;
     return UserStatus.fromBackendKey(row.status);
@@ -107,7 +112,23 @@ class FriendshipsLocalDataSource {
     return _db.deleteFriendMutationById(opId);
   }
 
-  Future<void> hardDeleteFriend(String email) {
-    return _db.deleteFriendByEmail(email);
+  Future<void> hardDeleteFriend(String identifier) {
+    return _db.deleteFriendByIdentifier(identifier);
+  }
+
+  Future<void> clearLocalData() {
+    return _db.clearFriendshipsLocalData();
+  }
+
+  Future<void> ensureCacheBelongsToUser(String userEmail) async {
+    final normalizedEmail = userEmail.trim().toLowerCase();
+    final currentOwner = await _db.getFriendshipsCacheOwnerEmail();
+
+    if (currentOwner == normalizedEmail) {
+      return;
+    }
+
+    await _db.clearFriendshipsLocalData();
+    await _db.setFriendshipsCacheOwnerEmail(normalizedEmail);
   }
 }

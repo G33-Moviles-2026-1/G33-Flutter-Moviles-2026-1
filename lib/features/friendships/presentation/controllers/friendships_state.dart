@@ -15,6 +15,9 @@ class FriendshipsState {
     this.addFriendInput = '',
     this.errorMessage,
     this.onlineSectionsOffline = false,
+    this.requestsErrorMessage,
+    this.suggestionsErrorMessage,
+    this.hasLoadedOnlineSections = false,
   });
 
   final bool isFriendsLoading;
@@ -28,6 +31,9 @@ class FriendshipsState {
   final String addFriendInput;
   final String? errorMessage;
   final bool onlineSectionsOffline;
+  final String? requestsErrorMessage;
+  final String? suggestionsErrorMessage;
+  final bool hasLoadedOnlineSections;
 
   List<FriendshipRequest> get pendingRequests => [
         ...incomingRequests,
@@ -47,6 +53,11 @@ class FriendshipsState {
     String? errorMessage,
     bool clearErrorMessage = false,
     bool? onlineSectionsOffline,
+    String? requestsErrorMessage,
+    bool clearRequestsErrorMessage = false,
+    String? suggestionsErrorMessage,
+    bool clearSuggestionsErrorMessage = false,
+    bool? hasLoadedOnlineSections,
   }) {
     return FriendshipsState(
       isFriendsLoading: isFriendsLoading ?? this.isFriendsLoading,
@@ -64,6 +75,14 @@ class FriendshipsState {
           clearErrorMessage ? null : (errorMessage ?? this.errorMessage),
       onlineSectionsOffline:
           onlineSectionsOffline ?? this.onlineSectionsOffline,
+      requestsErrorMessage: clearRequestsErrorMessage
+          ? null
+          : (requestsErrorMessage ?? this.requestsErrorMessage),
+      suggestionsErrorMessage: clearSuggestionsErrorMessage
+          ? null
+          : (suggestionsErrorMessage ?? this.suggestionsErrorMessage),
+      hasLoadedOnlineSections:
+          hasLoadedOnlineSections ?? this.hasLoadedOnlineSections,
     );
   }
 }

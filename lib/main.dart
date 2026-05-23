@@ -21,6 +21,8 @@ import 'features/navigation/data/local/path_local_data_source.dart';
 import 'features/navigation/presentation/providers/navigation_providers.dart';
 import 'features/friendships/data/local/friendships_local_datasource.dart';
 import 'features/friendships/presentation/providers/friendships_providers.dart';
+import 'features/notifications/data/local/notifications_local_datasource.dart';
+import 'features/notifications/presentation/notifiers/notifications_notifier.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,6 +36,7 @@ Future<void> main() async {
   final favoritesLocalDs = FavoritesLocalDataSource(appDatabase);
   final friendshipsLocalDs = FriendshipsLocalDataSource(appDatabase);
   final pathLocalDs = PathLocalDataSource(appDatabase);
+  final notificationsLocalDs = NotificationsLocalDataSource(appDatabase);
 
   final appDir = await getApplicationDocumentsDirectory();
   final cookiesPath = p.join(appDir.path, 'cookies');
@@ -66,7 +69,9 @@ Future<void> main() async {
       bookingsLocalDataSourceProvider.overrideWithValue(bookingsLocalDs),
       favoritesLocalDataSourceProvider.overrideWithValue(favoritesLocalDs),
       friendshipsLocalDataSourceProvider.overrideWithValue(friendshipsLocalDs),
+      appDatabaseProvider.overrideWithValue(appDatabase),
       pathLocalDataSourceProvider.overrideWithValue(pathLocalDs),
+      notificationsLocalDataSourceProvider.overrideWithValue(notificationsLocalDs),
     ],
   );
 
