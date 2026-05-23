@@ -149,6 +149,22 @@ Future<void> loadOnlineSections() async {
 Future<bool> sendFriendRequest([String? rawUsername]) async {
   final username = (rawUsername ?? state.addFriendInput).trim().toLowerCase();
 
+  if (username.length > 25) {
+    state = state.copyWith(
+      errorMessage: 'Username cannot be longer than 25 characters.',
+    );
+    return false;
+  }
+
+  final validUsernamePattern = RegExp(r'^[a-z0-9._-]+$');
+  if (!validUsernamePattern.hasMatch(username)) {
+    state = state.copyWith(
+      errorMessage:
+          'Username can only contain letters, numbers, dots, underscores, or hyphens.',
+    );
+    return false;
+  }
+
   if (username.isEmpty) {
     state = state.copyWith(errorMessage: 'Type a username first.');
     return false;
