@@ -2342,6 +2342,1252 @@ class FavoriteMutationsTableCompanion
   }
 }
 
+class $FriendsTableTable extends FriendsTable
+    with TableInfo<$FriendsTableTable, FriendsTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FriendsTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _emailMeta = const VerificationMeta('email');
+  @override
+  late final GeneratedColumn<String> email = GeneratedColumn<String>(
+    'email',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _usernameMeta = const VerificationMeta(
+    'username',
+  );
+  @override
+  late final GeneratedColumn<String> username = GeneratedColumn<String>(
+    'username',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _syncStateMeta = const VerificationMeta(
+    'syncState',
+  );
+  @override
+  late final GeneratedColumn<String> syncState = GeneratedColumn<String>(
+    'sync_state',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('clean'),
+  );
+  static const VerificationMeta _lastErrorMeta = const VerificationMeta(
+    'lastError',
+  );
+  @override
+  late final GeneratedColumn<String> lastError = GeneratedColumn<String>(
+    'last_error',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    email,
+    username,
+    status,
+    syncState,
+    lastError,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'friends';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<FriendsTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('email')) {
+      context.handle(
+        _emailMeta,
+        email.isAcceptableOrUnknown(data['email']!, _emailMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_emailMeta);
+    }
+    if (data.containsKey('username')) {
+      context.handle(
+        _usernameMeta,
+        username.isAcceptableOrUnknown(data['username']!, _usernameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_usernameMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_statusMeta);
+    }
+    if (data.containsKey('sync_state')) {
+      context.handle(
+        _syncStateMeta,
+        syncState.isAcceptableOrUnknown(data['sync_state']!, _syncStateMeta),
+      );
+    }
+    if (data.containsKey('last_error')) {
+      context.handle(
+        _lastErrorMeta,
+        lastError.isAcceptableOrUnknown(data['last_error']!, _lastErrorMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {email};
+  @override
+  FriendsTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return FriendsTableData(
+      email: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}email'],
+      )!,
+      username: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}username'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      syncState: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sync_state'],
+      )!,
+      lastError: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}last_error'],
+      ),
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $FriendsTableTable createAlias(String alias) {
+    return $FriendsTableTable(attachedDatabase, alias);
+  }
+}
+
+class FriendsTableData extends DataClass
+    implements Insertable<FriendsTableData> {
+  final String email;
+  final String username;
+  final String status;
+  final String syncState;
+  final String? lastError;
+  final DateTime updatedAt;
+  const FriendsTableData({
+    required this.email,
+    required this.username,
+    required this.status,
+    required this.syncState,
+    this.lastError,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['email'] = Variable<String>(email);
+    map['username'] = Variable<String>(username);
+    map['status'] = Variable<String>(status);
+    map['sync_state'] = Variable<String>(syncState);
+    if (!nullToAbsent || lastError != null) {
+      map['last_error'] = Variable<String>(lastError);
+    }
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  FriendsTableCompanion toCompanion(bool nullToAbsent) {
+    return FriendsTableCompanion(
+      email: Value(email),
+      username: Value(username),
+      status: Value(status),
+      syncState: Value(syncState),
+      lastError: lastError == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastError),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory FriendsTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return FriendsTableData(
+      email: serializer.fromJson<String>(json['email']),
+      username: serializer.fromJson<String>(json['username']),
+      status: serializer.fromJson<String>(json['status']),
+      syncState: serializer.fromJson<String>(json['syncState']),
+      lastError: serializer.fromJson<String?>(json['lastError']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'email': serializer.toJson<String>(email),
+      'username': serializer.toJson<String>(username),
+      'status': serializer.toJson<String>(status),
+      'syncState': serializer.toJson<String>(syncState),
+      'lastError': serializer.toJson<String?>(lastError),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  FriendsTableData copyWith({
+    String? email,
+    String? username,
+    String? status,
+    String? syncState,
+    Value<String?> lastError = const Value.absent(),
+    DateTime? updatedAt,
+  }) => FriendsTableData(
+    email: email ?? this.email,
+    username: username ?? this.username,
+    status: status ?? this.status,
+    syncState: syncState ?? this.syncState,
+    lastError: lastError.present ? lastError.value : this.lastError,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  FriendsTableData copyWithCompanion(FriendsTableCompanion data) {
+    return FriendsTableData(
+      email: data.email.present ? data.email.value : this.email,
+      username: data.username.present ? data.username.value : this.username,
+      status: data.status.present ? data.status.value : this.status,
+      syncState: data.syncState.present ? data.syncState.value : this.syncState,
+      lastError: data.lastError.present ? data.lastError.value : this.lastError,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FriendsTableData(')
+          ..write('email: $email, ')
+          ..write('username: $username, ')
+          ..write('status: $status, ')
+          ..write('syncState: $syncState, ')
+          ..write('lastError: $lastError, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(email, username, status, syncState, lastError, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FriendsTableData &&
+          other.email == this.email &&
+          other.username == this.username &&
+          other.status == this.status &&
+          other.syncState == this.syncState &&
+          other.lastError == this.lastError &&
+          other.updatedAt == this.updatedAt);
+}
+
+class FriendsTableCompanion extends UpdateCompanion<FriendsTableData> {
+  final Value<String> email;
+  final Value<String> username;
+  final Value<String> status;
+  final Value<String> syncState;
+  final Value<String?> lastError;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const FriendsTableCompanion({
+    this.email = const Value.absent(),
+    this.username = const Value.absent(),
+    this.status = const Value.absent(),
+    this.syncState = const Value.absent(),
+    this.lastError = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  FriendsTableCompanion.insert({
+    required String email,
+    required String username,
+    required String status,
+    this.syncState = const Value.absent(),
+    this.lastError = const Value.absent(),
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : email = Value(email),
+       username = Value(username),
+       status = Value(status),
+       updatedAt = Value(updatedAt);
+  static Insertable<FriendsTableData> custom({
+    Expression<String>? email,
+    Expression<String>? username,
+    Expression<String>? status,
+    Expression<String>? syncState,
+    Expression<String>? lastError,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (email != null) 'email': email,
+      if (username != null) 'username': username,
+      if (status != null) 'status': status,
+      if (syncState != null) 'sync_state': syncState,
+      if (lastError != null) 'last_error': lastError,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  FriendsTableCompanion copyWith({
+    Value<String>? email,
+    Value<String>? username,
+    Value<String>? status,
+    Value<String>? syncState,
+    Value<String?>? lastError,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return FriendsTableCompanion(
+      email: email ?? this.email,
+      username: username ?? this.username,
+      status: status ?? this.status,
+      syncState: syncState ?? this.syncState,
+      lastError: lastError ?? this.lastError,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (email.present) {
+      map['email'] = Variable<String>(email.value);
+    }
+    if (username.present) {
+      map['username'] = Variable<String>(username.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (syncState.present) {
+      map['sync_state'] = Variable<String>(syncState.value);
+    }
+    if (lastError.present) {
+      map['last_error'] = Variable<String>(lastError.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FriendsTableCompanion(')
+          ..write('email: $email, ')
+          ..write('username: $username, ')
+          ..write('status: $status, ')
+          ..write('syncState: $syncState, ')
+          ..write('lastError: $lastError, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $FriendMutationsTableTable extends FriendMutationsTable
+    with TableInfo<$FriendMutationsTableTable, FriendMutationsTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FriendMutationsTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _opIdMeta = const VerificationMeta('opId');
+  @override
+  late final GeneratedColumn<String> opId = GeneratedColumn<String>(
+    'op_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _operationMeta = const VerificationMeta(
+    'operation',
+  );
+  @override
+  late final GeneratedColumn<String> operation = GeneratedColumn<String>(
+    'operation',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _identifierMeta = const VerificationMeta(
+    'identifier',
+  );
+  @override
+  late final GeneratedColumn<String> identifier = GeneratedColumn<String>(
+    'identifier',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _attemptCountMeta = const VerificationMeta(
+    'attemptCount',
+  );
+  @override
+  late final GeneratedColumn<int> attemptCount = GeneratedColumn<int>(
+    'attempt_count',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _lastErrorMeta = const VerificationMeta(
+    'lastError',
+  );
+  @override
+  late final GeneratedColumn<String> lastError = GeneratedColumn<String>(
+    'last_error',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    opId,
+    operation,
+    identifier,
+    status,
+    attemptCount,
+    lastError,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'friend_mutations';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<FriendMutationsTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('op_id')) {
+      context.handle(
+        _opIdMeta,
+        opId.isAcceptableOrUnknown(data['op_id']!, _opIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_opIdMeta);
+    }
+    if (data.containsKey('operation')) {
+      context.handle(
+        _operationMeta,
+        operation.isAcceptableOrUnknown(data['operation']!, _operationMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_operationMeta);
+    }
+    if (data.containsKey('identifier')) {
+      context.handle(
+        _identifierMeta,
+        identifier.isAcceptableOrUnknown(data['identifier']!, _identifierMeta),
+      );
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    if (data.containsKey('attempt_count')) {
+      context.handle(
+        _attemptCountMeta,
+        attemptCount.isAcceptableOrUnknown(
+          data['attempt_count']!,
+          _attemptCountMeta,
+        ),
+      );
+    }
+    if (data.containsKey('last_error')) {
+      context.handle(
+        _lastErrorMeta,
+        lastError.isAcceptableOrUnknown(data['last_error']!, _lastErrorMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {opId};
+  @override
+  FriendMutationsTableData map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return FriendMutationsTableData(
+      opId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}op_id'],
+      )!,
+      operation: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}operation'],
+      )!,
+      identifier: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}identifier'],
+      ),
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      ),
+      attemptCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}attempt_count'],
+      )!,
+      lastError: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}last_error'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $FriendMutationsTableTable createAlias(String alias) {
+    return $FriendMutationsTableTable(attachedDatabase, alias);
+  }
+}
+
+class FriendMutationsTableData extends DataClass
+    implements Insertable<FriendMutationsTableData> {
+  final String opId;
+  final String operation;
+  final String? identifier;
+  final String? status;
+  final int attemptCount;
+  final String? lastError;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const FriendMutationsTableData({
+    required this.opId,
+    required this.operation,
+    this.identifier,
+    this.status,
+    required this.attemptCount,
+    this.lastError,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['op_id'] = Variable<String>(opId);
+    map['operation'] = Variable<String>(operation);
+    if (!nullToAbsent || identifier != null) {
+      map['identifier'] = Variable<String>(identifier);
+    }
+    if (!nullToAbsent || status != null) {
+      map['status'] = Variable<String>(status);
+    }
+    map['attempt_count'] = Variable<int>(attemptCount);
+    if (!nullToAbsent || lastError != null) {
+      map['last_error'] = Variable<String>(lastError);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  FriendMutationsTableCompanion toCompanion(bool nullToAbsent) {
+    return FriendMutationsTableCompanion(
+      opId: Value(opId),
+      operation: Value(operation),
+      identifier: identifier == null && nullToAbsent
+          ? const Value.absent()
+          : Value(identifier),
+      status: status == null && nullToAbsent
+          ? const Value.absent()
+          : Value(status),
+      attemptCount: Value(attemptCount),
+      lastError: lastError == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastError),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory FriendMutationsTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return FriendMutationsTableData(
+      opId: serializer.fromJson<String>(json['opId']),
+      operation: serializer.fromJson<String>(json['operation']),
+      identifier: serializer.fromJson<String?>(json['identifier']),
+      status: serializer.fromJson<String?>(json['status']),
+      attemptCount: serializer.fromJson<int>(json['attemptCount']),
+      lastError: serializer.fromJson<String?>(json['lastError']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'opId': serializer.toJson<String>(opId),
+      'operation': serializer.toJson<String>(operation),
+      'identifier': serializer.toJson<String?>(identifier),
+      'status': serializer.toJson<String?>(status),
+      'attemptCount': serializer.toJson<int>(attemptCount),
+      'lastError': serializer.toJson<String?>(lastError),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  FriendMutationsTableData copyWith({
+    String? opId,
+    String? operation,
+    Value<String?> identifier = const Value.absent(),
+    Value<String?> status = const Value.absent(),
+    int? attemptCount,
+    Value<String?> lastError = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => FriendMutationsTableData(
+    opId: opId ?? this.opId,
+    operation: operation ?? this.operation,
+    identifier: identifier.present ? identifier.value : this.identifier,
+    status: status.present ? status.value : this.status,
+    attemptCount: attemptCount ?? this.attemptCount,
+    lastError: lastError.present ? lastError.value : this.lastError,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  FriendMutationsTableData copyWithCompanion(
+    FriendMutationsTableCompanion data,
+  ) {
+    return FriendMutationsTableData(
+      opId: data.opId.present ? data.opId.value : this.opId,
+      operation: data.operation.present ? data.operation.value : this.operation,
+      identifier: data.identifier.present
+          ? data.identifier.value
+          : this.identifier,
+      status: data.status.present ? data.status.value : this.status,
+      attemptCount: data.attemptCount.present
+          ? data.attemptCount.value
+          : this.attemptCount,
+      lastError: data.lastError.present ? data.lastError.value : this.lastError,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FriendMutationsTableData(')
+          ..write('opId: $opId, ')
+          ..write('operation: $operation, ')
+          ..write('identifier: $identifier, ')
+          ..write('status: $status, ')
+          ..write('attemptCount: $attemptCount, ')
+          ..write('lastError: $lastError, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    opId,
+    operation,
+    identifier,
+    status,
+    attemptCount,
+    lastError,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FriendMutationsTableData &&
+          other.opId == this.opId &&
+          other.operation == this.operation &&
+          other.identifier == this.identifier &&
+          other.status == this.status &&
+          other.attemptCount == this.attemptCount &&
+          other.lastError == this.lastError &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class FriendMutationsTableCompanion
+    extends UpdateCompanion<FriendMutationsTableData> {
+  final Value<String> opId;
+  final Value<String> operation;
+  final Value<String?> identifier;
+  final Value<String?> status;
+  final Value<int> attemptCount;
+  final Value<String?> lastError;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const FriendMutationsTableCompanion({
+    this.opId = const Value.absent(),
+    this.operation = const Value.absent(),
+    this.identifier = const Value.absent(),
+    this.status = const Value.absent(),
+    this.attemptCount = const Value.absent(),
+    this.lastError = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  FriendMutationsTableCompanion.insert({
+    required String opId,
+    required String operation,
+    this.identifier = const Value.absent(),
+    this.status = const Value.absent(),
+    this.attemptCount = const Value.absent(),
+    this.lastError = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : opId = Value(opId),
+       operation = Value(operation),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<FriendMutationsTableData> custom({
+    Expression<String>? opId,
+    Expression<String>? operation,
+    Expression<String>? identifier,
+    Expression<String>? status,
+    Expression<int>? attemptCount,
+    Expression<String>? lastError,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (opId != null) 'op_id': opId,
+      if (operation != null) 'operation': operation,
+      if (identifier != null) 'identifier': identifier,
+      if (status != null) 'status': status,
+      if (attemptCount != null) 'attempt_count': attemptCount,
+      if (lastError != null) 'last_error': lastError,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  FriendMutationsTableCompanion copyWith({
+    Value<String>? opId,
+    Value<String>? operation,
+    Value<String?>? identifier,
+    Value<String?>? status,
+    Value<int>? attemptCount,
+    Value<String?>? lastError,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return FriendMutationsTableCompanion(
+      opId: opId ?? this.opId,
+      operation: operation ?? this.operation,
+      identifier: identifier ?? this.identifier,
+      status: status ?? this.status,
+      attemptCount: attemptCount ?? this.attemptCount,
+      lastError: lastError ?? this.lastError,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (opId.present) {
+      map['op_id'] = Variable<String>(opId.value);
+    }
+    if (operation.present) {
+      map['operation'] = Variable<String>(operation.value);
+    }
+    if (identifier.present) {
+      map['identifier'] = Variable<String>(identifier.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (attemptCount.present) {
+      map['attempt_count'] = Variable<int>(attemptCount.value);
+    }
+    if (lastError.present) {
+      map['last_error'] = Variable<String>(lastError.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FriendMutationsTableCompanion(')
+          ..write('opId: $opId, ')
+          ..write('operation: $operation, ')
+          ..write('identifier: $identifier, ')
+          ..write('status: $status, ')
+          ..write('attemptCount: $attemptCount, ')
+          ..write('lastError: $lastError, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $MyStatusTableTable extends MyStatusTable
+    with TableInfo<$MyStatusTableTable, MyStatusTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MyStatusTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _syncStateMeta = const VerificationMeta(
+    'syncState',
+  );
+  @override
+  late final GeneratedColumn<String> syncState = GeneratedColumn<String>(
+    'sync_state',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('clean'),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, status, syncState, updatedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'my_status';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<MyStatusTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_statusMeta);
+    }
+    if (data.containsKey('sync_state')) {
+      context.handle(
+        _syncStateMeta,
+        syncState.isAcceptableOrUnknown(data['sync_state']!, _syncStateMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  MyStatusTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MyStatusTableData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      syncState: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sync_state'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $MyStatusTableTable createAlias(String alias) {
+    return $MyStatusTableTable(attachedDatabase, alias);
+  }
+}
+
+class MyStatusTableData extends DataClass
+    implements Insertable<MyStatusTableData> {
+  final String id;
+  final String status;
+  final String syncState;
+  final DateTime updatedAt;
+  const MyStatusTableData({
+    required this.id,
+    required this.status,
+    required this.syncState,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['status'] = Variable<String>(status);
+    map['sync_state'] = Variable<String>(syncState);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  MyStatusTableCompanion toCompanion(bool nullToAbsent) {
+    return MyStatusTableCompanion(
+      id: Value(id),
+      status: Value(status),
+      syncState: Value(syncState),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory MyStatusTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MyStatusTableData(
+      id: serializer.fromJson<String>(json['id']),
+      status: serializer.fromJson<String>(json['status']),
+      syncState: serializer.fromJson<String>(json['syncState']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'status': serializer.toJson<String>(status),
+      'syncState': serializer.toJson<String>(syncState),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  MyStatusTableData copyWith({
+    String? id,
+    String? status,
+    String? syncState,
+    DateTime? updatedAt,
+  }) => MyStatusTableData(
+    id: id ?? this.id,
+    status: status ?? this.status,
+    syncState: syncState ?? this.syncState,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  MyStatusTableData copyWithCompanion(MyStatusTableCompanion data) {
+    return MyStatusTableData(
+      id: data.id.present ? data.id.value : this.id,
+      status: data.status.present ? data.status.value : this.status,
+      syncState: data.syncState.present ? data.syncState.value : this.syncState,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MyStatusTableData(')
+          ..write('id: $id, ')
+          ..write('status: $status, ')
+          ..write('syncState: $syncState, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, status, syncState, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MyStatusTableData &&
+          other.id == this.id &&
+          other.status == this.status &&
+          other.syncState == this.syncState &&
+          other.updatedAt == this.updatedAt);
+}
+
+class MyStatusTableCompanion extends UpdateCompanion<MyStatusTableData> {
+  final Value<String> id;
+  final Value<String> status;
+  final Value<String> syncState;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const MyStatusTableCompanion({
+    this.id = const Value.absent(),
+    this.status = const Value.absent(),
+    this.syncState = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  MyStatusTableCompanion.insert({
+    required String id,
+    required String status,
+    this.syncState = const Value.absent(),
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       status = Value(status),
+       updatedAt = Value(updatedAt);
+  static Insertable<MyStatusTableData> custom({
+    Expression<String>? id,
+    Expression<String>? status,
+    Expression<String>? syncState,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (status != null) 'status': status,
+      if (syncState != null) 'sync_state': syncState,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  MyStatusTableCompanion copyWith({
+    Value<String>? id,
+    Value<String>? status,
+    Value<String>? syncState,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return MyStatusTableCompanion(
+      id: id ?? this.id,
+      status: status ?? this.status,
+      syncState: syncState ?? this.syncState,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (syncState.present) {
+      map['sync_state'] = Variable<String>(syncState.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MyStatusTableCompanion(')
+          ..write('id: $id, ')
+          ..write('status: $status, ')
+          ..write('syncState: $syncState, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $CachedPathsTableTable extends CachedPathsTable
     with TableInfo<$CachedPathsTableTable, CachedPathsTableData> {
   @override
@@ -3065,6 +4311,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $ScheduleClassesTableTable(this);
   late final $FavoriteMutationsTableTable favoriteMutationsTable =
       $FavoriteMutationsTableTable(this);
+  late final $FriendsTableTable friendsTable = $FriendsTableTable(this);
+  late final $FriendMutationsTableTable friendMutationsTable =
+      $FriendMutationsTableTable(this);
+  late final $MyStatusTableTable myStatusTable = $MyStatusTableTable(this);
   late final $CachedPathsTableTable cachedPathsTable = $CachedPathsTableTable(
     this,
   );
@@ -3079,6 +4329,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     favoriteRoomsTable,
     scheduleClassesTable,
     favoriteMutationsTable,
+    friendsTable,
+    friendMutationsTable,
+    myStatusTable,
     cachedPathsTable,
     cachedRecommendedRoomsTable,
   ];
@@ -4281,6 +5534,687 @@ typedef $$FavoriteMutationsTableTableProcessedTableManager =
       FavoriteMutationsTableData,
       PrefetchHooks Function()
     >;
+typedef $$FriendsTableTableCreateCompanionBuilder =
+    FriendsTableCompanion Function({
+      required String email,
+      required String username,
+      required String status,
+      Value<String> syncState,
+      Value<String?> lastError,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$FriendsTableTableUpdateCompanionBuilder =
+    FriendsTableCompanion Function({
+      Value<String> email,
+      Value<String> username,
+      Value<String> status,
+      Value<String> syncState,
+      Value<String?> lastError,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$FriendsTableTableFilterComposer
+    extends Composer<_$AppDatabase, $FriendsTableTable> {
+  $$FriendsTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get email => $composableBuilder(
+    column: $table.email,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get username => $composableBuilder(
+    column: $table.username,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get syncState => $composableBuilder(
+    column: $table.syncState,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lastError => $composableBuilder(
+    column: $table.lastError,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$FriendsTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $FriendsTableTable> {
+  $$FriendsTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get email => $composableBuilder(
+    column: $table.email,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get username => $composableBuilder(
+    column: $table.username,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get syncState => $composableBuilder(
+    column: $table.syncState,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lastError => $composableBuilder(
+    column: $table.lastError,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$FriendsTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $FriendsTableTable> {
+  $$FriendsTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get email =>
+      $composableBuilder(column: $table.email, builder: (column) => column);
+
+  GeneratedColumn<String> get username =>
+      $composableBuilder(column: $table.username, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get syncState =>
+      $composableBuilder(column: $table.syncState, builder: (column) => column);
+
+  GeneratedColumn<String> get lastError =>
+      $composableBuilder(column: $table.lastError, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$FriendsTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $FriendsTableTable,
+          FriendsTableData,
+          $$FriendsTableTableFilterComposer,
+          $$FriendsTableTableOrderingComposer,
+          $$FriendsTableTableAnnotationComposer,
+          $$FriendsTableTableCreateCompanionBuilder,
+          $$FriendsTableTableUpdateCompanionBuilder,
+          (
+            FriendsTableData,
+            BaseReferences<_$AppDatabase, $FriendsTableTable, FriendsTableData>,
+          ),
+          FriendsTableData,
+          PrefetchHooks Function()
+        > {
+  $$FriendsTableTableTableManager(_$AppDatabase db, $FriendsTableTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$FriendsTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$FriendsTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$FriendsTableTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> email = const Value.absent(),
+                Value<String> username = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<String> syncState = const Value.absent(),
+                Value<String?> lastError = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FriendsTableCompanion(
+                email: email,
+                username: username,
+                status: status,
+                syncState: syncState,
+                lastError: lastError,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String email,
+                required String username,
+                required String status,
+                Value<String> syncState = const Value.absent(),
+                Value<String?> lastError = const Value.absent(),
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => FriendsTableCompanion.insert(
+                email: email,
+                username: username,
+                status: status,
+                syncState: syncState,
+                lastError: lastError,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$FriendsTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $FriendsTableTable,
+      FriendsTableData,
+      $$FriendsTableTableFilterComposer,
+      $$FriendsTableTableOrderingComposer,
+      $$FriendsTableTableAnnotationComposer,
+      $$FriendsTableTableCreateCompanionBuilder,
+      $$FriendsTableTableUpdateCompanionBuilder,
+      (
+        FriendsTableData,
+        BaseReferences<_$AppDatabase, $FriendsTableTable, FriendsTableData>,
+      ),
+      FriendsTableData,
+      PrefetchHooks Function()
+    >;
+typedef $$FriendMutationsTableTableCreateCompanionBuilder =
+    FriendMutationsTableCompanion Function({
+      required String opId,
+      required String operation,
+      Value<String?> identifier,
+      Value<String?> status,
+      Value<int> attemptCount,
+      Value<String?> lastError,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$FriendMutationsTableTableUpdateCompanionBuilder =
+    FriendMutationsTableCompanion Function({
+      Value<String> opId,
+      Value<String> operation,
+      Value<String?> identifier,
+      Value<String?> status,
+      Value<int> attemptCount,
+      Value<String?> lastError,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$FriendMutationsTableTableFilterComposer
+    extends Composer<_$AppDatabase, $FriendMutationsTableTable> {
+  $$FriendMutationsTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get opId => $composableBuilder(
+    column: $table.opId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get operation => $composableBuilder(
+    column: $table.operation,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get identifier => $composableBuilder(
+    column: $table.identifier,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get attemptCount => $composableBuilder(
+    column: $table.attemptCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lastError => $composableBuilder(
+    column: $table.lastError,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$FriendMutationsTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $FriendMutationsTableTable> {
+  $$FriendMutationsTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get opId => $composableBuilder(
+    column: $table.opId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get operation => $composableBuilder(
+    column: $table.operation,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get identifier => $composableBuilder(
+    column: $table.identifier,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get attemptCount => $composableBuilder(
+    column: $table.attemptCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lastError => $composableBuilder(
+    column: $table.lastError,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$FriendMutationsTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $FriendMutationsTableTable> {
+  $$FriendMutationsTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get opId =>
+      $composableBuilder(column: $table.opId, builder: (column) => column);
+
+  GeneratedColumn<String> get operation =>
+      $composableBuilder(column: $table.operation, builder: (column) => column);
+
+  GeneratedColumn<String> get identifier => $composableBuilder(
+    column: $table.identifier,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<int> get attemptCount => $composableBuilder(
+    column: $table.attemptCount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get lastError =>
+      $composableBuilder(column: $table.lastError, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$FriendMutationsTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $FriendMutationsTableTable,
+          FriendMutationsTableData,
+          $$FriendMutationsTableTableFilterComposer,
+          $$FriendMutationsTableTableOrderingComposer,
+          $$FriendMutationsTableTableAnnotationComposer,
+          $$FriendMutationsTableTableCreateCompanionBuilder,
+          $$FriendMutationsTableTableUpdateCompanionBuilder,
+          (
+            FriendMutationsTableData,
+            BaseReferences<
+              _$AppDatabase,
+              $FriendMutationsTableTable,
+              FriendMutationsTableData
+            >,
+          ),
+          FriendMutationsTableData,
+          PrefetchHooks Function()
+        > {
+  $$FriendMutationsTableTableTableManager(
+    _$AppDatabase db,
+    $FriendMutationsTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$FriendMutationsTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$FriendMutationsTableTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$FriendMutationsTableTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> opId = const Value.absent(),
+                Value<String> operation = const Value.absent(),
+                Value<String?> identifier = const Value.absent(),
+                Value<String?> status = const Value.absent(),
+                Value<int> attemptCount = const Value.absent(),
+                Value<String?> lastError = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FriendMutationsTableCompanion(
+                opId: opId,
+                operation: operation,
+                identifier: identifier,
+                status: status,
+                attemptCount: attemptCount,
+                lastError: lastError,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String opId,
+                required String operation,
+                Value<String?> identifier = const Value.absent(),
+                Value<String?> status = const Value.absent(),
+                Value<int> attemptCount = const Value.absent(),
+                Value<String?> lastError = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => FriendMutationsTableCompanion.insert(
+                opId: opId,
+                operation: operation,
+                identifier: identifier,
+                status: status,
+                attemptCount: attemptCount,
+                lastError: lastError,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$FriendMutationsTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $FriendMutationsTableTable,
+      FriendMutationsTableData,
+      $$FriendMutationsTableTableFilterComposer,
+      $$FriendMutationsTableTableOrderingComposer,
+      $$FriendMutationsTableTableAnnotationComposer,
+      $$FriendMutationsTableTableCreateCompanionBuilder,
+      $$FriendMutationsTableTableUpdateCompanionBuilder,
+      (
+        FriendMutationsTableData,
+        BaseReferences<
+          _$AppDatabase,
+          $FriendMutationsTableTable,
+          FriendMutationsTableData
+        >,
+      ),
+      FriendMutationsTableData,
+      PrefetchHooks Function()
+    >;
+typedef $$MyStatusTableTableCreateCompanionBuilder =
+    MyStatusTableCompanion Function({
+      required String id,
+      required String status,
+      Value<String> syncState,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$MyStatusTableTableUpdateCompanionBuilder =
+    MyStatusTableCompanion Function({
+      Value<String> id,
+      Value<String> status,
+      Value<String> syncState,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$MyStatusTableTableFilterComposer
+    extends Composer<_$AppDatabase, $MyStatusTableTable> {
+  $$MyStatusTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get syncState => $composableBuilder(
+    column: $table.syncState,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$MyStatusTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $MyStatusTableTable> {
+  $$MyStatusTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get syncState => $composableBuilder(
+    column: $table.syncState,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$MyStatusTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $MyStatusTableTable> {
+  $$MyStatusTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get syncState =>
+      $composableBuilder(column: $table.syncState, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$MyStatusTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $MyStatusTableTable,
+          MyStatusTableData,
+          $$MyStatusTableTableFilterComposer,
+          $$MyStatusTableTableOrderingComposer,
+          $$MyStatusTableTableAnnotationComposer,
+          $$MyStatusTableTableCreateCompanionBuilder,
+          $$MyStatusTableTableUpdateCompanionBuilder,
+          (
+            MyStatusTableData,
+            BaseReferences<
+              _$AppDatabase,
+              $MyStatusTableTable,
+              MyStatusTableData
+            >,
+          ),
+          MyStatusTableData,
+          PrefetchHooks Function()
+        > {
+  $$MyStatusTableTableTableManager(_$AppDatabase db, $MyStatusTableTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$MyStatusTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$MyStatusTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$MyStatusTableTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<String> syncState = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MyStatusTableCompanion(
+                id: id,
+                status: status,
+                syncState: syncState,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String status,
+                Value<String> syncState = const Value.absent(),
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => MyStatusTableCompanion.insert(
+                id: id,
+                status: status,
+                syncState: syncState,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$MyStatusTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $MyStatusTableTable,
+      MyStatusTableData,
+      $$MyStatusTableTableFilterComposer,
+      $$MyStatusTableTableOrderingComposer,
+      $$MyStatusTableTableAnnotationComposer,
+      $$MyStatusTableTableCreateCompanionBuilder,
+      $$MyStatusTableTableUpdateCompanionBuilder,
+      (
+        MyStatusTableData,
+        BaseReferences<_$AppDatabase, $MyStatusTableTable, MyStatusTableData>,
+      ),
+      MyStatusTableData,
+      PrefetchHooks Function()
+    >;
 typedef $$CachedPathsTableTableCreateCompanionBuilder =
     CachedPathsTableCompanion Function({
       required String cacheKey,
@@ -4712,6 +6646,12 @@ class $AppDatabaseManager {
         _db,
         _db.favoriteMutationsTable,
       );
+  $$FriendsTableTableTableManager get friendsTable =>
+      $$FriendsTableTableTableManager(_db, _db.friendsTable);
+  $$FriendMutationsTableTableTableManager get friendMutationsTable =>
+      $$FriendMutationsTableTableTableManager(_db, _db.friendMutationsTable);
+  $$MyStatusTableTableTableManager get myStatusTable =>
+      $$MyStatusTableTableTableManager(_db, _db.myStatusTable);
   $$CachedPathsTableTableTableManager get cachedPathsTable =>
       $$CachedPathsTableTableTableManager(_db, _db.cachedPathsTable);
   $$CachedRecommendedRoomsTableTableTableManager

@@ -49,6 +49,10 @@ class AuthPopupMenu extends ConsumerWidget {
                   Navigator.of(dialogContext).pop();
                   Navigator.of(context).pushNamed(AppRoutes.profile);
                 },
+                onFriends: () {
+                  Navigator.of(dialogContext).pop();
+                  Navigator.of(context).pushNamed(AppRoutes.friends);
+                },
                 onTheme: () {
                   Navigator.of(dialogContext).pop();
                   _showTheme(context, ref);
@@ -91,8 +95,8 @@ class AuthPopupMenu extends ConsumerWidget {
       icon: Center(
         child: SvgPicture.asset(
           iconPath,
-          width: 22,
-          height: 22,
+          width: 24,
+          height: 24,
           fit: BoxFit.contain,
           colorFilter: ColorFilter.mode(resolvedIconColor, BlendMode.srcIn),
         ),
@@ -156,12 +160,14 @@ class _LoggedInContent extends StatelessWidget {
   const _LoggedInContent({
     required this.username,
     required this.onProfile,
+    required this.onFriends,
     required this.onTheme,
     required this.onLogout,
   });
 
   final String? username;
   final VoidCallback onProfile;
+  final VoidCallback onFriends;
   final VoidCallback onTheme;
   final VoidCallback onLogout;
 
@@ -183,6 +189,12 @@ class _LoggedInContent extends StatelessWidget {
           icon: Icons.account_circle_outlined,
           title: 'Profile',
           onTap: onProfile,
+        ),
+        const SizedBox(height: 8),
+        _MenuActionTile(
+          icon: Icons.people_outline,
+          title: 'Friends',
+          onTap: onFriends,
         ),
         const SizedBox(height: 8),
         _MenuActionTile(
@@ -298,15 +310,15 @@ class _MenuActionTile extends StatelessWidget {
 class _AuthButton extends StatelessWidget {
   const _AuthButton({
     required this.text,
-    required this.icon,
     required this.backgroundColor,
     required this.foregroundColor,
     required this.onTap,
+    this.icon,
     this.borderColor,
   });
 
   final String text;
-  final IconData icon;
+  final IconData? icon;
   final Color backgroundColor;
   final Color foregroundColor;
   final VoidCallback onTap;
@@ -336,8 +348,10 @@ class _AuthButton extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, color: foregroundColor, size: 20),
-              const SizedBox(width: 8),
+              if (icon != null) ...[
+                Icon(icon, color: foregroundColor, size: 20),
+                const SizedBox(width: 8),
+              ],
               Text(
                 text,
                 style:
