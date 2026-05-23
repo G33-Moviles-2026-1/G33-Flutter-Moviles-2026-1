@@ -119,4 +119,16 @@ class FriendshipsLocalDataSource {
   Future<void> clearLocalData() {
     return _db.clearFriendshipsLocalData();
   }
+
+  Future<void> ensureCacheBelongsToUser(String userEmail) async {
+    final normalizedEmail = userEmail.trim().toLowerCase();
+    final currentOwner = await _db.getFriendshipsCacheOwnerEmail();
+
+    if (currentOwner == normalizedEmail) {
+      return;
+    }
+
+    await _db.clearFriendshipsLocalData();
+    await _db.setFriendshipsCacheOwnerEmail(normalizedEmail);
+  }
 }

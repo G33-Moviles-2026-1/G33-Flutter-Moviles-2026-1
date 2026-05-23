@@ -28,4 +28,6 @@ abstract class FriendshipsRepository {
   Future<void> syncPendingMutations();
 
   Future<void> clearLocalData();
+
+  Future<void> ensureLocalCacheForUser(String userEmail);
 }

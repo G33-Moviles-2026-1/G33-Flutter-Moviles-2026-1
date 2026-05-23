@@ -13,25 +13,30 @@ import '../providers/friendships_providers.dart';
 import 'friendships_state.dart';
 
 class FriendshipsNotifier extends Notifier<FriendshipsState> {
-  late final FriendshipsRepository _repository;
+  FriendshipsRepository get _repository =>
+      ref.read(friendshipsRepositoryProvider);
+
   StreamSubscription<void>? _connectivitySubscription;
+  bool _connectivityListenerStarted = false;
 
   static const String _exceptionPrefix = 'Exception: ';
 
   @override
   FriendshipsState build() {
-    _repository = ref.read(friendshipsRepositoryProvider);
+    if (!_connectivityListenerStarted) {
+      _connectivityListenerStarted = true;
 
-    _connectivitySubscription = ref
-        .read(connectivityRecoveryServiceProvider)
-        .onRecovered
-        .listen((_) {
-      refreshAll();
-    });
+      _connectivitySubscription = ref
+          .read(connectivityRecoveryServiceProvider)
+          .onRecovered
+          .listen((_) {
+        refreshAll();
+      });
 
-    ref.onDispose(() {
-      _connectivitySubscription?.cancel();
-    });
+      ref.onDispose(() {
+        _connectivitySubscription?.cancel();
+      });
+    }
 
     Future.microtask(refreshAll);
 
@@ -42,13 +47,28 @@ class FriendshipsNotifier extends Notifier<FriendshipsState> {
   }
 
   Future<void> refreshAll() async {
+    final currentUser = ref.read(authControllerProvider).user;
+
+    if (currentUser == null) {
+      await clearLocalData();
+      return;
+    }
+
     await loadFriends();
     await loadOnlineSections();
   }
 
   Future<void> loadFriends() async {
-    final authStatus =
-        ref.read(authControllerProvider).user?.status ?? UserStatus.incognito;
+    final currentUser = ref.read(authControllerProvider).user;
+
+    if (currentUser == null) {
+      await clearLocalData();
+      return;
+    }
+
+    await _repository.ensureLocalCacheForUser(currentUser.email);
+
+    final authStatus = currentUser.status;
 
     final cachedStatus = await _repository.getCachedMyStatus(
       fallback: authStatus,

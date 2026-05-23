@@ -457,4 +457,23 @@ class AppDatabase extends _$AppDatabase {
   Future<void> upsertMyStatus(MyStatusTableCompanion row) {
     return into(myStatusTable).insertOnConflictUpdate(row);
   }
+
+  Future<String?> getFriendshipsCacheOwnerEmail() async {
+    final row = await (select(myStatusTable)
+          ..where((t) => t.id.equals('friendships_cache_owner')))
+        .getSingleOrNull();
+
+    return row?.status;
+  }
+
+  Future<void> setFriendshipsCacheOwnerEmail(String email) {
+    return into(myStatusTable).insertOnConflictUpdate(
+      MyStatusTableCompanion(
+        id: const Value('friendships_cache_owner'),
+        status: Value(email),
+        syncState: const Value('clean'),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+  }
 }

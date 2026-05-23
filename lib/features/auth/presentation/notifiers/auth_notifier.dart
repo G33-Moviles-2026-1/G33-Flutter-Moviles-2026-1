@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:andespace/core/di/core_provider.dart';
 import 'package:andespace/features/auth/domain/entities/user_status.dart';
 import 'package:andespace/features/schedule/presentation/notifiers/schedule_notifier.dart';
+import 'package:andespace/features/friendships/presentation/providers/friendships_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:andespace/core/di/auth_providers.dart';
@@ -44,6 +45,11 @@ class AuthNotifier extends Notifier<AuthState> {
     });
 
     return const AuthState();
+  }
+
+  Future<void> _clearFriendshipsCacheForAuthSwitch() async {
+    await ref.read(friendshipsLocalDataSourceProvider).clearLocalData();
+    ref.invalidate(friendshipsControllerProvider);
   }
 
   Future<void> loadCurrentUser() async {
@@ -93,6 +99,7 @@ class AuthNotifier extends Notifier<AuthState> {
         ),
       );
     }
+    await _clearFriendshipsCacheForAuthSwitch();
   }
 
   Future<void> signup({
@@ -130,6 +137,7 @@ class AuthNotifier extends Notifier<AuthState> {
         ),
       );
     }
+    await _clearFriendshipsCacheForAuthSwitch();
   }
 
   Future<void> logout() async {
@@ -156,6 +164,7 @@ class AuthNotifier extends Notifier<AuthState> {
         ),
       );
     }
+    await _clearFriendshipsCacheForAuthSwitch();
   }
 
   void clearState() {

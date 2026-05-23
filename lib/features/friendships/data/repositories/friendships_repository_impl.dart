@@ -163,4 +163,9 @@ class FriendshipsRepositoryImpl implements FriendshipsRepository {
   Future<void> clearLocalData() {
     return localDataSource.clearLocalData();
   }
+
+  @override
+  Future<void> ensureLocalCacheForUser(String userEmail) {
+    return localDataSource.ensureCacheBelongsToUser(userEmail);
+  }
 }

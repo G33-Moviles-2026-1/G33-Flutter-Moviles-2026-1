@@ -9,6 +9,7 @@ import 'package:andespace/shared/theme/app_theme_extension.dart';
 import 'package:andespace/shared/widgets/app_scaffold.dart';
 import 'package:andespace/shared/widgets/auth_required_scaffold.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' as services;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -174,10 +175,27 @@ class _SearchUsernameField extends StatelessWidget {
       borderRadius: BorderRadius.circular(10),
       child: TextField(
         controller: controller,
+        maxLength: 25,
+        maxLengthEnforcement: services.MaxLengthEnforcement.enforced,
+        inputFormatters: [
+          services.LengthLimitingTextInputFormatter(25),
+          services.FilteringTextInputFormatter.allow(
+            RegExp(r'[a-zA-Z0-9._-]'),
+          ),
+          services.TextInputFormatter.withFunction((oldValue, newValue) {
+            final lowerText = newValue.text.toLowerCase();
+
+            return TextEditingValue(
+              text: lowerText,
+              selection: TextSelection.collapsed(offset: lowerText.length),
+            );
+          }),
+        ],
         onChanged: onChanged,
         style: theme.textTheme.bodyLarge?.copyWith(fontSize: 16),
         decoration: InputDecoration(
           hintText: 'Search by username',
+          counterText: '',
           filled: true,
           fillColor: _cardBackground(context),
           contentPadding: const EdgeInsets.symmetric(
