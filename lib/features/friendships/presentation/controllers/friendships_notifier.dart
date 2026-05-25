@@ -330,6 +330,10 @@ Future<bool> sendFriendRequest([String? rawUsername]) async {
     }
   }
 
+  void syncMyStatus(UserStatus status) {
+    state = state.copyWith(myStatus: status);
+  }
+
   Future<void> updateMyStatus(UserStatus status) async {
     final previous = state.myStatus;
 

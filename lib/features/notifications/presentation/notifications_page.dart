@@ -95,7 +95,7 @@ class NotificationsPage extends ConsumerWidget {
                               onPressed: () =>
                                   Navigator.pushReplacementNamed(
                                 context,
-                                AppRoutes.friends,
+                                AppRoutes.addFriends,
                               ),
                               style: FilledButton.styleFrom(
                                 backgroundColor:

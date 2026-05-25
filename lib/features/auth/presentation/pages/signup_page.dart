@@ -20,6 +20,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
   final _formKey = GlobalKey<FormState>();
 
   final _emailCtrl = TextEditingController();
+  final _usernameCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   final _confirmPasswordCtrl = TextEditingController();
   final _carnetCtrl = TextEditingController();
@@ -40,6 +41,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
   @override
   void dispose() {
     _emailCtrl.dispose();
+    _usernameCtrl.dispose();
     _passwordCtrl.dispose();
     _confirmPasswordCtrl.dispose();
     _carnetCtrl.dispose();
@@ -64,6 +66,9 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
           email: _emailCtrl.text.trim(),
           password: _passwordCtrl.text.trim(),
           firstSemester: first5Digits,
+          username: _usernameCtrl.text.trim().isEmpty
+              ? null
+              : _usernameCtrl.text.trim(),
         );
   }
 
@@ -110,6 +115,30 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                     !email.endsWith('@uniandes.edu.co') ||
                     email.length > 35) {
                   return 'Enter a valid Uniandes email';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 18),
+            TextFormField(
+              controller: _usernameCtrl,
+              inputFormatters: [
+                LengthLimitingTextInputFormatter(30),
+                FilteringTextInputFormatter.allow(
+                  RegExp(r'[a-zA-Z0-9._\-]'),
+                ),
+              ],
+              decoration: const InputDecoration(
+                hintText: 'Username (optional)',
+              ),
+              validator: (value) {
+                final v = value?.trim() ?? '';
+                if (v.isEmpty) return null;
+                if (v.length < 3) {
+                  return 'Username must be at least 3 characters';
+                }
+                if (!RegExp(r'^[a-zA-Z0-9._\-]+$').hasMatch(v)) {
+                  return 'Only letters, digits, . _ - allowed';
                 }
                 return null;
               },

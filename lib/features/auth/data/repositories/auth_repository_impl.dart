@@ -15,7 +15,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<void> login({required String email, required String password}) async {
-    await api.login(LoginRequestDto(email: email, password: password));
+    await api.login(LoginRequestDto(identifier: email, password: password));
 
     final user = await getCurrentUser();
     if (user != null) {
