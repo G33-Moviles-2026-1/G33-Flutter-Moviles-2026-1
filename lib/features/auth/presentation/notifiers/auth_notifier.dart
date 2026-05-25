@@ -226,6 +226,11 @@ class AuthNotifier extends Notifier<AuthState> {
       }
 
       state = state.copyWith(isLoading: false, user: optimisticUser);
+      try {
+        ref
+            .read(friendshipsControllerProvider.notifier)
+            .syncMyStatus(userStatus);
+      } catch (_) {}
     } catch (error) {
       state = state.copyWith(isLoading: false, user: previousUser);
       rethrow;
