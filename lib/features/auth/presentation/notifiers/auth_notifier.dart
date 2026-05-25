@@ -177,7 +177,9 @@ class AuthNotifier extends Notifier<AuthState> {
   }) async {
     state = state.copyWith(isLoading: true);
     try {
-      await ref.read(authRepositoryProvider).updatePassword(
+      await ref
+          .read(authRepositoryProvider)
+          .updatePassword(
             currentPassword: currentPassword,
             newPassword: newPassword,
           );
@@ -189,15 +191,40 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   Future<void> updateStatus(String status) async {
-    state = state.copyWith(isLoading: true);
+    final previousUser = state.user;
+    final userStatus = UserStatus.fromBackendKey(status);
+    final optimisticUser = previousUser?.copyWith(
+      status: userStatus,
+      shareSchedule: userStatus == UserStatus.incognito
+          ? false
+          : previousUser.shareSchedule,
+    );
+
+    state = state.copyWith(isLoading: true, user: optimisticUser);
     try {
       await ref.read(authRepositoryProvider).updateStatus(status);
-      final updated = state.user?.copyWith(
-        status: UserStatus.fromBackendKey(status),
-      );
-      state = state.copyWith(isLoading: false, user: updated);
+
+      if (userStatus == UserStatus.incognito) {
+        await ref.read(authRepositoryProvider).updateShareSchedule(false);
+      }
+
+      state = state.copyWith(isLoading: false, user: optimisticUser);
     } catch (error) {
-      state = state.copyWith(isLoading: false);
+      state = state.copyWith(isLoading: false, user: previousUser);
+      rethrow;
+    }
+  }
+
+  Future<void> updateShareSchedule(bool shareSchedule) async {
+    final previousUser = state.user;
+    final optimisticUser = previousUser?.copyWith(shareSchedule: shareSchedule);
+
+    state = state.copyWith(isLoading: true, user: optimisticUser);
+    try {
+      await ref.read(authRepositoryProvider).updateShareSchedule(shareSchedule);
+      state = state.copyWith(isLoading: false, user: optimisticUser);
+    } catch (error) {
+      state = state.copyWith(isLoading: false, user: previousUser);
       rethrow;
     }
   }

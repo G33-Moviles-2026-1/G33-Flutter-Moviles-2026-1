@@ -3,10 +3,11 @@ import 'package:andespace/core/navigation/app_tab.dart';
 import 'package:andespace/features/auth/domain/entities/user_status.dart';
 import 'package:andespace/features/auth/presentation/notifiers/auth_notifier.dart';
 import 'package:andespace/features/friendships/domain/entities/friend.dart';
-import 'package:andespace/features/friendships/presentation/controllers/friendships_notifier.dart';
-import 'package:andespace/features/friendships/presentation/controllers/friendships_state.dart';
+import 'package:andespace/features/friendships/presentation/notifiers/friendships_notifier.dart';
+import 'package:andespace/features/friendships/presentation/notifiers/friendships_state.dart';
 import 'package:andespace/features/friendships/presentation/pages/add_friends_page.dart';
 import 'package:andespace/features/friendships/presentation/pages/friend_schedule_page.dart';
+import 'package:andespace/features/friendships/presentation/pages/friends_free_slots_page.dart';
 import 'package:andespace/features/friendships/presentation/providers/friendships_providers.dart';
 import 'package:andespace/shared/theme/app_theme_extension.dart';
 import 'package:andespace/shared/widgets/app_scaffold.dart';
@@ -15,11 +16,50 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-class FriendsPage extends ConsumerWidget {
+class FriendsPage extends ConsumerStatefulWidget {
   const FriendsPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<FriendsPage> createState() => _FriendsPageState();
+}
+
+class _FriendsPageState extends ConsumerState<FriendsPage> {
+  final Set<String> _selectedFriendEmails = {};
+
+  bool get _isSelectionMode => _selectedFriendEmails.isNotEmpty;
+
+  void _toggleFriendSelection(Friend friend) {
+    setState(() {
+      if (_selectedFriendEmails.contains(friend.email)) {
+        _selectedFriendEmails.remove(friend.email);
+      } else {
+        _selectedFriendEmails.add(friend.email);
+      }
+    });
+  }
+
+  void _clearSelection() {
+    setState(_selectedFriendEmails.clear);
+  }
+
+  List<Friend> _selectedFriends(List<Friend> friends) {
+    return friends
+        .where((friend) => _selectedFriendEmails.contains(friend.email))
+        .toList();
+  }
+
+  void _openFreeSlots(List<Friend> selectedFriends) {
+    if (selectedFriends.isEmpty) return;
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => FriendsFreeSlotsPage(friends: selectedFriends),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final authState = ref.watch(authControllerProvider);
 
     if (!authState.hasActiveSession) {
@@ -34,6 +74,7 @@ class FriendsPage extends ConsumerWidget {
     final state = ref.watch(friendshipsControllerProvider);
     final notifier = ref.read(friendshipsControllerProvider.notifier);
     final theme = Theme.of(context);
+    final selectedFriends = _selectedFriends(state.friends);
 
     ref.listen<FriendshipsState>(friendshipsControllerProvider, (
       previous,
@@ -97,6 +138,17 @@ class FriendsPage extends ConsumerWidget {
                 ],
               ),
               const SizedBox(height: 18),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 180),
+                child: _isSelectionMode
+                    ? _SelectionActionBar(
+                        selectedCount: selectedFriends.length,
+                        onClear: _clearSelection,
+                        onFreeSlots: () => _openFreeSlots(selectedFriends),
+                      )
+                    : const SizedBox.shrink(),
+              ),
+              if (_isSelectionMode) const SizedBox(height: 18),
               if (state.isFriendsLoading && state.friends.isEmpty)
                 const Padding(
                   padding: EdgeInsets.only(top: 80),
@@ -127,17 +179,28 @@ class FriendsPage extends ConsumerWidget {
                     final isPending = state.pendingFriendUsernames.contains(
                       friend.username,
                     );
+                    final isSelected = _selectedFriendEmails.contains(
+                      friend.email,
+                    );
 
                     return _FriendCard(
                       friend: friend,
                       isPending: isPending,
+                      isSelected: isSelected,
+                      isSelectionMode: _isSelectionMode,
                       onTap: () {
+                        if (_isSelectionMode) {
+                          _toggleFriendSelection(friend);
+                          return;
+                        }
+
                         Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (_) => FriendSchedulePage(friend: friend),
                           ),
                         );
                       },
+                      onLongPress: () => _toggleFriendSelection(friend),
                       onDelete: () =>
                           _confirmRemoveFriend(context, notifier, friend),
                     );
@@ -210,6 +273,68 @@ class FriendsPage extends ConsumerWidget {
   }
 }
 
+class _SelectionActionBar extends StatelessWidget {
+  const _SelectionActionBar({
+    required this.selectedCount,
+    required this.onClear,
+    required this.onFreeSlots,
+  });
+
+  final int selectedCount;
+  final VoidCallback onClear;
+  final VoidCallback onFreeSlots;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      key: const ValueKey('friend-selection-actions'),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: _cardBackground(context),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: _selectionColor(context).withValues(alpha: .7),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.12),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              '$selectedCount selected',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+          TextButton(onPressed: onClear, child: const Text('Clear')),
+          const SizedBox(width: 8),
+          ElevatedButton.icon(
+            style: _compactElevatedButtonStyle(
+              context,
+              minimumHeight: 42,
+              borderRadius: 8,
+            ),
+            onPressed: selectedCount == 0 ? null : onFreeSlots,
+            icon: const Icon(Icons.grid_view_rounded, size: 19),
+            label: const Text('Free Slots'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _TopActionButton extends StatelessWidget {
   const _TopActionButton({
     required this.label,
@@ -271,13 +396,19 @@ class _FriendCard extends StatelessWidget {
   const _FriendCard({
     required this.friend,
     required this.isPending,
+    required this.isSelected,
+    required this.isSelectionMode,
     required this.onTap,
+    required this.onLongPress,
     required this.onDelete,
   });
 
   final Friend friend;
   final bool isPending;
+  final bool isSelected;
+  final bool isSelectionMode;
   final VoidCallback onTap;
+  final VoidCallback onLongPress;
   final VoidCallback onDelete;
 
   @override
@@ -291,18 +422,48 @@ class _FriendCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(8),
       child: InkWell(
         onTap: onTap,
+        onLongPress: onLongPress,
         borderRadius: BorderRadius.circular(8),
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: _borderColor(context)),
+            border: Border.all(
+              color: isSelected
+                  ? _selectionColor(context)
+                  : _borderColor(context),
+              width: isSelected ? 2.2 : 1,
+            ),
           ),
           child: Stack(
             children: [
+              if (isSelected)
+                Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: _selectionColor(context).withValues(alpha: 0.10),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
               Positioned(
                 top: 0,
                 right: 0,
-                child: isPending
+                child: isSelectionMode
+                    ? Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: Icon(
+                          isSelected
+                              ? Icons.check_circle
+                              : Icons.radio_button_unchecked,
+                          size: 28,
+                          color: isSelected
+                              ? _selectionColor(context)
+                              : _primaryIconColor(
+                                  context,
+                                ).withValues(alpha: 0.55),
+                        ),
+                      )
+                    : isPending
                     ? const Padding(
                         padding: EdgeInsets.all(12),
                         child: SizedBox(
@@ -566,6 +727,13 @@ Color _borderColor(BuildContext context) {
   return isDark
       ? Colors.white.withValues(alpha: 0.10)
       : Colors.black.withValues(alpha: 0.08);
+}
+
+Color _selectionColor(BuildContext context) {
+  final theme = Theme.of(context);
+  final isDark = theme.brightness == Brightness.dark;
+
+  return isDark ? const Color(0xFFFFA500) : const Color(0xFF00A862);
 }
 
 ButtonStyle _compactElevatedButtonStyle(

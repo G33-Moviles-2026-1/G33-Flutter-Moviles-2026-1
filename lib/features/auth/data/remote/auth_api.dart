@@ -32,8 +32,16 @@ class AuthApi {
       data['active_user'] = profile['email'] ?? activeUser;
       data['username'] = profile['username'];
       data['status'] = profile['status'];
+      data['share_schedule'] = profile['share_schedule'];
     } catch (_) {
       // Keep /me/ response if profile fails temporarily.
+    }
+
+    try {
+      final shareSchedule = await readShareSchedule();
+      data['share_schedule'] = shareSchedule['share_schedule'];
+    } catch (_) {
+      // Keep the profile/default visibility if this small read fails.
     }
 
     return data;
@@ -44,18 +52,30 @@ class AuthApi {
     return Map<String, dynamic>.from(response.data);
   }
 
+  Future<Map<String, dynamic>> readShareSchedule() async {
+    final response = await dio.get('/me/share-schedule');
+    return Map<String, dynamic>.from(response.data);
+  }
+
   Future<void> updatePassword({
     required String currentPassword,
     required String newPassword,
   }) async {
-    await dio.put('/me/password', data: {
-      'current_password': currentPassword,
-      'new_password': newPassword,
-    });
+    await dio.put(
+      '/me/password',
+      data: {'current_password': currentPassword, 'new_password': newPassword},
+    );
   }
 
   Future<void> updateStatus(String status) async {
     await dio.put('/me/status', data: {'status': status});
+  }
+
+  Future<void> updateShareSchedule(bool shareSchedule) async {
+    await dio.put(
+      '/me/share-schedule',
+      data: {'share_schedule': shareSchedule},
+    );
   }
 
   Future<void> updateUsername(String username) async {

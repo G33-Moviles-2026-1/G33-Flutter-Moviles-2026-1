@@ -6,12 +6,14 @@ class AuthUserModel {
   final String? firstSemester;
   final String? username;
   final String? status;
+  final bool shareSchedule;
 
   const AuthUserModel({
     required this.email,
     this.firstSemester,
     this.username,
     this.status,
+    this.shareSchedule = true,
   });
 
   factory AuthUserModel.fromMeResponse(Map<String, dynamic> json) {
@@ -25,6 +27,7 @@ class AuthUserModel {
       firstSemester: json['first_semester'] as String?,
       username: json['username'] as String?,
       status: json['status'] as String?,
+      shareSchedule: json['share_schedule'] as bool? ?? true,
     );
   }
 
@@ -36,6 +39,7 @@ class AuthUserModel {
       status: status != null
           ? UserStatus.fromBackendKey(status!)
           : UserStatus.incognito,
+      shareSchedule: shareSchedule,
     );
   }
 }

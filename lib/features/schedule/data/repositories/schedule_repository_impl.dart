@@ -6,6 +6,7 @@ import 'package:andespace/features/schedule/data/models/manual_class_dto.dart';
 import 'package:dio/dio.dart';
 
 import '../../domain/entities/free_rooms_for_day.dart';
+import '../../domain/entities/friends_free_slot.dart';
 import '../../domain/entities/google_calendar_auth_session.dart';
 import '../../domain/entities/google_calendar_source.dart';
 import '../../domain/entities/manual_class.dart';
@@ -119,6 +120,19 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
     final model = await remoteDataSource.getFreeRoomsForDay(date: date);
 
     return FreeRoomsForDayMapper.toEntity(model);
+  }
+
+  @override
+  Future<FriendsFreeSlots> getFriendsFreeSlots({
+    required List<String> friendEmails,
+    required DateTime date,
+  }) async {
+    final model = await remoteDataSource.getFriendsFreeSlots(
+      friendEmails: friendEmails,
+      date: date,
+    );
+
+    return model.toEntity();
   }
 
   @override

@@ -84,7 +84,18 @@ class DioErrorMapper {
 
     if (rawDetail is List) {
       return rawDetail
-          .map((e) => e is Map ? (e['msg'] ?? e.toString()) : e.toString())
+          .map((e) {
+            if (e is! Map) return e.toString();
+
+            final msg = e['msg']?.toString();
+            final loc = e['loc'];
+            if (loc is List && loc.isNotEmpty) {
+              final field = loc.map((part) => part.toString()).join('.');
+              return msg == null ? field : '$field: $msg';
+            }
+
+            return msg ?? e.toString();
+          })
           .join(', ');
     }
 
