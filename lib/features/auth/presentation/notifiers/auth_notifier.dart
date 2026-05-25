@@ -106,6 +106,7 @@ class AuthNotifier extends Notifier<AuthState> {
     required String email,
     required String password,
     required String firstSemester,
+    String? username,
   }) async {
     state = state.copyWith(isLoading: true, error: null, isSuccess: false);
 
@@ -118,6 +119,22 @@ class AuthNotifier extends Notifier<AuthState> {
 
       if (user != null) {
         await ref.read(appDatabaseProvider).clearFriendshipsLocalData();
+      }
+
+      if (username != null && username.trim().isNotEmpty) {
+        try {
+          await ref
+              .read(authRepositoryProvider)
+              .updateUsername(username.trim());
+          final updated = user?.copyWith(username: username.trim());
+          state = AuthState(
+            isLoading: false,
+            isAuthenticated: user != null,
+            user: updated ?? user,
+            isSuccess: true,
+          );
+          return;
+        } catch (_) {        }
       }
 
       state = AuthState(
@@ -209,6 +226,11 @@ class AuthNotifier extends Notifier<AuthState> {
       }
 
       state = state.copyWith(isLoading: false, user: optimisticUser);
+      try {
+        ref
+            .read(friendshipsControllerProvider.notifier)
+            .syncMyStatus(userStatus);
+      } catch (_) {}
     } catch (error) {
       state = state.copyWith(isLoading: false, user: previousUser);
       rethrow;

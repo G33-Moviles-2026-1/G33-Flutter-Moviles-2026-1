@@ -56,6 +56,14 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       setState(() => _usernameError = 'Username cannot be empty.');
       return;
     }
+    if (username.length < 3) {
+      setState(() => _usernameError = 'Username must be at least 3 characters.');
+      return;
+    }
+    if (!RegExp(r'^[a-zA-Z0-9._\-]+$').hasMatch(username)) {
+      setState(() => _usernameError = 'Only letters, digits, . _ - allowed.');
+      return;
+    }
     setState(() {
       _usernameLoading = true;
       _usernameError = null;
@@ -198,6 +206,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                                 controller: _usernameCtrl,
                                 inputFormatters: [
                                   LengthLimitingTextInputFormatter(30),
+                                  FilteringTextInputFormatter.allow(
+                                    RegExp(r'[a-zA-Z0-9._\-]'),
+                                  ),
                                 ],
                                 style: theme.textTheme.bodyMedium?.copyWith(
                                   color: theme.colorScheme.onSurface,

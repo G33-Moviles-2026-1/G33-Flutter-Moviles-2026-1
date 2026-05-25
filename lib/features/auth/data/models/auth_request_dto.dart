@@ -1,15 +1,14 @@
 class LoginRequestDto {
-  final String email;
+  final String identifier;
   final String password;
 
-
   LoginRequestDto({
-    required this.email,
+    required this.identifier,
     required this.password,
   });
 
   Map<String, dynamic> toJson() => {
-        'email': email,
+        'identifier': identifier,
         'password': password,
       };
 }
