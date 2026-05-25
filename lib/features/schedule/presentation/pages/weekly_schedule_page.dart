@@ -1,4 +1,7 @@
 import 'package:andespace/core/di/core_provider.dart';
+import 'package:andespace/features/auth/domain/entities/user_status.dart';
+import 'package:andespace/features/auth/presentation/notifiers/auth_notifier.dart';
+import 'package:andespace/features/auth/presentation/notifiers/auth_state.dart';
 import 'package:andespace/features/schedule/domain/entities/schedule_occurrence.dart';
 import 'package:andespace/features/schedule/presentation/pages/recommended_rooms_page.dart';
 import 'package:andespace/features/schedule/presentation/widgets/delete_occurrence_scope_dialog.dart';
@@ -22,6 +25,8 @@ class WeeklySchedulePage extends ConsumerStatefulWidget {
 }
 
 class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
+  bool _syncingIncognitoPrivacy = false;
+
   @override
   void initState() {
     super.initState();
@@ -32,6 +37,10 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
         ref.read(scheduleControllerProvider.notifier).loadWeek();
       });
     }
+
+    Future.microtask(() {
+      _syncIncognitoPrivacyIfNeeded(ref.read(authControllerProvider));
+    });
   }
 
   String _monthName(int month) {
@@ -159,8 +168,73 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
     );
   }
 
+  Future<void> _setSchedulePrivacy({
+    required bool isPrivate,
+    bool showMessage = true,
+  }) async {
+    final messenger = ScaffoldMessenger.of(context);
+
+    try {
+      await ref
+          .read(authControllerProvider.notifier)
+          .updateShareSchedule(!isPrivate);
+
+      if (!mounted || !showMessage) return;
+
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(
+              isPrivate
+                  ? 'Tu horario ahora es privado para tus amigos.'
+                  : 'Tu horario ahora es visible para tus amigos.',
+            ),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(milliseconds: 1400),
+          ),
+        );
+    } catch (_) {
+      if (!mounted) return;
+
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text('No se pudo actualizar la privacidad del horario.'),
+            behavior: SnackBarBehavior.floating,
+            duration: Duration(milliseconds: 1800),
+          ),
+        );
+    }
+  }
+
+  Future<void> _syncIncognitoPrivacyIfNeeded(AuthState state) async {
+    final user = state.user;
+    if (user == null ||
+        user.status != UserStatus.incognito ||
+        !user.shareSchedule ||
+        _syncingIncognitoPrivacy) {
+      return;
+    }
+
+    _syncingIncognitoPrivacy = true;
+    await _setSchedulePrivacy(isPrivate: true);
+    _syncingIncognitoPrivacy = false;
+  }
+
   @override
   Widget build(BuildContext context) {
+    ref.listen<AuthState>(authControllerProvider, (previous, next) {
+      final becameIncognito =
+          previous?.user?.status != UserStatus.incognito &&
+          next.user?.status == UserStatus.incognito;
+
+      if (becameIncognito) {
+        _syncIncognitoPrivacyIfNeeded(next);
+      }
+    });
+
     ref.listen<ScheduleState>(scheduleControllerProvider, (_, next) {
       if (next.status == ScheduleStatus.error &&
           next.errorMessage != null &&
@@ -219,6 +293,9 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
                 ),
                 const SizedBox(height: 12),
                 _ScheduleToolbar(
+                  onPrivacyChanged: (isPrivate) {
+                    _setSchedulePrivacy(isPrivate: isPrivate);
+                  },
                   onRefresh: controller.refresh,
                   onDeleteSchedule: _confirmDeleteFullSchedule,
                 ),
@@ -303,28 +380,117 @@ class _WeekHeader extends StatelessWidget {
 }
 
 class _ScheduleToolbar extends StatelessWidget {
+  final ValueChanged<bool> onPrivacyChanged;
   final VoidCallback onRefresh;
   final VoidCallback onDeleteSchedule;
 
   const _ScheduleToolbar({
+    required this.onPrivacyChanged,
     required this.onRefresh,
     required this.onDeleteSchedule,
   });
 
   @override
   Widget build(BuildContext context) {
+    return Consumer(
+      builder: (context, ref, _) {
+        final authState = ref.watch(authControllerProvider);
+        final user = authState.user;
+        final isPrivate = !(user?.shareSchedule ?? true);
+
+        return Row(
+          children: [
+            Transform.translate(
+              offset: const Offset(4, 0),
+              child: _SchedulePrivacySwitch(
+                isPrivate: isPrivate,
+                enabled: !authState.isLoading,
+                onChanged: onPrivacyChanged,
+              ),
+            ),
+            const Spacer(),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  tooltip: 'Reload',
+                  onPressed: onRefresh,
+                  icon: const Icon(Icons.refresh),
+                ),
+                IconButton(
+                  tooltip: 'Delete schedule',
+                  onPressed: onDeleteSchedule,
+                  icon: const Icon(Icons.delete_outline),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _SchedulePrivacySwitch extends StatelessWidget {
+  const _SchedulePrivacySwitch({
+    required this.isPrivate,
+    required this.enabled,
+    required this.onChanged,
+  });
+
+  final bool isPrivate;
+  final bool enabled;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final activeColor = colorScheme.secondary;
+    final inactiveThumb = colorScheme.onSurface.withValues(alpha: 0.74);
+    final inactiveTrack = colorScheme.onSurface.withValues(alpha: 0.14);
+
     return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        IconButton(
-          tooltip: 'Reload',
-          onPressed: onRefresh,
-          icon: const Icon(Icons.refresh),
+        Tooltip(
+          message: isPrivate ? 'Private schedule' : 'Visible schedule',
+          child: Switch(
+            value: isPrivate,
+            onChanged: enabled ? onChanged : null,
+            thumbColor: WidgetStateProperty.resolveWith((states) {
+              if (states.contains(WidgetState.disabled)) {
+                return colorScheme.onSurface.withValues(alpha: 0.32);
+              }
+              return isPrivate ? activeColor : inactiveThumb;
+            }),
+            trackColor: WidgetStateProperty.resolveWith((states) {
+              if (states.contains(WidgetState.disabled)) {
+                return colorScheme.onSurface.withValues(alpha: 0.08);
+              }
+              return isPrivate
+                  ? activeColor.withValues(alpha: 0.34)
+                  : inactiveTrack;
+            }),
+            trackOutlineColor: WidgetStateProperty.resolveWith((states) {
+              if (isPrivate) return activeColor.withValues(alpha: 0.42);
+              return colorScheme.onSurface.withValues(alpha: 0.14);
+            }),
+          ),
         ),
-        IconButton(
-          tooltip: 'Delete schedule',
-          onPressed: onDeleteSchedule,
-          icon: const Icon(Icons.delete_outline),
+        SizedBox(
+          width: 30,
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 160),
+            child: isPrivate
+                ? Icon(
+                    Icons.visibility_off_outlined,
+                    key: const ValueKey('private'),
+                    color: activeColor,
+                    size: 22,
+                  )
+                : const SizedBox(key: ValueKey('visible'), width: 22),
+          ),
         ),
       ],
     );

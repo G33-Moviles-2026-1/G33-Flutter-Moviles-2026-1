@@ -123,6 +123,13 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<void> updateShareSchedule(bool shareSchedule) async {
+    await api.updateShareSchedule(shareSchedule);
+    final user = await getCurrentUser();
+    if (user != null) await localDataSource.saveSession(user);
+  }
+
+  @override
   Future<void> updateUsername(String username) async {
     await api.updateUsername(username);
     final user = await getCurrentUser();

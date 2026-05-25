@@ -16,6 +16,7 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   static const _keyUsername = 'auth_user_username';
   static const _keyFirstSemester = 'auth_user_first_semester';
   static const _keyStatus = 'auth_user_status';
+  static const _keyShareSchedule = 'auth_user_share_schedule';
 
   @override
   Future<void> saveSession(AuthUser user) async {
@@ -26,6 +27,7 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
     await _setNullableString(prefs, _keyUsername, user.username);
     await _setNullableString(prefs, _keyFirstSemester, user.firstSemester);
     await prefs.setString(_keyStatus, user.status.backendKey);
+    await prefs.setBool(_keyShareSchedule, user.shareSchedule);
   }
 
   @override
@@ -46,6 +48,7 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
       status: UserStatus.fromBackendKey(
         prefs.getString(_keyStatus) ?? UserStatus.incognito.backendKey,
       ),
+      shareSchedule: prefs.getBool(_keyShareSchedule) ?? true,
     );
   }
 
@@ -64,6 +67,7 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
     await prefs.remove(_keyUsername);
     await prefs.remove(_keyFirstSemester);
     await prefs.remove(_keyStatus);
+    await prefs.remove(_keyShareSchedule);
   }
 
   Future<void> _setNullableString(

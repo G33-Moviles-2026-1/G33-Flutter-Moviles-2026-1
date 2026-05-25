@@ -26,5 +26,7 @@ abstract class AuthRepository {
 
   Future<void> updateStatus(String status);
 
+  Future<void> updateShareSchedule(bool shareSchedule);
+
   Future<void> updateUsername(String username);
 }
