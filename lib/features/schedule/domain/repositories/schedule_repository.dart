@@ -1,6 +1,7 @@
 import 'package:andespace/features/rooms/domain/entities/room_search.dart';
 
 import '../entities/free_rooms_for_day.dart';
+import '../entities/friends_free_slot.dart';
 import '../entities/google_calendar_auth_session.dart';
 import '../entities/google_calendar_source.dart';
 import '../entities/manual_class.dart';
@@ -28,6 +29,11 @@ abstract class ScheduleRepository {
   Future<List<ScheduleClass>> getScheduleClasses();
 
   Future<FreeRoomsForDay> getFreeRoomsForDay({required DateTime date});
+
+  Future<FriendsFreeSlots> getFriendsFreeSlots({
+    required List<String> friendEmails,
+    required DateTime date,
+  });
 
   Future<void> deleteFullSchedule();
 
