@@ -88,31 +88,30 @@ class FavoritesPage extends ConsumerWidget {
 
                     if (!context.mounted) return;
 
+                    final theme = Theme.of(context);
+                    final isDark = theme.brightness == Brightness.dark;
+
                     ScaffoldMessenger.of(context)
                       ..hideCurrentSnackBar()
                       ..showSnackBar(
                         SnackBar(
                           duration: const Duration(seconds: 5),
-                          content: Row(
-                            children: [
-                              Expanded(
-                                child: Text('${room.roomId} removed from favorites'),
-                              ),
-                              GestureDetector(
-                                onTap: () async {
-                                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                                  await notifier.undoRemoveFromFavorites(room);
-                                },
-                                child: Text(
-                                  'Undo',
-                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                        decoration: TextDecoration.underline,
-                                        fontWeight: FontWeight.w700,
-                                        color: const Color(0xFFFFFBA9),
-                                      ),
-                                ),
-                              ),
-                            ],
+                          backgroundColor: isDark ? const Color(0xFF1A1D22) : null,
+                          content: Text(
+                            '${room.roomId} removed from favorites',
+                            style: isDark
+                                ? theme.textTheme.bodyMedium?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w500,
+                                  )
+                                : null,
+                          ),
+                          action: SnackBarAction(
+                            label: 'Undo',
+                            textColor: isDark ? theme.colorScheme.secondary : null,
+                            onPressed: () async {
+                              await notifier.undoRemoveFromFavorites(room);
+                            },
                           ),
                         ),
                       );
