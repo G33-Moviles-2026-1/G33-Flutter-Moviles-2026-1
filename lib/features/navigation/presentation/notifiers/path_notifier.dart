@@ -238,6 +238,14 @@ class PathNotifier
     _historyIndex = _history.length - 1;
   }
 
+  Future<void> clearCache() async {
+    _lru.clear();
+    _history.clear();
+    _historyIndex = -1;
+    await _localDs.clear();
+    state = const PathState.initial();
+  }
+
   String mapError(Object error) => DioErrorMapper.map(
         error,
         onBadResponse: (statusCode, detail) {

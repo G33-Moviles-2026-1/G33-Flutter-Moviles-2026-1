@@ -4,6 +4,8 @@ import 'package:andespace/core/di/core_provider.dart';
 import 'package:andespace/features/auth/domain/entities/user_status.dart';
 import 'package:andespace/features/schedule/presentation/notifiers/schedule_notifier.dart';
 import 'package:andespace/features/friendships/presentation/providers/friendships_providers.dart';
+import 'package:andespace/features/navigation/presentation/providers/navigation_providers.dart';
+import 'package:andespace/features/notifications/presentation/notifiers/notifications_notifier.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:andespace/core/di/auth_providers.dart';
@@ -165,6 +167,8 @@ class AuthNotifier extends Notifier<AuthState> {
 
       await ref.read(scheduleControllerProvider.notifier).clearLocalSchedule();
       await ref.read(appDatabaseProvider).clearFriendshipsLocalData();
+      await ref.read(notificationsLocalDataSourceProvider).clear();
+      await ref.read(pathLocalDataSourceProvider).clear();
 
       state = const AuthState(
         isLoading: false,

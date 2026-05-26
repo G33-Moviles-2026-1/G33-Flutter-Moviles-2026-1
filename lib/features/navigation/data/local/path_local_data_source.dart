@@ -43,6 +43,8 @@ class PathLocalDataSource {
   }
 
   
+  Future<void> clear() => _db.replaceCachedPaths([]);
+
   Future<void> persist(List<MapEntry<String, NavigationPath>> lruEntries) async {
     final now = DateTime.now().millisecondsSinceEpoch;
     final rows = lruEntries.asMap().entries.map((e) {

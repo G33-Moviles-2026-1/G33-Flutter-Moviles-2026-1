@@ -1,7 +1,7 @@
 import 'package:andespace/core/navigation/app_routes.dart';
-import 'package:andespace/features/rooms/presentation/controllers/home_search_state.dart';
+import 'package:andespace/features/rooms/presentation/notifiers/home_search_state.dart';
 import 'package:andespace/core/utils/date_time_utils.dart';
-import 'package:andespace/features/rooms/presentation/controllers/home_search_notifier.dart';
+import 'package:andespace/features/rooms/presentation/notifiers/home_search_notifier.dart';
 import 'package:andespace/shared/theme/app_theme_extension.dart';
 import 'package:andespace/features/rooms/data/cache/home_search_params_memory_cache.dart';
 import 'package:andespace/features/rooms/presentation/providers/rooms_providers.dart';

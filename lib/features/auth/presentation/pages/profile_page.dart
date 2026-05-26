@@ -8,6 +8,7 @@ import 'package:andespace/shared/widgets/app_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class ProfilePage extends ConsumerStatefulWidget {
   const ProfilePage({super.key});
@@ -410,7 +411,7 @@ class _ProfileHero extends StatelessWidget {
                   spacing: 8,
                   runSpacing: 8,
                   children: [
-                    _InfoPill(icon: _statusIcon(status), label: status.label),
+                    _InfoPill(svgAsset: _statusSvg(status), label: status.label),
                     if (semester?.trim().isNotEmpty == true)
                       _InfoPill(
                         icon: Icons.school_outlined,
@@ -428,9 +429,11 @@ class _ProfileHero extends StatelessWidget {
 }
 
 class _InfoPill extends StatelessWidget {
-  const _InfoPill({required this.icon, required this.label});
+  const _InfoPill({this.icon, this.svgAsset, required this.label})
+      : assert(icon != null || svgAsset != null);
 
-  final IconData icon;
+  final IconData? icon;
+  final String? svgAsset;
   final String label;
 
   @override
@@ -447,7 +450,18 @@ class _InfoPill extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 15, color: theme.colorScheme.secondary),
+          if (svgAsset != null)
+            SvgPicture.asset(
+              svgAsset!,
+              width: 15,
+              height: 15,
+              colorFilter: ColorFilter.mode(
+                theme.colorScheme.secondary,
+                BlendMode.srcIn,
+              ),
+            )
+          else
+            Icon(icon, size: 15, color: theme.colorScheme.secondary),
           const SizedBox(width: 6),
           Text(
             label,
@@ -609,7 +623,12 @@ class _StatusOption extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(_statusIcon(status), size: 16, color: foreground),
+              SvgPicture.asset(
+                _statusSvg(status),
+                width: 16,
+                height: 16,
+                colorFilter: ColorFilter.mode(foreground, BlendMode.srcIn),
+              ),
               const SizedBox(width: 7),
               Text(
                 status.label,
@@ -742,14 +761,14 @@ class _PasswordField extends StatelessWidget {
   }
 }
 
-IconData _statusIcon(UserStatus status) {
+String _statusSvg(UserStatus status) {
   return switch (status) {
-    UserStatus.incognito => Icons.visibility_off_outlined,
-    UserStatus.busy => Icons.do_not_disturb_on_outlined,
-    UserStatus.exercising => Icons.fitness_center_outlined,
-    UserStatus.free => Icons.check_circle_outline,
-    UserStatus.hangingOut => Icons.groups_outlined,
-    UserStatus.atHome => Icons.home_outlined,
-    UserStatus.lunching => Icons.restaurant_outlined,
+    UserStatus.incognito => 'assets/icons/incognito.svg',
+    UserStatus.busy => 'assets/icons/busy.svg',
+    UserStatus.exercising => 'assets/icons/exercising.svg',
+    UserStatus.free => 'assets/icons/free.svg',
+    UserStatus.hangingOut => 'assets/icons/hangingout.svg',
+    UserStatus.atHome => 'assets/icons/athome.svg',
+    UserStatus.lunching => 'assets/icons/lunching.svg',
   };
 }

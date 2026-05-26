@@ -1,12 +1,12 @@
 import 'package:andespace/features/bookings/domain/entities/booking_purpose.dart';
-import 'package:andespace/features/bookings/presentation/controllers/create_booking_state.dart';
+import 'package:andespace/features/bookings/presentation/notifiers/create_booking_state.dart';
 import 'package:andespace/features/rooms/domain/entities/room_search.dart';
 import 'package:andespace/features/rooms/domain/entities/time_range.dart';
 import 'package:andespace/shared/theme/app_theme_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../controllers/create_booking_notifier.dart';
+import '../notifiers/create_booking_notifier.dart';
 
 enum QuickBookingResult { created, queued }
 

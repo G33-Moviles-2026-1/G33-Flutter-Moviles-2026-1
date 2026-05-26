@@ -1,8 +1,10 @@
 import 'package:andespace/core/navigation/app_routes.dart';
 import 'package:andespace/core/navigation/app_tab.dart';
+import 'package:andespace/features/auth/presentation/notifiers/auth_notifier.dart';
 import 'package:andespace/features/notifications/domain/entities/app_notification.dart';
 import 'package:andespace/features/notifications/presentation/notifiers/notifications_notifier.dart';
 import 'package:andespace/shared/widgets/app_scaffold.dart';
+import 'package:andespace/shared/widgets/auth_required_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -11,6 +13,17 @@ class NotificationsPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authControllerProvider);
+
+    if (!authState.hasActiveSession) {
+      return AuthRequiredScaffold(
+        currentTab: AppTab.rooms,
+        onTabSelected: (tab) => AppRoutes.handleTabSelection(context, tab),
+        title: 'Log in to view notifications',
+        message: 'Sign in to see your activity and friend requests.',
+      );
+    }
+
     final theme = Theme.of(context);
     final state = ref.watch(notificationsControllerProvider);
     final notifier = ref.read(notificationsControllerProvider.notifier);

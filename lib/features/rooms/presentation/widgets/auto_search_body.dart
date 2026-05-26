@@ -3,8 +3,8 @@ import 'package:andespace/features/bookings/presentation/widgets/quick_booking_d
 import 'package:andespace/features/auth/presentation/notifiers/auth_notifier.dart';
 import 'package:andespace/features/favorites/presentation/providers/favorites_providers.dart';
 import 'package:andespace/features/rooms/domain/entities/room_search.dart';
-import 'package:andespace/features/rooms/presentation/controllers/auto_search_notifier.dart';
-import 'package:andespace/features/rooms/presentation/controllers/auto_search_state.dart';
+import 'package:andespace/features/rooms/presentation/notifiers/auto_search_notifier.dart';
+import 'package:andespace/features/rooms/presentation/notifiers/auto_search_state.dart';
 import 'package:andespace/shared/theme/app_theme_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
