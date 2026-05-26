@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/error/dio_error_mapper.dart';
 import '../../../rooms/domain/entities/room_search.dart';
 import '../../domain/entities/favorite_room.dart';
 import '../../domain/usecases/get_cached_favorites.dart';
@@ -18,6 +19,35 @@ class FavoritesNotifier extends Notifier<FavoritesState> {
   late final GetFavoriteDetailSeed _getFavoriteDetailSeed;
 
   static const String _exceptionPrefix = 'Exception: ';
+
+  String _mapFavoriteError(
+    Object error, {
+    required String fallback,
+  }) {
+    final rawMessage = error.toString().replaceFirst(_exceptionPrefix, '');
+
+    if (rawMessage.contains('query.date_value') ||
+        rawMessage.contains('date_value') ||
+        rawMessage.contains('Field required')) {
+      return fallback;
+    }
+
+    return DioErrorMapper.map(
+      error,
+      fallback: rawMessage.trim().isNotEmpty ? rawMessage : fallback,
+      onBadResponse: (statusCode, detail) {
+        if (statusCode == 422) {
+          return fallback;
+        }
+
+        if (detail != null && detail.trim().isNotEmpty) {
+          return detail;
+        }
+
+        return fallback;
+      },
+    );
+  }
 
   @override
   FavoritesState build() {
@@ -47,17 +77,15 @@ class FavoritesNotifier extends Notifier<FavoritesState> {
         items: fresh,
       );
     } catch (error) {
-      if (cached.isNotEmpty) {
-        state = state.copyWith(
-          isLoading: false,
-          errorMessage: error.toString().replaceFirst(_exceptionPrefix, '')
-        );
-      } else {
-        state = state.copyWith(
-          isLoading: false,
-          errorMessage: error.toString().replaceFirst(_exceptionPrefix, '')
-        );
-      }
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: cached.isNotEmpty
+            ? null
+            : _mapFavoriteError(
+                error,
+                fallback: 'Could not load your favorite rooms. Please try again.',
+              ),
+      );
     }
   }
 

@@ -138,6 +138,8 @@ class _FriendsPageState extends ConsumerState<FriendsPage> {
                 ],
               ),
               const SizedBox(height: 18),
+              const _FriendsHintText(),
+              const SizedBox(height: 8),
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 180),
                 child: _isSelectionMode
@@ -270,6 +272,32 @@ class _FriendsPageState extends ConsumerState<FriendsPage> {
     if (confirmed == true) {
       await notifier.removeFriend(friend);
     }
+  }
+}
+
+class _FriendsHintText extends StatelessWidget {
+  const _FriendsHintText();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Text(
+        'Tap a friend to see their schedule. Hold to select friends and find common gaps.',
+        textAlign: TextAlign.center,
+        style: theme.textTheme.bodyMedium?.copyWith(
+          fontSize: 13.5,
+          height: 1.25,
+          fontWeight: FontWeight.w500,
+          color: theme.colorScheme.onSurface.withValues(
+            alpha: isDark ? 0.78 : 0.62,
+          ),
+        ),
+      ),
+    );
   }
 }
 
