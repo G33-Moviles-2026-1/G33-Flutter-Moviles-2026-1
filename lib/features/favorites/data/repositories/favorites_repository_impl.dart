@@ -158,7 +158,7 @@ class FavoritesRepositoryImpl implements FavoritesRepository {
     final today = _todayApi();
     final response = await dio.get(
       '/rooms/${Uri.encodeComponent(roomId)}/availability',
-      queryParameters: {'date': today},
+      queryParameters: {'date_value': today},
     );
 
     final json = Map<String, dynamic>.from(response.data as Map);

@@ -220,33 +220,8 @@ Future<bool> sendFriendRequest([String? rawUsername]) async {
     return true;
   } catch (error) {
     final message = _mapError(error);
-    final lowerMessage = message.toLowerCase();
-
-    final alreadyExistsOrPending =
-        lowerMessage.contains('already exists') ||
-        lowerMessage.contains('pending');
 
     await loadOnlineSections();
-
-    final alreadyVisible = state.pendingRequests.any(
-      (request) => request.username.toLowerCase() == username,
-    );
-
-    if (alreadyExistsOrPending && alreadyVisible) {
-      state = state.copyWith(
-        addFriendInput: '',
-        clearErrorMessage: true,
-      );
-      return true;
-    }
-
-    if (alreadyExistsOrPending && !alreadyVisible) {
-      state = state.copyWith(
-        errorMessage:
-            'This friendship already exists or is pending, but it was not returned by the pending requests endpoint yet.',
-      );
-      return false;
-    }
 
     state = state.copyWith(errorMessage: message);
     return false;
