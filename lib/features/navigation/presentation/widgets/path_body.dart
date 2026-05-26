@@ -4,8 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../shared/theme/app_theme_extension.dart';
 import '../../../rooms/domain/entities/room_search.dart';
-import '../controllers/path_notifier.dart';
-import '../controllers/path_state.dart';
+import '../notifiers/path_notifier.dart';
+import '../notifiers/path_state.dart';
 
 class PathBody extends ConsumerStatefulWidget {
   const PathBody({super.key, this.initialDestination});
@@ -134,6 +134,9 @@ class _PathBodyState extends ConsumerState<PathBody> {
                 isEditing: _isEditing,
                 onPrev: notifier.goToPrevious,
                 onNext: notifier.goToNext,
+                onClear: state.cacheSize > 0
+                    ? () => notifier.clearCache()
+                    : null,
                 brand: brand,
                 t: t,
               ),
@@ -420,12 +423,14 @@ class _CacheNavRow extends StatelessWidget {
     required this.onNext,
     required this.brand,
     required this.t,
+    this.onClear,
   });
 
   final PathState state;
   final bool isEditing;
   final VoidCallback onPrev;
   final VoidCallback onNext;
+  final VoidCallback? onClear;
   final BrandColors brand;
   final ThemeData t;
 
@@ -460,6 +465,17 @@ class _CacheNavRow extends StatelessWidget {
             foregroundColor: canNext ? t.colorScheme.onSurface : dimColor,
           ),
         ),
+        if (onClear != null) ...[
+          const SizedBox(width: 4),
+          IconButton(
+            onPressed: onClear,
+            icon: const Icon(Icons.delete_outline, size: 18),
+            tooltip: 'Clear history',
+            style: IconButton.styleFrom(
+              foregroundColor: t.colorScheme.error,
+            ),
+          ),
+        ],
       ],
     );
   }

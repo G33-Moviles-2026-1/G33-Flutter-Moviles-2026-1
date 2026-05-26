@@ -24,6 +24,8 @@ class NotificationsLocalDataSource {
     }).toList();
   }
 
+  Future<void> clear() => _db.replaceCachedNotifications([]);
+
   Future<void> saveNotifications(List<AppNotification> notifications) async {
     final top3 = notifications.take(3).toList();
     final rows = top3

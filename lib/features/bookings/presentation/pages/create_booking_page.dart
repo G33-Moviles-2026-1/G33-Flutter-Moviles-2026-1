@@ -1,5 +1,5 @@
 import 'package:andespace/features/auth/presentation/notifiers/auth_notifier.dart';
-import '../controllers/create_booking_notifier.dart';
+import '../notifiers/create_booking_notifier.dart';
 import 'package:andespace/core/navigation/app_routes.dart';
 import 'package:andespace/core/navigation/app_tab.dart';
 import 'package:flutter/material.dart';
