@@ -30,10 +30,27 @@ class AppNotification {
       (payload['start_time'] as String? ?? '').substring(0, 5);
   String get endTime => (payload['end_time'] as String? ?? '').substring(0, 5);
 
+  String get fromUsername =>
+      (payload['from_username'] ??
+          payload['username'] ??
+          payload['requester_username'] ??
+          '') as String;
+
+  bool get isFriendRequestUpdate =>
+      type == 'friend_request_accepted' || type == 'friend_request_rejected';
+
   String get displayMessage {
     if (type == 'friend_booking' && friendUsername.isNotEmpty) {
       if (roomId.isNotEmpty) return '$friendUsername booked $roomId';
       return '$friendUsername made a booking';
+    }
+    if (type == 'friend_request_accepted') {
+      final who = fromUsername.isNotEmpty ? fromUsername : 'Someone';
+      return '$who accepted your friend request';
+    }
+    if (type == 'friend_request_rejected') {
+      final who = fromUsername.isNotEmpty ? fromUsername : 'Someone';
+      return '$who declined your friend request';
     }
     return 'New notification';
   }
