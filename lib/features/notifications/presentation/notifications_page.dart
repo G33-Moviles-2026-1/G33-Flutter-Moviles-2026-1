@@ -106,7 +106,7 @@ class NotificationsPage extends ConsumerWidget {
                             ),
                             trailing: FilledButton(
                               onPressed: () =>
-                                  Navigator.pushReplacementNamed(
+                                  Navigator.pushNamed(
                                 context,
                                 AppRoutes.addFriends,
                               ),
@@ -138,12 +138,26 @@ class NotificationsPage extends ConsumerWidget {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               if (i > 0) const Divider(height: 1),
-                              _NotificationTile(
-                                notification: n,
-                                onTap: () {
-                                  if (!n.isRead) notifier.markRead(n.id);
-                                  _showDetail(context, n);
-                                },
+                              Dismissible(
+                                key: ValueKey(n.id),
+                                direction: DismissDirection.endToStart,
+                                background: Container(
+                                  alignment: Alignment.centerRight,
+                                  padding: const EdgeInsets.only(right: 20),
+                                  color: Theme.of(context).colorScheme.error,
+                                  child: const Icon(
+                                    Icons.delete_outline,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                onDismissed: (_) => notifier.deleteOne(n.id),
+                                child: _NotificationTile(
+                                  notification: n,
+                                  onTap: () {
+                                    if (!n.isRead) notifier.markRead(n.id);
+                                    _showDetail(context, n);
+                                  },
+                                ),
                               ),
                             ],
                           );
@@ -184,14 +198,16 @@ class NotificationsPage extends ConsumerWidget {
   }
 
   void _showDetail(BuildContext context, AppNotification n) {
-    if (n.type != 'friend_booking') return;
+    if (n.type != 'friend_booking' && !n.isFriendRequestUpdate) return;
 
     showModalBottomSheet<void>(
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (ctx) => _BookingDetailSheet(notification: n),
+      builder: (ctx) => n.isFriendRequestUpdate
+          ? _FriendRequestUpdateSheet(notification: n)
+          : _BookingDetailSheet(notification: n),
     );
   }
 }
@@ -319,6 +335,83 @@ class _BookingDetailSheet extends StatelessWidget {
             value: '${n.startTime} – ${n.endTime}',
           ),
           const SizedBox(height: 24),
+          Text(
+            _formatCreatedAt(n.createdAt),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatCreatedAt(DateTime dt) {
+    final diff = DateTime.now().difference(dt);
+    if (diff.inMinutes < 1) return 'Received just now';
+    if (diff.inHours < 1) return 'Received ${diff.inMinutes}m ago';
+    if (diff.inDays < 1) return 'Received ${diff.inHours}h ago';
+    return 'Received ${diff.inDays}d ago';
+  }
+}
+
+class _FriendRequestUpdateSheet extends StatelessWidget {
+  const _FriendRequestUpdateSheet({required this.notification});
+
+  final AppNotification notification;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final n = notification;
+    final accepted = n.type == 'friend_request_accepted';
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: theme.dividerColor,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              CircleAvatar(
+                backgroundColor: (accepted
+                        ? Colors.green
+                        : theme.colorScheme.error)
+                    .withValues(alpha: 0.15),
+                child: Icon(
+                  accepted ? Icons.check_circle_outline : Icons.cancel_outlined,
+                  color: accepted ? Colors.green : theme.colorScheme.error,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                accepted ? 'Request Accepted' : 'Request Declined',
+                style: theme.textTheme.titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w700),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          if (n.fromUsername.isNotEmpty)
+            _DetailRow(
+              icon: Icons.person_outline,
+              label: 'From',
+              value: n.fromUsername,
+            ),
+          const SizedBox(height: 12),
           Text(
             _formatCreatedAt(n.createdAt),
             style: theme.textTheme.bodySmall?.copyWith(

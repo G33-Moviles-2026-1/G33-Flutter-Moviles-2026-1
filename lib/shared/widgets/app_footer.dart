@@ -77,13 +77,23 @@ class _AppFooterState extends State<AppFooter> {
     final theme = Theme.of(context);
     final brand = theme.extension<BrandColors>()!;
 
-    return SvgPicture.asset(
-      assetPath,
-      width: 26,
-      height: 26,
-      colorFilter: ColorFilter.mode(
-        selected ? brand.footerSelected : brand.footerUnselected,
-        BlendMode.srcIn,
+    return AnimatedSlide(
+      offset: selected ? const Offset(0, -0.18) : Offset.zero,
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeOut,
+      child: AnimatedScale(
+        scale: selected ? 1.28 : 1.0,
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+        child: SvgPicture.asset(
+          assetPath,
+          width: 26,
+          height: 26,
+          colorFilter: ColorFilter.mode(
+            selected ? brand.footerSelected : brand.footerUnselected,
+            BlendMode.srcIn,
+          ),
+        ),
       ),
     );
   }

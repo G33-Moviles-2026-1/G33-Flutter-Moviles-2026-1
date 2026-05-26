@@ -17,4 +17,12 @@ class NotificationsApi {
   Future<void> markAllRead() async {
     await _dio.put('/notifications/read-all');
   }
+
+  Future<void> deleteRead() async {
+    await _dio.delete('/notifications/read');
+  }
+
+  Future<void> deleteOne(String notificationId) async {
+    await _dio.delete('/notifications/$notificationId');
+  }
 }

@@ -5,7 +5,6 @@ import 'package:andespace/features/auth/domain/entities/user_status.dart';
 import 'package:andespace/features/auth/presentation/notifiers/auth_notifier.dart';
 import 'package:andespace/features/auth/presentation/notifiers/auth_state.dart';
 import 'package:andespace/features/friendships/domain/entities/friendship_request.dart';
-import 'package:andespace/features/friendships/presentation/providers/friendships_providers.dart';
 import 'package:andespace/features/notifications/data/local/notifications_local_datasource.dart';
 import 'package:andespace/features/notifications/data/remote/notifications_api.dart';
 import 'package:andespace/features/notifications/domain/entities/app_notification.dart';
@@ -61,15 +60,14 @@ class NotificationsNotifier extends Notifier<NotificationsState> {
     return const NotificationsState();
   }
 
-  bool _shouldPoll(AuthState auth) =>
-      auth.isAuthenticated && auth.user?.status != UserStatus.incognito;
+  bool _shouldPoll(AuthState auth) => auth.isAuthenticated;
 
   void _onAuthChanged(AuthState auth) {
     _timer?.cancel();
     if (_shouldPoll(auth)) {
       _poll();
       _timer = Timer.periodic(const Duration(seconds: 10), (_) => _poll());
-    } else if (!auth.isAuthenticated) {
+    } else {
       state = const NotificationsState();
     }
   }
@@ -85,31 +83,27 @@ class NotificationsNotifier extends Notifier<NotificationsState> {
     }
 
     try {
-      final results = await Future.wait([
-        ref.read(notificationsApiProvider).getNotifications(),
-        ref.read(friendshipsApiProvider).fetchIncomingRequests(),
-      ]);
+      final notifData = await ref.read(notificationsApiProvider).getNotifications();
 
-      final notifData = results[0];
-      final reqData = results[1];
-
-      final items = (notifData['items'] as List? ?? [])
+      final allNotifications = (notifData['items'] as List? ?? [])
           .cast<Map<String, dynamic>>()
           .map(AppNotification.fromJson)
           .toList();
 
-      final pendingRequests = (reqData['items'] as List? ?? [])
-          .cast<Map<String, dynamic>>()
+      final pendingRequests = allNotifications
+          .where((n) => n.type == 'friend_request_received')
           .map(
-            (m) => FriendshipRequest(
-              email: m['email'] as String? ?? '',
-              username: m['username'] as String? ?? m['email'] as String? ?? '',
-              status: UserStatus.fromBackendKey(
-                m['status'] as String? ?? 'incognito',
-              ),
+            (n) => FriendshipRequest(
+              email: n.payload['from_email'] as String? ?? '',
+              username: n.payload['from_username'] as String? ?? '',
+              status: UserStatus.incognito,
               isIncoming: true,
             ),
           )
+          .toList();
+
+      final items = allNotifications
+          .where((n) => n.type != 'friend_request_received')
           .toList();
 
       state = state.copyWith(
@@ -166,9 +160,26 @@ class NotificationsNotifier extends Notifier<NotificationsState> {
     } catch (_) {}
   }
 
+  Future<void> deleteOne(String id) async {
+    try {
+      await ref.read(notificationsApiProvider).deleteOne(id);
+    } catch (_) {}
+    final updated = state.items.where((n) => n.id != id).toList();
+    final wasUnread = state.items.any((n) => n.id == id && !n.isRead);
+    state = state.copyWith(
+      items: updated,
+      total: (state.total - 1).clamp(0, state.total),
+      unread: wasUnread ? (state.unread - 1).clamp(0, state.unread) : state.unread,
+    );
+    _saveToCache(updated).ignore();
+  }
+
   Future<void> clearAll() async {
     try {
       await ref.read(notificationsApiProvider).markAllRead();
+    } catch (_) {}
+    try {
+      await ref.read(notificationsApiProvider).deleteRead();
     } catch (_) {}
     try {
       await ref

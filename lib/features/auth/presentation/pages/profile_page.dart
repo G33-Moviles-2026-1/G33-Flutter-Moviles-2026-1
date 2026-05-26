@@ -221,7 +221,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                               
                                   floatingLabelStyle: theme.textTheme.bodySmall
                                       ?.copyWith(
-                                        color: theme.colorScheme.secondary,
+                                        color: theme.brightness == Brightness.light
+                                            ? theme.colorScheme.onSurface
+                                            : theme.colorScheme.secondary,
                                         fontWeight: FontWeight.w700,
                                       ),
                           
@@ -244,7 +246,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                         ),
                         const SizedBox(height: 16),
                         _ProfileSection(
-                          icon: Icons.wifi_tethering_outlined,
+                          svgAsset: 'assets/icons/megaphone.svg',
                           title: 'Availability',
                           subtitle:
                               'Your status helps friends understand when to reach you.',
@@ -440,12 +442,14 @@ class _InfoPill extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
+    final pillFg = theme.colorScheme.onSurface;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
       decoration: BoxDecoration(
-        color: theme.cardColor.withValues(alpha: 0.86),
+        color: theme.colorScheme.surface.withValues(alpha: 0.92),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.16)),
+        border: Border.all(color: theme.colorScheme.onSurface.withValues(alpha: 0.20)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -455,18 +459,16 @@ class _InfoPill extends StatelessWidget {
               svgAsset!,
               width: 15,
               height: 15,
-              colorFilter: ColorFilter.mode(
-                theme.colorScheme.secondary,
-                BlendMode.srcIn,
-              ),
+              colorFilter: ColorFilter.mode(pillFg, BlendMode.srcIn),
             )
           else
-            Icon(icon, size: 15, color: theme.colorScheme.secondary),
+            Icon(icon, size: 15, color: pillFg),
           const SizedBox(width: 6),
           Text(
             label,
             style: theme.textTheme.labelMedium?.copyWith(
               fontWeight: FontWeight.w800,
+              color: pillFg,
             ),
           ),
         ],
@@ -477,13 +479,15 @@ class _InfoPill extends StatelessWidget {
 
 class _ProfileSection extends StatelessWidget {
   const _ProfileSection({
-    required this.icon,
+    this.icon,
+    this.svgAsset,
     required this.title,
     this.subtitle,
     required this.child,
-  });
+  }) : assert(icon != null || svgAsset != null);
 
-  final IconData icon;
+  final IconData? icon;
+  final String? svgAsset;
   final String title;
   final String? subtitle;
   final Widget child;
@@ -491,6 +495,13 @@ class _ProfileSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isLight = theme.brightness == Brightness.light;
+    final iconColor = isLight
+        ? theme.colorScheme.onSecondary
+        : theme.colorScheme.secondary;
+    final iconBg = isLight
+        ? theme.colorScheme.secondary
+        : theme.colorScheme.secondary.withValues(alpha: 0.16);
 
     return Container(
       padding: const EdgeInsets.all(18),
@@ -508,10 +519,19 @@ class _ProfileSection extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.secondary.withValues(alpha: 0.16),
+                  color: iconBg,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(icon, color: theme.colorScheme.secondary),
+                child: Center(
+                  child: svgAsset != null
+                      ? SvgPicture.asset(
+                          svgAsset!,
+                          width: 22,
+                          height: 22,
+                          colorFilter: ColorFilter.mode(iconColor, BlendMode.srcIn),
+                        )
+                      : Icon(icon, color: iconColor),
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
