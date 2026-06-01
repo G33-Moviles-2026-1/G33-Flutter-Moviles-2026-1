@@ -29,8 +29,8 @@ class FriendshipsNotifier extends Notifier<FriendshipsState> {
           .read(connectivityRecoveryServiceProvider)
           .onRecovered
           .listen((_) {
-        refreshAll();
-      });
+            refreshAll();
+          });
 
       ref.onDispose(() {
         _connectivitySubscription?.cancel();
@@ -84,10 +84,7 @@ class FriendshipsNotifier extends Notifier<FriendshipsState> {
     try {
       final fresh = await _repository.loadFriends();
 
-      state = state.copyWith(
-        isFriendsLoading: false,
-        friends: fresh,
-      );
+      state = state.copyWith(isFriendsLoading: false, friends: fresh);
     } catch (error) {
       final cachedAfterFailure = await _repository.getCachedFriends();
 
@@ -100,138 +97,136 @@ class FriendshipsNotifier extends Notifier<FriendshipsState> {
     }
   }
 
-Future<void> loadOnlineSections() async {
-  final hasInternet = await ref
-      .read(connectivityStatusServiceProvider)
-      .hasInternetConnection();
+  Future<void> loadOnlineSections() async {
+    final hasInternet = await ref
+        .read(connectivityStatusServiceProvider)
+        .hasInternetConnection();
 
-  if (!hasInternet) {
+    if (!hasInternet) {
+      state = state.copyWith(
+        onlineSectionsOffline: true,
+        isOnlineSectionsLoading: false,
+        hasLoadedOnlineSections: true,
+        clearRequestsErrorMessage: true,
+        clearSuggestionsErrorMessage: true,
+      );
+      return;
+    }
+
     state = state.copyWith(
-      onlineSectionsOffline: true,
-      isOnlineSectionsLoading: false,
-      hasLoadedOnlineSections: true,
+      isOnlineSectionsLoading: true,
+      onlineSectionsOffline: false,
+      clearErrorMessage: true,
       clearRequestsErrorMessage: true,
       clearSuggestionsErrorMessage: true,
     );
-    return;
-  }
 
-  state = state.copyWith(
-    isOnlineSectionsLoading: true,
-    onlineSectionsOffline: false,
-    clearErrorMessage: true,
-    clearRequestsErrorMessage: true,
-    clearSuggestionsErrorMessage: true,
-  );
+    var incoming = state.incomingRequests;
+    var outgoing = state.outgoingRequests;
+    var suggestions = state.suggestions;
 
-  var incoming = state.incomingRequests;
-  var outgoing = state.outgoingRequests;
-  var suggestions = state.suggestions;
+    String? requestsError;
+    String? suggestionsError;
 
-  String? requestsError;
-  String? suggestionsError;
+    try {
+      incoming = await _repository.loadIncomingRequests();
+      outgoing = await _repository.loadOutgoingRequests();
+    } catch (error) {
+      requestsError = _mapError(
+        error,
+        fallback: 'Could not load pending requests. Pull to retry.',
+      );
+    }
 
-  try {
-    incoming = await _repository.loadIncomingRequests();
-    outgoing = await _repository.loadOutgoingRequests();
-  } catch (error) {
-    requestsError = _mapError(
-      error,
-      fallback: 'Could not load pending requests. Pull to retry.',
+    try {
+      suggestions = await _repository.loadSuggestions();
+    } catch (error) {
+      suggestionsError = _mapError(
+        error,
+        fallback: 'Could not load friend suggestions. Pull to retry.',
+      );
+    }
+
+    state = state.copyWith(
+      isOnlineSectionsLoading: false,
+      incomingRequests: incoming,
+      outgoingRequests: outgoing,
+      suggestions: suggestions,
+      requestsErrorMessage: requestsError,
+      suggestionsErrorMessage: suggestionsError,
+      hasLoadedOnlineSections: true,
     );
   }
-
-  try {
-    suggestions = await _repository.loadSuggestions();
-  } catch (error) {
-    suggestionsError = _mapError(
-      error,
-      fallback: 'Could not load friend suggestions. Pull to retry.',
-    );
-  }
-
-  state = state.copyWith(
-    isOnlineSectionsLoading: false,
-    incomingRequests: incoming,
-    outgoingRequests: outgoing,
-    suggestions: suggestions,
-    requestsErrorMessage: requestsError,
-    suggestionsErrorMessage: suggestionsError,
-    hasLoadedOnlineSections: true,
-  );
-}
 
   void setAddFriendInput(String value) {
     state = state.copyWith(addFriendInput: value);
   }
 
-Future<bool> sendFriendRequest([String? rawUsername]) async {
-  final username = (rawUsername ?? state.addFriendInput).trim().toLowerCase();
+  Future<bool> sendFriendRequest([String? rawUsername]) async {
+    final username = (rawUsername ?? state.addFriendInput).trim().toLowerCase();
 
-  if (username.length > 25) {
-    state = state.copyWith(
-      errorMessage: 'Username cannot be longer than 25 characters.',
-    );
-    return false;
-  }
+    if (username.length > 25) {
+      state = state.copyWith(
+        errorMessage: 'Username cannot be longer than 25 characters.',
+      );
+      return false;
+    }
 
-  final validUsernamePattern = RegExp(r'^[a-z0-9._-]+$');
-  if (!validUsernamePattern.hasMatch(username)) {
-    state = state.copyWith(
-      errorMessage:
-          'Username can only contain letters, numbers, dots, underscores, or hyphens.',
-    );
-    return false;
-  }
+    final validUsernamePattern = RegExp(r'^[a-z0-9._-]+$');
+    if (!validUsernamePattern.hasMatch(username)) {
+      state = state.copyWith(
+        errorMessage:
+            'Username can only contain letters, numbers, dots, underscores, or hyphens.',
+      );
+      return false;
+    }
 
-  if (username.isEmpty) {
-    state = state.copyWith(errorMessage: 'Type a username first.');
-    return false;
-  }
+    if (username.isEmpty) {
+      state = state.copyWith(errorMessage: 'Type a username first.');
+      return false;
+    }
 
-  final hasInternet = await ref
-      .read(connectivityStatusServiceProvider)
-      .hasInternetConnection();
+    final hasInternet = await ref
+        .read(connectivityStatusServiceProvider)
+        .hasInternetConnection();
 
-  if (!hasInternet) {
-    state = state.copyWith(
-      errorMessage:
-          'No internet connection. Friend requests cannot be sent offline.',
-    );
-    return false;
-  }
-
-  state = state.copyWith(
-    pendingFriendUsernames: {...state.pendingFriendUsernames, username},
-    clearErrorMessage: true,
-  );
-
-  try {
-    await _repository.sendFriendRequest(username);
+    if (!hasInternet) {
+      state = state.copyWith(
+        errorMessage:
+            'No internet connection. Friend requests cannot be sent offline.',
+      );
+      return false;
+    }
 
     state = state.copyWith(
-      addFriendInput: '',
-      suggestions: state.suggestions
-          .where((suggestion) => suggestion.toLowerCase() != username)
-          .toList(),
+      pendingFriendUsernames: {...state.pendingFriendUsernames, username},
+      clearErrorMessage: true,
     );
 
-    await loadOnlineSections();
-    return true;
-  } catch (error) {
-    final message = _mapError(error);
+    try {
+      await _repository.sendFriendRequest(username);
 
-    await loadOnlineSections();
+      await loadOnlineSections();
+      _markFriendRequestAsSent(username);
+      return true;
+    } catch (error) {
+      await loadOnlineSections();
 
-    state = state.copyWith(errorMessage: message);
-    return false;
-  } finally {
-    state = state.copyWith(
-      pendingFriendUsernames: {...state.pendingFriendUsernames}
-        ..remove(username),
-    );
+      if (_hasOutgoingRequest(username)) {
+        _markFriendRequestAsSent(username);
+        return true;
+      }
+
+      final message = _mapError(error);
+      state = state.copyWith(errorMessage: message);
+      return false;
+    } finally {
+      state = state.copyWith(
+        pendingFriendUsernames: {...state.pendingFriendUsernames}
+          ..remove(username),
+      );
+    }
   }
-}
 
   Future<void> acceptRequest(String username) async {
     final hasInternet = await ref
@@ -293,10 +288,7 @@ Future<bool> sendFriendRequest([String? rawUsername]) async {
     } catch (error) {
       final cached = await _repository.getCachedFriends();
 
-      state = state.copyWith(
-        friends: cached,
-        errorMessage: _mapError(error),
-      );
+      state = state.copyWith(friends: cached, errorMessage: _mapError(error));
     } finally {
       state = state.copyWith(
         pendingFriendUsernames: {...state.pendingFriendUsernames}
@@ -312,15 +304,13 @@ Future<bool> sendFriendRequest([String? rawUsername]) async {
   Future<void> updateMyStatus(UserStatus status) async {
     final previous = state.myStatus;
 
-    state = state.copyWith(
-      myStatus: status,
-      clearErrorMessage: true,
-    );
-
-    ref.read(authControllerProvider.notifier).applyLocalStatus(status);
+    state = state.copyWith(myStatus: status, clearErrorMessage: true);
 
     try {
-      await _repository.updateMyStatus(status);
+      await ref
+          .read(authControllerProvider.notifier)
+          .updateStatus(status.backendKey);
+      await _repository.cacheMyStatus(status);
     } catch (error) {
       state = state.copyWith(
         myStatus: previous,
@@ -328,6 +318,25 @@ Future<bool> sendFriendRequest([String? rawUsername]) async {
       );
       ref.read(authControllerProvider.notifier).applyLocalStatus(previous);
     }
+  }
+
+  void _markFriendRequestAsSent(String username) {
+    state = state.copyWith(
+      addFriendInput: '',
+      suggestions: state.suggestions
+          .where((suggestion) => suggestion.toLowerCase() != username)
+          .toList(),
+      clearErrorMessage: true,
+    );
+  }
+
+  bool _hasOutgoingRequest(String username) {
+    final normalized = username.trim().toLowerCase();
+
+    return state.outgoingRequests.any((request) {
+      return request.username.trim().toLowerCase() == normalized ||
+          request.email.trim().toLowerCase() == normalized;
+    });
   }
 
   Future<void> clearLocalData() async {

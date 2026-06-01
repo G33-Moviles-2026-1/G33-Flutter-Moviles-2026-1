@@ -102,6 +102,11 @@ class FriendshipsRepositoryImpl implements FriendshipsRepository {
   }
 
   @override
+  Future<void> cacheMyStatus(UserStatus status) {
+    return localDataSource.markMyStatusClean(status);
+  }
+
+  @override
   Future<void> updateMyStatus(UserStatus status) async {
     await localDataSource.updateMyStatusLocally(status);
 
