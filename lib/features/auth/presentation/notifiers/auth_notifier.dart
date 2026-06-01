@@ -1,7 +1,11 @@
 import 'dart:async';
 
 import 'package:andespace/core/di/core_provider.dart';
+import 'package:andespace/features/auth/domain/entities/user_status.dart';
 import 'package:andespace/features/schedule/presentation/notifiers/schedule_notifier.dart';
+import 'package:andespace/features/friendships/presentation/providers/friendships_providers.dart';
+import 'package:andespace/features/navigation/presentation/providers/navigation_providers.dart';
+import 'package:andespace/features/notifications/presentation/notifiers/notifications_notifier.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:andespace/core/di/auth_providers.dart';
@@ -35,7 +39,7 @@ class AuthNotifier extends Notifier<AuthState> {
         .read(connectivityRecoveryServiceProvider)
         .onRecovered
         .listen((_) {
-          _revalidateRemoteSession();
+          _syncPendingProfileMutationsAndRevalidate();
         });
 
     ref.onDispose(() {
@@ -45,10 +49,18 @@ class AuthNotifier extends Notifier<AuthState> {
     return const AuthState();
   }
 
+  Future<void> _clearFriendshipsCacheForAuthSwitch() async {
+    await ref.read(friendshipsLocalDataSourceProvider).clearLocalData();
+    ref.invalidate(friendshipsControllerProvider);
+  }
+
   Future<void> loadCurrentUser() async {
     state = state.copyWith(isLoading: true, error: null, isSuccess: false);
 
     try {
+      final hasInternet = await ref
+          .read(connectivityStatusServiceProvider)
+          .hasInternetConnection();
       final user = await _getCurrentUserUseCase();
 
       state = AuthState(
@@ -56,6 +68,7 @@ class AuthNotifier extends Notifier<AuthState> {
         isAuthenticated: user != null,
         user: user,
         isSuccess: false,
+        isUsingOfflineSession: user != null && !hasInternet,
       );
     } catch (_) {
       state = const AuthState(isLoading: false, isAuthenticated: false);
@@ -72,6 +85,7 @@ class AuthNotifier extends Notifier<AuthState> {
       );
 
       if (user != null) {
+        await ref.read(appDatabaseProvider).clearFriendshipsLocalData();
         await _refreshScheduleCacheAfterLogin();
       }
 
@@ -80,6 +94,7 @@ class AuthNotifier extends Notifier<AuthState> {
         isAuthenticated: user != null,
         user: user,
         isSuccess: true,
+        isUsingOfflineSession: false,
       );
     } catch (error) {
       state = AuthState(
@@ -91,12 +106,14 @@ class AuthNotifier extends Notifier<AuthState> {
         ),
       );
     }
+    await _clearFriendshipsCacheForAuthSwitch();
   }
 
   Future<void> signup({
     required String email,
     required String password,
     required String firstSemester,
+    String? username,
   }) async {
     state = state.copyWith(isLoading: true, error: null, isSuccess: false);
 
@@ -107,11 +124,33 @@ class AuthNotifier extends Notifier<AuthState> {
         firstSemester: firstSemester,
       );
 
+      if (user != null) {
+        await ref.read(appDatabaseProvider).clearFriendshipsLocalData();
+      }
+
+      if (username != null && username.trim().isNotEmpty) {
+        try {
+          await ref
+              .read(authRepositoryProvider)
+              .updateUsername(username.trim());
+          final updated = user?.copyWith(username: username.trim());
+          state = AuthState(
+            isLoading: false,
+            isAuthenticated: user != null,
+            user: updated ?? user,
+            isSuccess: true,
+            isUsingOfflineSession: false,
+          );
+          return;
+        } catch (_) {}
+      }
+
       state = AuthState(
         isLoading: false,
         isAuthenticated: user != null,
         user: user,
         isSuccess: true,
+        isUsingOfflineSession: false,
       );
     } catch (error) {
       state = AuthState(
@@ -124,6 +163,7 @@ class AuthNotifier extends Notifier<AuthState> {
         ),
       );
     }
+    await _clearFriendshipsCacheForAuthSwitch();
   }
 
   Future<void> logout() async {
@@ -132,7 +172,12 @@ class AuthNotifier extends Notifier<AuthState> {
     try {
       await _logoutAndClearSessionDataUseCase();
 
-      await ref.read(scheduleControllerProvider.notifier).clearLocalSchedule();
+      await Future.wait([
+        ref.read(scheduleControllerProvider.notifier).clearLocalSchedule(),
+        ref.read(appDatabaseProvider).clearFriendshipsLocalData(),
+        ref.read(notificationsLocalDataSourceProvider).clear(),
+        ref.read(pathLocalDataSourceProvider).clear(),
+      ]);
 
       state = const AuthState(
         isLoading: false,
@@ -149,10 +194,91 @@ class AuthNotifier extends Notifier<AuthState> {
         ),
       );
     }
+    await _clearFriendshipsCacheForAuthSwitch();
   }
 
   void clearState() {
     state = AuthState(isAuthenticated: state.isAuthenticated, user: state.user);
+  }
+
+  Future<void> updatePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    state = state.copyWith(isLoading: true);
+    try {
+      await ref
+          .read(authRepositoryProvider)
+          .updatePassword(
+            currentPassword: currentPassword,
+            newPassword: newPassword,
+          );
+      state = state.copyWith(isLoading: false);
+    } catch (error) {
+      state = state.copyWith(isLoading: false);
+      rethrow;
+    }
+  }
+
+  Future<void> updateStatus(String status) async {
+    final previousUser = state.user;
+    final userStatus = UserStatus.fromBackendKey(status);
+    final optimisticUser = previousUser?.copyWith(
+      status: userStatus,
+      shareSchedule: userStatus == UserStatus.incognito
+          ? false
+          : previousUser.shareSchedule,
+    );
+
+    state = state.copyWith(isLoading: true, user: optimisticUser);
+    try {
+      await ref.read(authRepositoryProvider).updateStatus(status);
+
+      if (userStatus == UserStatus.incognito) {
+        await ref.read(authRepositoryProvider).updateShareSchedule(false);
+      }
+
+      state = state.copyWith(isLoading: false, user: optimisticUser);
+      try {
+        ref
+            .read(friendshipsControllerProvider.notifier)
+            .syncMyStatus(userStatus);
+      } catch (_) {}
+    } catch (error) {
+      state = state.copyWith(isLoading: false, user: previousUser);
+      rethrow;
+    }
+  }
+
+  Future<void> updateShareSchedule(bool shareSchedule) async {
+    final previousUser = state.user;
+    final optimisticUser = previousUser?.copyWith(shareSchedule: shareSchedule);
+
+    state = state.copyWith(isLoading: true, user: optimisticUser);
+    try {
+      await ref.read(authRepositoryProvider).updateShareSchedule(shareSchedule);
+      state = state.copyWith(isLoading: false, user: optimisticUser);
+    } catch (error) {
+      state = state.copyWith(isLoading: false, user: previousUser);
+      rethrow;
+    }
+  }
+
+  Future<void> updateUsername(String username) async {
+    state = state.copyWith(isLoading: true);
+    try {
+      await ref.read(authRepositoryProvider).updateUsername(username);
+      final updated = state.user?.copyWith(username: username);
+      state = state.copyWith(isLoading: false, user: updated);
+    } catch (error) {
+      state = state.copyWith(isLoading: false);
+      rethrow;
+    }
+  }
+
+  void applyLocalStatus(UserStatus status) {
+    final updated = state.user?.copyWith(status: status);
+    state = state.copyWith(user: updated);
   }
 
   Future<void> _refreshScheduleCacheAfterLogin() async {
@@ -173,6 +299,7 @@ class AuthNotifier extends Notifier<AuthState> {
 
       if (user == null) {
         ref.read(scheduleControllerProvider.notifier).resetState();
+        await ref.read(appDatabaseProvider).clearFriendshipsLocalData();
 
         state = const AuthState(
           isLoading: false,
@@ -184,10 +311,25 @@ class AuthNotifier extends Notifier<AuthState> {
         return;
       }
 
-      state = state.copyWith(isAuthenticated: true, user: user, error: null);
+      state = state.copyWith(
+        isAuthenticated: true,
+        user: user,
+        error: null,
+        isUsingOfflineSession: false,
+      );
     } catch (_) {
-      // Keep the local-first session if the validation failed for a temporary reason.
+      state = state.copyWith(isUsingOfflineSession: state.user != null);
     }
+  }
+
+  Future<void> _syncPendingProfileMutationsAndRevalidate() async {
+    try {
+      await ref.read(authRepositoryProvider).syncPendingProfileMutations();
+    } catch (_) {
+      // Keep pending profile changes queued until the next recovery event.
+    }
+
+    await _revalidateRemoteSession();
   }
 }
 

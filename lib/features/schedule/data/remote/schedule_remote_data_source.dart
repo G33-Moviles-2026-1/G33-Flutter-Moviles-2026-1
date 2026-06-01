@@ -2,6 +2,7 @@ import 'package:andespace/core/utils/date_time_utils.dart';
 import 'package:dio/dio.dart';
 
 import '../models/free_rooms_for_day_dto.dart';
+import '../models/friends_free_slots_dto.dart';
 import '../models/google_calendar_auth_session_dto.dart';
 import '../models/google_calendar_source_dto.dart';
 import '../models/manual_class_dto.dart';
@@ -32,9 +33,19 @@ abstract class ScheduleRemoteDataSource {
 
   Future<WeeklyScheduleModel> getWeeklySchedule({required DateTime date});
 
+  Future<WeeklyScheduleModel> getFriendWeeklySchedule({
+    required String friendEmail,
+    required DateTime date,
+  });
+
   Future<List<ScheduleClassModel>> getScheduleClasses();
 
   Future<FreeRoomsForDayModel> getFreeRoomsForDay({required DateTime date});
+
+  Future<FriendsFreeSlotsModel> getFriendsFreeSlots({
+    required List<String> friendEmails,
+    DateTime? date,
+  });
 
   Future<ScheduleDeleteResponseModel> deleteFullSchedule();
 
@@ -144,6 +155,19 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
   }
 
   @override
+  Future<WeeklyScheduleModel> getFriendWeeklySchedule({
+    required String friendEmail,
+    required DateTime date,
+  }) async {
+    final response = await dio.get(
+      '/schedule/${Uri.encodeComponent(friendEmail)}/week',
+      queryParameters: {'date': _formatDdMmYyyy(date)},
+    );
+
+    return WeeklyScheduleModel.fromJson(response.data as Map<String, dynamic>);
+  }
+
+  @override
   Future<List<ScheduleClassModel>> getScheduleClasses() async {
     final response = await dio.get('/schedule/classes', queryParameters: {});
 
@@ -165,6 +189,80 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
     );
 
     return FreeRoomsForDayModel.fromJson(response.data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<FriendsFreeSlotsModel> getFriendsFreeSlots({
+    required List<String> friendEmails,
+    DateTime? date,
+  }) async {
+    final normalizedEmails = friendEmails
+        .map((email) => email.trim().toLowerCase())
+        .where((email) => email.isNotEmpty)
+        .toList();
+    final referenceDate = date ?? DateTime.now();
+    final payloads = _friendsFreeSlotsPayloads(
+      friendEmails: normalizedEmails,
+      date: referenceDate,
+    );
+
+    DioException? lastValidationError;
+
+    for (final payload in payloads) {
+      try {
+        final response = await dio.post(
+          '/schedule/friends/free-slots',
+          data: payload,
+        );
+
+        return FriendsFreeSlotsModel.fromJson(
+          response.data,
+          selectedFriendCount: normalizedEmails.length,
+        );
+      } on DioException catch (error) {
+        if (!_shouldTryNextFreeSlotsPayload(error, payload)) rethrow;
+        lastValidationError = error;
+      }
+    }
+
+    throw lastValidationError!;
+  }
+
+  List<Map<String, Object>> _friendsFreeSlotsPayloads({
+    required List<String> friendEmails,
+    required DateTime date,
+  }) {
+    final isoDate = DateTimeUtils.toApiDate(date);
+
+    return [
+      {'friends': friendEmails, 'date': isoDate},
+      {'friends_emails': friendEmails, 'date': isoDate},
+      {'friend_emails': friendEmails, 'date': isoDate},
+    ];
+  }
+
+  bool _shouldTryNextFreeSlotsPayload(
+    DioException error,
+    Map<String, Object> payload,
+  ) {
+    if (error.response?.statusCode != 422) return false;
+
+    final data = error.response?.data;
+    final detail = data is Map ? data['detail'] : null;
+    if (detail is! List || detail.isEmpty) return false;
+
+    return detail.every((item) {
+      if (item is! Map) return false;
+
+      final message = item['msg']?.toString().toLowerCase() ?? '';
+      if (!message.contains('field required')) return false;
+
+      final loc = item['loc'];
+      if (loc is! List || loc.isEmpty) return false;
+
+      final missingField = loc.last.toString();
+      return !payload.containsKey(missingField);
+    });
   }
 
   @override

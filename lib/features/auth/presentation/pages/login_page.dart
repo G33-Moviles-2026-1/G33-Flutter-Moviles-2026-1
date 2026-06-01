@@ -80,19 +80,15 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             TextFormField(
               controller: _emailCtrl,
               inputFormatters: [
-                LengthLimitingTextInputFormatter(35),
+                LengthLimitingTextInputFormatter(60),
               ],
               keyboardType: TextInputType.emailAddress,
               decoration: const InputDecoration(
-                hintText: 'Student Mail',
+                hintText: 'Email or username',
               ),
               validator: (value) {
-                final email = value?.trim() ?? '';
-                if (email.isEmpty) {
-                  return 'Enter your email';
-                }
-                if (!RegExp(r'^[^@]+@[^@]+\.[^@]+$').hasMatch(email)) {
-                  return 'Enter a valid email';
+                if (value?.trim().isEmpty ?? true) {
+                  return 'Enter your email or username';
                 }
                 return null;
               },

@@ -3,8 +3,8 @@ import 'package:andespace/features/bookings/presentation/widgets/quick_booking_d
 import 'package:andespace/features/auth/presentation/notifiers/auth_notifier.dart';
 import 'package:andespace/features/favorites/presentation/providers/favorites_providers.dart';
 import 'package:andespace/features/rooms/domain/entities/room_search.dart';
-import 'package:andespace/features/rooms/presentation/controllers/auto_search_notifier.dart';
-import 'package:andespace/features/rooms/presentation/controllers/auto_search_state.dart';
+import 'package:andespace/features/rooms/presentation/notifiers/auto_search_notifier.dart';
+import 'package:andespace/features/rooms/presentation/notifiers/auto_search_state.dart';
 import 'package:andespace/shared/theme/app_theme_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -260,6 +260,13 @@ class _AutoSearchRecommendation extends ConsumerWidget {
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
+                  if (room.recommendationReason != null &&
+                      room.recommendationReason!.trim().isNotEmpty) ...[
+                    const SizedBox(height: 18),
+                    _RecommendationReasonPill(
+                      reason: room.recommendationReason!,
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -347,6 +354,46 @@ class _AutoSearchRecommendation extends ConsumerWidget {
           ],
         ),
       ],
+    );
+  }
+}
+
+class _RecommendationReasonPill extends StatelessWidget {
+  const _RecommendationReasonPill({required this.reason});
+
+  final String reason;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final brand = theme.extension<BrandColors>()!;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+      decoration: BoxDecoration(
+        color: brand.accentYellow.withValues(
+          alpha: theme.brightness == Brightness.dark ? 0.16 : 0.28,
+        ),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: brand.accentYellow.withValues(alpha: 0.50)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.auto_awesome, size: 18, color: brand.accentYellow),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              reason,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurface,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

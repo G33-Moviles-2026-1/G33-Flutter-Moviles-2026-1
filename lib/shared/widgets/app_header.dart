@@ -1,10 +1,11 @@
 import 'package:andespace/core/navigation/app_routes.dart';
+import 'package:andespace/features/notifications/presentation/notifiers/notifications_notifier.dart';
 import 'package:andespace/shared/theme/app_theme_extension.dart';
 import 'package:andespace/shared/widgets/auth_popup_menu.dart';
-import 'package:andespace/shared/widgets/theme_popup_menu.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class AppHeader extends StatelessWidget implements PreferredSizeWidget {
+class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
   const AppHeader({
     super.key,
     this.title = 'AndeSpace',
@@ -14,6 +15,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
     this.onLogout,
     this.userIconPath = 'assets/icons/user.svg',
     this.isLoggedIn = false,
+    this.username,
   });
 
   final String title;
@@ -21,14 +23,17 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback? onLogin;
   final VoidCallback? onSignUp;
   final VoidCallback? onLogout;
-
   final String userIconPath;
   final bool isLoggedIn;
+  final String? username;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final brand = theme.extension<BrandColors>()!;
+    final badgeCount = ref.watch(
+      notificationsControllerProvider.select((s) => s.badgeCount),
+    );
 
     return AppBar(
       backgroundColor: brand.headerBackground,
@@ -39,9 +44,26 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
       scrolledUnderElevation: 0,
       centerTitle: true,
       leadingWidth: 56,
-      leading: ThemePopupMenu(
-        icon: Icons.settings,
-        iconColor: brand.headerForeground,
+      leading: Center(
+        child: Badge(
+          isLabelVisible: badgeCount > 0,
+          alignment: AlignmentDirectional.topEnd,
+          offset: const Offset(-8, 7),
+          label: Text(badgeCount > 99 ? '99+' : '$badgeCount'),
+          child: IconButton(
+            tooltip: 'Notifications',
+            constraints: const BoxConstraints.tightFor(width: 48, height: 48),
+            icon: Icon(
+              Icons.notifications_none,
+              color: brand.headerForeground,
+              size: 27,
+            ),
+            onPressed: () => Navigator.pushReplacementNamed(
+              context,
+              AppRoutes.notifications,
+            ),
+          ),
+        ),
       ),
       title: GestureDetector(
         onTap:
@@ -64,6 +86,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
           padding: const EdgeInsets.only(right: 8),
           child: AuthPopupMenu(
             isLoggedIn: isLoggedIn,
+            username: username,
             onLogin: onLogin,
             onSignUp: onSignUp,
             onLogout: onLogout,

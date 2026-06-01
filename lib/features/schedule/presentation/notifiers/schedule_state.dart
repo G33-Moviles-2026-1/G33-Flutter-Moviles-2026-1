@@ -1,5 +1,7 @@
 import 'package:andespace/features/schedule/domain/entities/weekly_schedule.dart';
 
+import '../../domain/entities/schedule_occurrence.dart';
+
 enum ScheduleStatus {
   initial,
   loading,
@@ -11,9 +13,17 @@ enum ScheduleStatus {
   error,
 }
 
+class ScheduleDayOccurrences {
+  final DateTime day;
+  final List<ScheduleOccurrence> occurrences;
+
+  const ScheduleDayOccurrences({required this.day, required this.occurrences});
+}
+
 class ScheduleState {
   final ScheduleStatus status;
   final WeeklySchedule? weeklySchedule;
+  final List<ScheduleDayOccurrences> weekDays;
   final DateTime selectedDate;
   final String? errorMessage;
   final String? ownerEmail;
@@ -24,6 +34,7 @@ class ScheduleState {
   const ScheduleState({
     required this.status,
     required this.selectedDate,
+    this.weekDays = const [],
     this.weeklySchedule,
     this.errorMessage,
     this.ownerEmail,
@@ -38,6 +49,7 @@ class ScheduleState {
       status: ScheduleStatus.initial,
       selectedDate: DateTime(now.year, now.month, now.day),
       weeklySchedule: null,
+      weekDays: const [],
       errorMessage: null,
       ownerEmail: null,
       infoMessage: null,
@@ -49,6 +61,7 @@ class ScheduleState {
   ScheduleState copyWith({
     ScheduleStatus? status,
     WeeklySchedule? weeklySchedule,
+    List<ScheduleDayOccurrences>? weekDays,
     bool clearWeeklySchedule = false,
     DateTime? selectedDate,
     String? errorMessage,
@@ -65,6 +78,7 @@ class ScheduleState {
       weeklySchedule: clearWeeklySchedule
           ? null
           : (weeklySchedule ?? this.weeklySchedule),
+      weekDays: clearWeeklySchedule ? const [] : (weekDays ?? this.weekDays),
       selectedDate: selectedDate ?? this.selectedDate,
       errorMessage: clearErrorMessage
           ? null

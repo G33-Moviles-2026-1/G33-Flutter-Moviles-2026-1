@@ -55,6 +55,51 @@ class FavoriteMutationsTable extends Table {
   Set<Column> get primaryKey => {opId};
 }
 
+class FriendsTable extends Table {
+  @override
+  String get tableName => 'friends';
+
+  TextColumn get email => text()();
+  TextColumn get username => text()();
+  TextColumn get status => text()();
+  TextColumn get syncState => text().withDefault(const Constant('clean'))();
+  TextColumn get lastError => text().nullable()();
+  DateTimeColumn get updatedAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {email};
+}
+
+class FriendMutationsTable extends Table {
+  @override
+  String get tableName => 'friend_mutations';
+
+  TextColumn get opId => text()();
+  TextColumn get operation => text()();
+  TextColumn get identifier => text().nullable()();
+  TextColumn get status => text().nullable()();
+  IntColumn get attemptCount => integer().withDefault(const Constant(0))();
+  TextColumn get lastError => text().nullable()();
+  DateTimeColumn get createdAt => dateTime()();
+  DateTimeColumn get updatedAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {opId};
+}
+
+class MyStatusTable extends Table {
+  @override
+  String get tableName => 'my_status';
+
+  TextColumn get id => text()();
+  TextColumn get status => text()();
+  TextColumn get syncState => text().withDefault(const Constant('clean'))();
+  DateTimeColumn get updatedAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 class CachedPathsTable extends Table {
   @override
   String get tableName => 'cached_paths';
@@ -102,21 +147,40 @@ class CachedRecommendedRoomsTable extends Table {
   Set<Column> get primaryKey => {cacheKey};
 }
 
+class CachedNotificationsTable extends Table {
+  @override
+  String get tableName => 'cached_notifications';
+
+  TextColumn get id => text()();
+  TextColumn get type => text()();
+  TextColumn get payloadJson => text().withDefault(const Constant('{}'))();
+  BoolColumn get isRead => boolean()();
+  DateTimeColumn get createdAt => dateTime()();
+  DateTimeColumn get savedAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 @DriftDatabase(
   tables: [
     MyBookingsTable,
     FavoriteRoomsTable,
     ScheduleClassesTable,
     FavoriteMutationsTable,
+    FriendsTable,
+    FriendMutationsTable,
+    MyStatusTable,
     CachedPathsTable,
     CachedRecommendedRoomsTable,
+    CachedNotificationsTable,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(driftDatabase(name: 'andespace_db'));
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -219,9 +283,28 @@ class AppDatabase extends _$AppDatabase {
     await delete(myBookingsTable).go();
     await delete(favoriteMutationsTable).go();
     await delete(favoriteRoomsTable).go();
+    await delete(friendsTable).go();
+    await delete(friendMutationsTable).go();
+    await delete(myStatusTable).go();
     await delete(scheduleClassesTable).go();
     await delete(cachedRecommendedRoomsTable).go();
+    await delete(cachedNotificationsTable).go();
   });
+
+  Future<List<CachedNotificationsTableData>> getCachedNotifications() =>
+      (select(cachedNotificationsTable)
+            ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+          .get();
+
+  Future<void> replaceCachedNotifications(
+    List<CachedNotificationsTableCompanion> rows,
+  ) =>
+      transaction(() async {
+        await delete(cachedNotificationsTable).go();
+        if (rows.isNotEmpty) {
+          await batch((b) => b.insertAll(cachedNotificationsTable, rows));
+        }
+      });
 
   Future<List<ScheduleClassesTableData>> getScheduleClasses() {
     return (select(scheduleClassesTable)).get();
@@ -278,5 +361,119 @@ class AppDatabase extends _$AppDatabase {
     return (select(
       cachedRecommendedRoomsTable,
     )..where((t) => t.cacheKey.equals(key))).getSingleOrNull();
+  }
+
+  Future<List<FriendsTableData>> getVisibleFriends() {
+    return (select(friendsTable)
+          ..where((t) => t.syncState.isNotValue('pending_remove'))
+          ..orderBy([(t) => OrderingTerm.asc(t.username)]))
+        .get();
+  }
+
+  Future<List<FriendsTableData>> getAllFriends() {
+    return select(friendsTable).get();
+  }
+
+  Future<void> upsertFriend(FriendsTableCompanion row) {
+    return into(friendsTable).insertOnConflictUpdate(row);
+  }
+
+  Future<void> replaceCleanFriends(List<FriendsTableCompanion> rows) {
+    return transaction(() async {
+      final existing = await getAllFriends();
+      final pendingRemoveEmails = existing
+          .where((f) => f.syncState == 'pending_remove')
+          .map((f) => f.email)
+          .toSet();
+
+      for (final row in rows) {
+        final email = row.email.value;
+        if (pendingRemoveEmails.contains(email)) continue;
+        await into(friendsTable).insertOnConflictUpdate(row);
+      }
+    });
+  }
+
+  Future<void> deleteCleanFriendsNotIn(Set<String> emails) async {
+    if (emails.isEmpty) {
+      await (delete(friendsTable)
+            ..where((t) => t.syncState.equals('clean')))
+          .go();
+      return;
+    }
+
+    await (delete(friendsTable)
+          ..where(
+            (t) => t.syncState.equals('clean') & t.email.isNotIn(emails.toList()),
+          ))
+        .go();
+  }
+
+  Future<void> deleteFriendByEmail(String email) {
+    return (delete(friendsTable)..where((t) => t.email.equals(email))).go();
+  }
+
+  Future<void> deleteFriendByIdentifier(String identifier) {
+    return (delete(friendsTable)
+          ..where(
+            (t) =>
+                t.email.equals(identifier) |
+                t.username.equals(identifier),
+          ))
+        .go();
+  }
+
+  Future<void> clearFriendshipsLocalData() => transaction(() async {
+    await delete(friendsTable).go();
+    await delete(friendMutationsTable).go();
+    await delete(myStatusTable).go();
+  });
+
+  Future<List<FriendMutationsTableData>> getPendingFriendMutations() {
+    return (select(friendMutationsTable)
+          ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]))
+        .get();
+  }
+
+  Future<void> upsertFriendMutation(FriendMutationsTableCompanion row) {
+    return into(friendMutationsTable).insertOnConflictUpdate(row);
+  }
+
+  Future<void> deleteFriendMutationById(String opId) {
+    return (delete(friendMutationsTable)..where((t) => t.opId.equals(opId))).go();
+  }
+
+  Future<void> deleteStatusUpdateMutations() {
+    return (delete(friendMutationsTable)
+          ..where((t) => t.operation.equals('update_status')))
+        .go();
+  }
+
+  Future<MyStatusTableData?> getMyStatusRow() {
+    return (select(myStatusTable)..where((t) => t.id.equals('me')))
+        .getSingleOrNull();
+  }
+
+  Future<void> upsertMyStatus(MyStatusTableCompanion row) {
+    return into(myStatusTable).insertOnConflictUpdate(row);
+  }
+
+  Future<String?> getFriendshipsCacheOwnerEmail() async {
+    final row = await (select(myStatusTable)
+          ..where((t) => t.id.equals('friendships_cache_owner')))
+        .getSingleOrNull();
+
+    return row?.status;
+  }
+
+  Future<void> setFriendshipsCacheOwnerEmail(String email) {
+    return into(myStatusTable).insertOnConflictUpdate(
+      MyStatusTableCompanion(
+        id: const Value('friendships_cache_owner'),
+        status: Value(email),
+        syncState: const Value('clean'),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
   }
 }

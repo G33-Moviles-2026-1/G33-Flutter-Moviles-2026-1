@@ -11,8 +11,8 @@ import '../../domain/usecases/get_favorite_detail_seed.dart';
 import '../../domain/usecases/load_favorites.dart';
 import '../../domain/usecases/remove_favorite.dart';
 import '../../domain/usecases/toggle_favorite.dart';
-import '../controllers/favorites_notifier.dart';
-import '../controllers/favorites_state.dart';
+import '../notifiers/favorites_notifier.dart';
+import '../notifiers/favorites_state.dart';
 
 final favoritesLocalDataSourceProvider = Provider<FavoritesLocalDataSource>((ref) {
   throw UnimplementedError(

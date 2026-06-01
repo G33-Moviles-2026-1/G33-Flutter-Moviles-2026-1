@@ -1,5 +1,5 @@
 import 'package:andespace/core/navigation/app_routes.dart';
-import 'package:andespace/features/rooms/presentation/controllers/home_search_notifier.dart';
+import 'package:andespace/features/rooms/presentation/notifiers/home_search_notifier.dart';
 import 'package:andespace/features/rooms/presentation/widgets/results_body.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:andespace/core/navigation/app_tab.dart';

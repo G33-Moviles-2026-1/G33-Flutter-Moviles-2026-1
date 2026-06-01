@@ -1,0 +1,888 @@
+import 'package:andespace/core/navigation/app_routes.dart';
+import 'package:andespace/core/navigation/app_tab.dart';
+import 'package:andespace/features/auth/domain/entities/user_status.dart';
+import 'package:andespace/features/auth/presentation/notifiers/auth_notifier.dart';
+import 'package:andespace/features/friendships/domain/entities/friend.dart';
+import 'package:andespace/features/friendships/presentation/notifiers/friendships_notifier.dart';
+import 'package:andespace/features/friendships/presentation/notifiers/friendships_state.dart';
+import 'package:andespace/features/friendships/presentation/pages/add_friends_page.dart';
+import 'package:andespace/features/friendships/presentation/pages/friend_schedule_page.dart';
+import 'package:andespace/features/friendships/presentation/pages/friends_free_slots_page.dart';
+import 'package:andespace/features/friendships/presentation/providers/friendships_providers.dart';
+import 'package:andespace/shared/theme/app_theme_extension.dart';
+import 'package:andespace/shared/widgets/app_scaffold.dart';
+import 'package:andespace/shared/widgets/auth_required_scaffold.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+
+class FriendsPage extends ConsumerStatefulWidget {
+  const FriendsPage({super.key});
+
+  @override
+  ConsumerState<FriendsPage> createState() => _FriendsPageState();
+}
+
+class _FriendsPageState extends ConsumerState<FriendsPage> {
+  final Set<String> _selectedFriendEmails = {};
+  bool _isSelectingFriends = false;
+
+  bool get _isSelectionMode => _isSelectingFriends;
+
+  void _toggleFriendSelection(
+    Friend friend, {
+    bool enterSelectionMode = false,
+  }) {
+    if (!friend.shareSchedule) {
+      if (enterSelectionMode && !_isSelectingFriends) {
+        setState(() => _isSelectingFriends = true);
+      }
+      _showPrivateScheduleMessage(friend);
+      return;
+    }
+
+    setState(() {
+      _isSelectingFriends = true;
+
+      if (_selectedFriendEmails.contains(friend.email)) {
+        _selectedFriendEmails.remove(friend.email);
+      } else {
+        _selectedFriendEmails.add(friend.email);
+      }
+    });
+  }
+
+  void _clearSelection() {
+    setState(() {
+      _selectedFriendEmails.clear();
+      _isSelectingFriends = false;
+    });
+  }
+
+  List<Friend> _selectedFriends(List<Friend> friends) {
+    return friends
+        .where((friend) => _selectedFriendEmails.contains(friend.email))
+        .toList();
+  }
+
+  void _openFreeSlots(List<Friend> selectedFriends) {
+    if (selectedFriends.isEmpty) return;
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => FriendsFreeSlotsPage(friends: selectedFriends),
+      ),
+    );
+  }
+
+  void _showPrivateScheduleMessage(Friend friend) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text("${friend.username}'s schedule is private."),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(milliseconds: 1800),
+        ),
+      );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final authState = ref.watch(authControllerProvider);
+
+    if (!authState.hasActiveSession) {
+      return AuthRequiredScaffold(
+        currentTab: AppTab.favorites,
+        onTabSelected: (tab) => AppRoutes.handleTabSelection(context, tab),
+        title: 'Log in to view your friends',
+        message: 'Sign in to add friends and see their current status.',
+      );
+    }
+
+    final state = ref.watch(friendshipsControllerProvider);
+    final notifier = ref.read(friendshipsControllerProvider.notifier);
+    final theme = Theme.of(context);
+    final selectedFriends = _selectedFriends(state.friends);
+
+    ref.listen<FriendshipsState>(friendshipsControllerProvider, (
+      previous,
+      next,
+    ) {
+      final previousError = previous?.errorMessage;
+      final nextError = next.errorMessage;
+
+      if (nextError != null && nextError != previousError) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(SnackBar(content: Text(nextError)));
+      }
+    });
+
+    return AppScaffold(
+      currentTab: AppTab.favorites,
+      onTabSelected: (tab) => AppRoutes.handleTabSelection(context, tab),
+      body: Container(
+        color: _pageBackground(context),
+        child: RefreshIndicator(
+          onRefresh: notifier.refreshAll,
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(22, 20, 22, 28),
+            children: [
+              Center(
+                child: Text(
+                  'My Friends',
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 34,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Expanded(
+                    child: _TopActionButton(
+                      label: 'My status:',
+                      assetPath: _statusAssetPath(state.myStatus),
+                      onTap: () =>
+                          _showStatusDialog(context, state.myStatus, notifier),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _TopActionButton(
+                      label: 'Add friends',
+                      assetPath: 'assets/icons/addfriend.svg',
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const AddFriendsPage(),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 18),
+              const _FriendsHintText(),
+              const SizedBox(height: 8),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 180),
+                child: _isSelectionMode
+                    ? _SelectionActionBar(
+                        selectedCount: selectedFriends.length,
+                        onClear: _clearSelection,
+                        onFreeSlots: () => _openFreeSlots(selectedFriends),
+                      )
+                    : const SizedBox.shrink(),
+              ),
+              if (_isSelectionMode) const SizedBox(height: 18),
+              if (state.isFriendsLoading && state.friends.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.only(top: 80),
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              else if (state.friends.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 80),
+                  child: Text(
+                    'You have no friends yet.\nTap Add friends to send your first request.',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodyLarge,
+                  ),
+                )
+              else
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: state.friends.length,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 12,
+                    childAspectRatio: 0.91,
+                  ),
+                  itemBuilder: (context, index) {
+                    final friend = state.friends[index];
+                    final isPending = state.pendingFriendUsernames.contains(
+                      friend.username,
+                    );
+                    final isSelected = _selectedFriendEmails.contains(
+                      friend.email,
+                    );
+
+                    return _FriendCard(
+                      friend: friend,
+                      isPending: isPending,
+                      isSelected: isSelected,
+                      isSelectionMode: _isSelectionMode,
+                      hasPrivateSchedule: !friend.shareSchedule,
+                      onTap: () {
+                        if (!friend.shareSchedule) {
+                          _showPrivateScheduleMessage(friend);
+                          return;
+                        }
+
+                        if (_isSelectionMode) {
+                          _toggleFriendSelection(friend);
+                          return;
+                        }
+
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => FriendSchedulePage(friend: friend),
+                          ),
+                        );
+                      },
+                      onLongPress: () => _toggleFriendSelection(
+                        friend,
+                        enterSelectionMode: true,
+                      ),
+                      onDelete: () =>
+                          _confirmRemoveFriend(context, notifier, friend),
+                    );
+                  },
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showStatusDialog(
+    BuildContext context,
+    UserStatus current,
+    FriendshipsNotifier notifier,
+  ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      barrierColor: Colors.black.withValues(alpha: isDark ? 0.68 : 0.48),
+      builder: (_) => _StatusCarouselDialog(
+        initialStatus: current,
+        onStatusSelected: notifier.updateMyStatus,
+      ),
+    );
+  }
+
+  Future<void> _confirmRemoveFriend(
+    BuildContext context,
+    FriendshipsNotifier notifier,
+    Friend friend,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.48),
+      builder: (dialogContext) {
+        final theme = Theme.of(dialogContext);
+        final colorScheme = theme.colorScheme;
+
+        return AlertDialog(
+          title: const Text('Remove friend?'),
+          content: Text(
+            'Are you sure you want to remove ${friend.username} from your friends?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              style: _compactElevatedButtonStyle(
+                dialogContext,
+                backgroundColor: colorScheme.error,
+                foregroundColor: colorScheme.onError,
+              ),
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('Remove'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true) {
+      await notifier.removeFriend(friend);
+    }
+  }
+}
+
+class _FriendsHintText extends StatelessWidget {
+  const _FriendsHintText();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Text(
+        'Tap a friend to see their schedule. Hold to select friends and find common gaps.',
+        textAlign: TextAlign.center,
+        style: theme.textTheme.bodyMedium?.copyWith(
+          fontSize: 13.5,
+          height: 1.25,
+          fontWeight: FontWeight.w500,
+          color: theme.colorScheme.onSurface.withValues(
+            alpha: isDark ? 0.78 : 0.62,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SelectionActionBar extends StatelessWidget {
+  const _SelectionActionBar({
+    required this.selectedCount,
+    required this.onClear,
+    required this.onFreeSlots,
+  });
+
+  final int selectedCount;
+  final VoidCallback onClear;
+  final VoidCallback onFreeSlots;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      key: const ValueKey('friend-selection-actions'),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: _cardBackground(context),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: _selectionColor(context).withValues(alpha: .7),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.12),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              '$selectedCount selected',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+          TextButton(onPressed: onClear, child: const Text('Clear')),
+          const SizedBox(width: 8),
+          ElevatedButton.icon(
+            style: _compactElevatedButtonStyle(
+              context,
+              minimumHeight: 42,
+              borderRadius: 8,
+            ),
+            onPressed: selectedCount == 0 ? null : onFreeSlots,
+            icon: const Icon(Icons.grid_view_rounded, size: 19),
+            label: const Text('Free Slots'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TopActionButton extends StatelessWidget {
+  const _TopActionButton({
+    required this.label,
+    required this.assetPath,
+    required this.onTap,
+  });
+
+  final String label;
+  final String assetPath;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Material(
+      color: _cardBackground(context),
+      borderRadius: BorderRadius.circular(9),
+      elevation: 4,
+      shadowColor: Colors.black.withValues(alpha: 0.25),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(9),
+        child: Container(
+          height: 52,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(9),
+            border: Border.all(color: _borderColor(context)),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 17,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              _SvgIcon(
+                assetPath: assetPath,
+                size: 36,
+                color: _primaryIconColor(context),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _FriendCard extends StatelessWidget {
+  const _FriendCard({
+    required this.friend,
+    required this.isPending,
+    required this.isSelected,
+    required this.isSelectionMode,
+    required this.hasPrivateSchedule,
+    required this.onTap,
+    required this.onLongPress,
+    required this.onDelete,
+  });
+
+  final Friend friend;
+  final bool isPending;
+  final bool isSelected;
+  final bool isSelectionMode;
+  final bool hasPrivateSchedule;
+  final VoidCallback onTap;
+  final VoidCallback onLongPress;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Material(
+      color: _cardBackground(context),
+      elevation: 4,
+      shadowColor: Colors.black.withValues(alpha: 0.22),
+      borderRadius: BorderRadius.circular(8),
+      child: InkWell(
+        onTap: onTap,
+        onLongPress: onLongPress,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: isSelected
+                  ? _selectionColor(context)
+                  : _borderColor(context),
+              width: isSelected ? 2.2 : 1,
+            ),
+          ),
+          child: Stack(
+            children: [
+              if (isSelected)
+                Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: _selectionColor(context).withValues(alpha: 0.10),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              if (isSelectionMode && hasPrivateSchedule)
+                Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: _privateScheduleOverlayColor(context),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              if (hasPrivateSchedule)
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  child: Padding(
+                    padding: const EdgeInsets.all(9),
+                    child: Tooltip(
+                      message: 'Private schedule',
+                      child: Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: _privateScheduleBadgeColor(context),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          Icons.visibility_off_outlined,
+                          size: 20,
+                          color: _privateScheduleIconColor(context),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              Positioned(
+                top: 0,
+                right: 0,
+                child: isSelectionMode
+                    ? Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: Icon(
+                          isSelected
+                              ? Icons.check_circle
+                              : hasPrivateSchedule
+                              ? Icons.block
+                              : Icons.radio_button_unchecked,
+                          size: 28,
+                          color: isSelected
+                              ? _selectionColor(context)
+                              : _primaryIconColor(
+                                  context,
+                                ).withValues(alpha: 0.55),
+                        ),
+                      )
+                    : isPending
+                    ? const Padding(
+                        padding: EdgeInsets.all(12),
+                        child: SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      )
+                    : IconButton(
+                        tooltip: 'Remove friend',
+                        constraints: const BoxConstraints.tightFor(
+                          width: 42,
+                          height: 42,
+                        ),
+                        icon: const Icon(Icons.close, size: 31),
+                        color: _primaryIconColor(context),
+                        onPressed: onDelete,
+                      ),
+              ),
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(10, 34, 10, 10),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _SvgIcon(
+                        assetPath: _statusAssetPath(friend.status),
+                        size: 74,
+                        color: _primaryIconColor(context),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        friend.username,
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 25,
+                          height: 1,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        friend.status.label,
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontSize: 16,
+                          height: 1.05,
+                          color: theme.colorScheme.onSurface.withValues(
+                            alpha: 0.78,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _StatusCarouselDialog extends StatefulWidget {
+  const _StatusCarouselDialog({
+    required this.initialStatus,
+    required this.onStatusSelected,
+  });
+
+  final UserStatus initialStatus;
+  final ValueChanged<UserStatus> onStatusSelected;
+
+  @override
+  State<_StatusCarouselDialog> createState() => _StatusCarouselDialogState();
+}
+
+class _StatusCarouselDialogState extends State<_StatusCarouselDialog> {
+  late int _index;
+
+  @override
+  void initState() {
+    super.initState();
+    _index = UserStatus.values.indexOf(widget.initialStatus);
+    if (_index < 0) _index = 0;
+  }
+
+  void _move(int delta) {
+    setState(() {
+      _index = (_index + delta) % UserStatus.values.length;
+      if (_index < 0) _index = UserStatus.values.length - 1;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final status = UserStatus.values[_index];
+    final theme = Theme.of(context);
+
+    return Dialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 38),
+      backgroundColor: Colors.transparent,
+      child: Container(
+        decoration: BoxDecoration(
+          color: _cardBackground(context),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: _borderColor(context)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.35),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(28, 28, 28, 28),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'My status:',
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 28,
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  _SvgIcon(
+                    assetPath: _statusAssetPath(status),
+                    size: 116,
+                    color: _primaryIconColor(context),
+                  ),
+                  const SizedBox(height: 18),
+                  Row(
+                    children: [
+                      IconButton(
+                        onPressed: () => _move(-1),
+                        icon: const Icon(Icons.chevron_left, size: 44),
+                        color: _primaryIconColor(context),
+                      ),
+                      Expanded(
+                        child: Text(
+                          status.label,
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 24,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => _move(1),
+                        icon: const Icon(Icons.chevron_right, size: 44),
+                        color: _primaryIconColor(context),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      style: _compactElevatedButtonStyle(
+                        context,
+                        minimumHeight: 50,
+                        borderRadius: 9,
+                      ),
+                      onPressed: () {
+                        widget.onStatusSelected(status);
+                        Navigator.pop(context);
+                      },
+                      child: const Text('Save status'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Positioned(
+              top: 4,
+              right: 4,
+              child: IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.close, size: 24),
+                color: _primaryIconColor(context),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SvgIcon extends StatelessWidget {
+  const _SvgIcon({
+    required this.assetPath,
+    required this.size,
+    required this.color,
+  });
+
+  final String assetPath;
+  final double size;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return SvgPicture.asset(
+      assetPath,
+      width: size,
+      height: size,
+      fit: BoxFit.contain,
+      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+    );
+  }
+}
+
+String _statusAssetPath(UserStatus status) {
+  return switch (status) {
+    UserStatus.incognito => 'assets/icons/incognito.svg',
+    UserStatus.busy => 'assets/icons/busy.svg',
+    UserStatus.exercising => 'assets/icons/exercising.svg',
+    UserStatus.free => 'assets/icons/free.svg',
+    UserStatus.hangingOut => 'assets/icons/hangingout.svg',
+    UserStatus.atHome => 'assets/icons/athome.svg',
+    UserStatus.lunching => 'assets/icons/lunching.svg',
+  };
+}
+
+Color _pageBackground(BuildContext context) {
+  final theme = Theme.of(context);
+  final isDark = theme.brightness == Brightness.dark;
+
+  return isDark ? theme.scaffoldBackgroundColor : Colors.white;
+}
+
+Color _cardBackground(BuildContext context) {
+  final theme = Theme.of(context);
+  final isDark = theme.brightness == Brightness.dark;
+
+  return isDark ? const Color(0xFF1A1D22) : Colors.white;
+}
+
+Color _primaryIconColor(BuildContext context) {
+  final theme = Theme.of(context);
+  final brand = theme.extension<BrandColors>()!;
+  final isDark = theme.brightness == Brightness.dark;
+
+  return isDark ? brand.accentYellow : Colors.black;
+}
+
+Color _borderColor(BuildContext context) {
+  final theme = Theme.of(context);
+  final isDark = theme.brightness == Brightness.dark;
+
+  return isDark
+      ? Colors.white.withValues(alpha: 0.10)
+      : Colors.black.withValues(alpha: 0.08);
+}
+
+Color _selectionColor(BuildContext context) {
+  final theme = Theme.of(context);
+  final isDark = theme.brightness == Brightness.dark;
+
+  return isDark ? const Color(0xFFFFA500) : const Color(0xFF00A862);
+}
+
+Color _privateScheduleOverlayColor(BuildContext context) {
+  final theme = Theme.of(context);
+  final isDark = theme.brightness == Brightness.dark;
+
+  return isDark
+      ? Colors.black.withValues(alpha: 0.28)
+      : Colors.white.withValues(alpha: 0.54);
+}
+
+Color _privateScheduleBadgeColor(BuildContext context) {
+  final theme = Theme.of(context);
+  final isDark = theme.brightness == Brightness.dark;
+
+  return isDark
+      ? const Color(0xFFFFA500).withValues(alpha: 0.18)
+      : Colors.black.withValues(alpha: 0.08);
+}
+
+Color _privateScheduleIconColor(BuildContext context) {
+  final theme = Theme.of(context);
+  final isDark = theme.brightness == Brightness.dark;
+
+  return isDark ? const Color(0xFFFFA500) : Colors.black;
+}
+
+ButtonStyle _compactElevatedButtonStyle(
+  BuildContext context, {
+  Color? backgroundColor,
+  Color? foregroundColor,
+  double minimumHeight = 40,
+  double borderRadius = 8,
+}) {
+  final theme = Theme.of(context);
+  final colorScheme = theme.colorScheme;
+
+  return ElevatedButton.styleFrom(
+    backgroundColor: backgroundColor ?? colorScheme.secondary,
+    foregroundColor: foregroundColor ?? colorScheme.onSecondary,
+    minimumSize: Size(0, minimumHeight),
+    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    visualDensity: VisualDensity.compact,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(borderRadius),
+    ),
+  );
+}

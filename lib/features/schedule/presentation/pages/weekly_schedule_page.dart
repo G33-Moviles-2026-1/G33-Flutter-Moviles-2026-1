@@ -1,4 +1,7 @@
 import 'package:andespace/core/di/core_provider.dart';
+import 'package:andespace/features/auth/domain/entities/user_status.dart';
+import 'package:andespace/features/auth/presentation/notifiers/auth_notifier.dart';
+import 'package:andespace/features/auth/presentation/notifiers/auth_state.dart';
 import 'package:andespace/features/schedule/domain/entities/schedule_occurrence.dart';
 import 'package:andespace/features/schedule/presentation/pages/recommended_rooms_page.dart';
 import 'package:andespace/features/schedule/presentation/widgets/delete_occurrence_scope_dialog.dart';
@@ -22,6 +25,8 @@ class WeeklySchedulePage extends ConsumerStatefulWidget {
 }
 
 class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
+  bool _syncingIncognitoPrivacy = false;
+
   @override
   void initState() {
     super.initState();
@@ -159,8 +164,75 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
     );
   }
 
+  Future<void> _setSchedulePrivacy({
+    required bool isPrivate,
+    bool showMessage = true,
+  }) async {
+    final messenger = ScaffoldMessenger.of(context);
+
+    if (showMessage) {
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(
+              isPrivate
+                  ? 'Your schedule is now private to your friends.'
+                  : 'Your schedule is now visible to your friends.',
+            ),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(milliseconds: 1400),
+          ),
+        );
+    }
+
+    try {
+      await ref
+          .read(authControllerProvider.notifier)
+          .updateShareSchedule(!isPrivate);
+    } catch (_) {
+      if (!mounted) return;
+
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Could not update schedule privacy. Your previous setting was restored.',
+            ),
+            behavior: SnackBarBehavior.floating,
+            duration: Duration(milliseconds: 2200),
+          ),
+        );
+    }
+  }
+
+  Future<void> _syncIncognitoPrivacyIfNeeded(AuthState state) async {
+    final user = state.user;
+    if (user == null ||
+        user.status != UserStatus.incognito ||
+        !user.shareSchedule ||
+        _syncingIncognitoPrivacy) {
+      return;
+    }
+
+    _syncingIncognitoPrivacy = true;
+    await _setSchedulePrivacy(isPrivate: true);
+    _syncingIncognitoPrivacy = false;
+  }
+
   @override
   Widget build(BuildContext context) {
+    ref.listen<AuthState>(authControllerProvider, (previous, next) {
+      final becameIncognito =
+          previous?.user?.status != UserStatus.incognito &&
+          next.user?.status == UserStatus.incognito;
+
+      if (becameIncognito) {
+        _syncIncognitoPrivacyIfNeeded(next);
+      }
+    });
+
     ref.listen<ScheduleState>(scheduleControllerProvider, (_, next) {
       if (next.status == ScheduleStatus.error &&
           next.errorMessage != null &&
@@ -189,89 +261,45 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
       }
     });
 
-    final state = ref.watch(scheduleControllerProvider);
     final controller = ref.read(scheduleControllerProvider.notifier);
-    final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
+    final weekRange = ref.watch(
+      scheduleControllerProvider.select((state) {
+        final schedule = state.weeklySchedule;
+
+        return (start: schedule?.weekStart, end: schedule?.weekEnd);
+      }),
+    );
 
     return SchedulePageScaffold(
       body: Builder(
         builder: (context) {
-          if (state.weeklySchedule == null) {
+          final weekStart = weekRange.start;
+          final weekEnd = weekRange.end;
+
+          if (weekStart == null || weekEnd == null) {
             return const SizedBox.shrink();
           }
-
-          final schedule = state.weeklySchedule!;
-          final isFilteringFromSchedule = state.isLoadingRecommendations;
 
           return Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
             child: Column(
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: theme.cardColor,
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(
-                      color: theme.dividerColor.withValues(alpha: 0.2),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        onPressed: controller.goToPreviousWeek,
-                        icon: const Icon(Icons.chevron_left),
-                      ),
-                      Expanded(
-                        child: Column(
-                          children: [
-                            Text('Week', style: textTheme.bodySmall),
-                            const SizedBox(height: 2),
-                            Text(
-                              _formatWeekRange(
-                                schedule.weekStart,
-                                schedule.weekEnd,
-                              ),
-                              textAlign: TextAlign.center,
-                              style: textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      IconButton(
-                        onPressed: controller.goToNextWeek,
-                        icon: const Icon(Icons.chevron_right),
-                      ),
-                    ],
-                  ),
+                _WeekHeader(
+                  label: _formatWeekRange(weekStart, weekEnd),
+                  onPreviousWeek: controller.goToPreviousWeek,
+                  onNextWeek: controller.goToNextWeek,
                 ),
                 const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    IconButton(
-                      tooltip: 'Reload',
-                      onPressed: controller.refresh,
-                      icon: const Icon(Icons.refresh),
-                    ),
-                    IconButton(
-                      tooltip: 'Delete schedule',
-                      onPressed: _confirmDeleteFullSchedule,
-                      icon: const Icon(Icons.delete_outline),
-                    ),
-                  ],
+                _ScheduleToolbar(
+                  onPrivacyChanged: (isPrivate) {
+                    _setSchedulePrivacy(isPrivate: isPrivate);
+                  },
+                  onRefresh: controller.refresh,
+                  onDeleteSchedule: _confirmDeleteFullSchedule,
                 ),
                 const SizedBox(height: 8),
                 Expanded(
                   child: WeeklyCalendarView(
-                    schedule: schedule,
-                    selectedDate: state.selectedDate,
                     onDaySelected: (day) {
                       controller.selectDay(day);
                     },
@@ -281,81 +309,288 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: SizedBox(
-                        height: 56,
-                        child: ElevatedButton.icon(
-                          onPressed: isFilteringFromSchedule
-                              ? null
-                              : _filterFromSchedule,
-                          icon: isFilteringFromSchedule
-                              ? const Padding(
-                                  padding: EdgeInsets.only(right: 16),
-                                  child: SizedBox(
-                                    width: 18,
-                                    height: 18,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
-                                  ),
-                                )
-                              : const Icon(Icons.filter_alt_outlined),
-                          label: Text(
-                            isFilteringFromSchedule
-                                ? 'Filtering...'
-                                : 'Filter from Schedule',
-                            textAlign: TextAlign.center,
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                            textStyle: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: SizedBox(
-                        height: 56,
-                        child: OutlinedButton.icon(
-                          onPressed: _openManualClassPage,
-                          icon: const Icon(Icons.add_circle_outline),
-                          label: const Text(
-                            'Add Class Manually',
-                            textAlign: TextAlign.center,
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                            textStyle: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                _ScheduleActions(
+                  onFilterFromSchedule: _filterFromSchedule,
+                  onAddManualClass: _openManualClassPage,
                 ),
-                if (state.status == ScheduleStatus.deleting ||
-                    state.status == ScheduleStatus.loading)
-                  const Padding(
-                    padding: EdgeInsets.only(top: 16),
-                    child: LinearProgressIndicator(),
-                  ),
+                const _ScheduleProgressIndicator(),
               ],
             ),
           );
         },
       ),
+    );
+  }
+}
+
+class _WeekHeader extends StatelessWidget {
+  final String label;
+  final VoidCallback onPreviousWeek;
+  final VoidCallback onNextWeek;
+
+  const _WeekHeader({
+    required this.label,
+    required this.onPreviousWeek,
+    required this.onNextWeek,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: const BorderRadius.all(Radius.circular(18)),
+        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        children: [
+          IconButton(
+            onPressed: onPreviousWeek,
+            icon: const Icon(Icons.chevron_left),
+          ),
+          Expanded(
+            child: Column(
+              children: [
+                Text('Week', style: textTheme.bodySmall),
+                const SizedBox(height: 2),
+                Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  style: textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: onNextWeek,
+            icon: const Icon(Icons.chevron_right),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ScheduleToolbar extends StatelessWidget {
+  final ValueChanged<bool> onPrivacyChanged;
+  final VoidCallback onRefresh;
+  final VoidCallback onDeleteSchedule;
+
+  const _ScheduleToolbar({
+    required this.onPrivacyChanged,
+    required this.onRefresh,
+    required this.onDeleteSchedule,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer(
+      builder: (context, ref, _) {
+        final authState = ref.watch(authControllerProvider);
+        final user = authState.user;
+        final isPrivate = !(user?.shareSchedule ?? true);
+
+        return Row(
+          children: [
+            Transform.translate(
+              offset: const Offset(4, 0),
+              child: _SchedulePrivacySwitch(
+                isPrivate: isPrivate,
+                enabled: !authState.isLoading,
+                onChanged: onPrivacyChanged,
+              ),
+            ),
+            const Spacer(),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  tooltip: 'Reload',
+                  onPressed: onRefresh,
+                  icon: const Icon(Icons.refresh),
+                ),
+                IconButton(
+                  tooltip: 'Delete schedule',
+                  onPressed: onDeleteSchedule,
+                  icon: const Icon(Icons.delete_outline),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _SchedulePrivacySwitch extends StatelessWidget {
+  const _SchedulePrivacySwitch({
+    required this.isPrivate,
+    required this.enabled,
+    required this.onChanged,
+  });
+
+  final bool isPrivate;
+  final bool enabled;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final activeColor = colorScheme.secondary;
+    final inactiveThumb = colorScheme.onSurface.withValues(alpha: 0.74);
+    final inactiveTrack = colorScheme.onSurface.withValues(alpha: 0.14);
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Tooltip(
+          message: isPrivate ? 'Private schedule' : 'Visible schedule',
+          child: Switch(
+            value: isPrivate,
+            onChanged: enabled ? onChanged : null,
+            thumbColor: WidgetStateProperty.resolveWith((states) {
+              if (states.contains(WidgetState.disabled)) {
+                return colorScheme.onSurface.withValues(alpha: 0.32);
+              }
+              return isPrivate ? activeColor : inactiveThumb;
+            }),
+            trackColor: WidgetStateProperty.resolveWith((states) {
+              if (states.contains(WidgetState.disabled)) {
+                return colorScheme.onSurface.withValues(alpha: 0.08);
+              }
+              return isPrivate
+                  ? activeColor.withValues(alpha: 0.34)
+                  : inactiveTrack;
+            }),
+            trackOutlineColor: WidgetStateProperty.resolveWith((states) {
+              if (isPrivate) return activeColor.withValues(alpha: 0.42);
+              return colorScheme.onSurface.withValues(alpha: 0.14);
+            }),
+          ),
+        ),
+        SizedBox(
+          width: 30,
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 160),
+            child: isPrivate
+                ? Icon(
+                    Icons.visibility_off_outlined,
+                    key: const ValueKey('private'),
+                    color: activeColor,
+                    size: 22,
+                  )
+                : const SizedBox(key: ValueKey('visible'), width: 22),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ScheduleActions extends ConsumerWidget {
+  final VoidCallback onFilterFromSchedule;
+  final VoidCallback onAddManualClass;
+
+  const _ScheduleActions({
+    required this.onFilterFromSchedule,
+    required this.onAddManualClass,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isFilteringFromSchedule = ref.watch(
+      scheduleControllerProvider.select(
+        (state) => state.isLoadingRecommendations,
+      ),
+    );
+
+    return Row(
+      children: [
+        Expanded(
+          child: SizedBox(
+            height: 56,
+            child: ElevatedButton.icon(
+              onPressed: isFilteringFromSchedule ? null : onFilterFromSchedule,
+              icon: isFilteringFromSchedule
+                  ? const Padding(
+                      padding: EdgeInsets.only(right: 16),
+                      child: SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    )
+                  : const Icon(Icons.filter_alt_outlined),
+              label: Text(
+                isFilteringFromSchedule
+                    ? 'Filtering...'
+                    : 'Filter from Schedule',
+                textAlign: TextAlign.center,
+              ),
+              style: ElevatedButton.styleFrom(
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(999)),
+                ),
+                textStyle: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: SizedBox(
+            height: 56,
+            child: OutlinedButton.icon(
+              onPressed: onAddManualClass,
+              icon: const Icon(Icons.add_circle_outline),
+              label: const Text(
+                'Add Class Manually',
+                textAlign: TextAlign.center,
+              ),
+              style: OutlinedButton.styleFrom(
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(999)),
+                ),
+                textStyle: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ScheduleProgressIndicator extends ConsumerWidget {
+  const _ScheduleProgressIndicator();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final status = ref.watch(
+      scheduleControllerProvider.select((state) => state.status),
+    );
+
+    if (status != ScheduleStatus.deleting && status != ScheduleStatus.loading) {
+      return const SizedBox.shrink();
+    }
+
+    return const Padding(
+      padding: EdgeInsets.only(top: 16),
+      child: LinearProgressIndicator(),
     );
   }
 }
