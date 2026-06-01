@@ -53,6 +53,7 @@ class RoomSearchRequest {
     }
     return map;
   }
+
   RoomSearchRequest copyWith({
     List<String>? roomPrefixes,
     String? date,
@@ -100,6 +101,7 @@ class RoomSearchItem {
     required this.utilities,
     required this.distanceSeconds,
     required this.matchingWindows,
+    this.recommendationReason,
   });
 
   final String roomId;
@@ -111,6 +113,7 @@ class RoomSearchItem {
   final List<String> utilities;
   final double? distanceSeconds;
   final List<MatchingWindow> matchingWindows;
+  final String? recommendationReason;
 
   Map<String, dynamic> toMap() => {
     'room_id': roomId,
@@ -122,6 +125,8 @@ class RoomSearchItem {
     'utilities': utilities,
     'distance_seconds': distanceSeconds,
     'matching_windows': matchingWindows.map((e) => e.toMap()).toList(),
+    if (recommendationReason != null)
+      'recommendation_reason': recommendationReason,
   };
 }
 

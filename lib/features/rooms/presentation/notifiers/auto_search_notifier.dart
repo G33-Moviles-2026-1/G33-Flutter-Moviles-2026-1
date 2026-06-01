@@ -34,14 +34,20 @@ class AutoSearchNotifier extends AutoDisposeNotifier<AutoSearchState> {
     }
 
     final now = DateTime.now();
-    final targetDate = DateTimeUtils.toApiDate(now);
+    final cachedDate = ref
+        .read(homeSearchParamsMemoryCacheProvider)
+        .snapshot
+        ?.selectedDate;
+    final selectedDate = cachedDate == null
+        ? DateTime(now.year, now.month, now.day)
+        : DateTime(cachedDate.year, cachedDate.month, cachedDate.day);
+    final targetDate = DateTimeUtils.toApiDate(selectedDate);
     final targetTime = DateTimeUtils.toApiTime(
       TimeOfDay(hour: now.hour, minute: now.minute),
     );
-    final targetDay = DateTime(now.year, now.month, now.day);
 
     _sessionNotifier.updateSearchSelection(
-      date: targetDay,
+      date: selectedDate,
       startTime: targetTime,
       endTime: null,
     );
