@@ -9,6 +9,7 @@ class FriendDto {
     required this.email,
     required this.username,
     required this.status,
+    this.shareSchedule = true,
     this.syncState = 'clean',
     this.lastError,
     DateTime? updatedAt,
@@ -17,6 +18,7 @@ class FriendDto {
   final String email;
   final String username;
   final String status;
+  final bool shareSchedule;
   final String syncState;
   final String? lastError;
   final DateTime updatedAt;
@@ -26,6 +28,7 @@ class FriendDto {
       email: json['email']?.toString() ?? '',
       username: json['username']?.toString() ?? '',
       status: json['status']?.toString() ?? 'incognito',
+      shareSchedule: json['share_schedule'] as bool? ?? true,
     );
   }
 
@@ -34,6 +37,7 @@ class FriendDto {
       email: row.email,
       username: row.username,
       status: row.status,
+      shareSchedule: true,
       syncState: row.syncState,
       lastError: row.lastError,
       updatedAt: row.updatedAt,
@@ -59,6 +63,7 @@ class FriendDto {
       email: email,
       username: username,
       status: UserStatus.fromBackendKey(status),
+      shareSchedule: shareSchedule,
       isPendingSync: syncState != 'clean',
     );
   }

@@ -16,17 +16,21 @@ import 'package:andespace/features/schedule/domain/usecases/load_week_for_curren
 import 'package:andespace/features/schedule/domain/usecases/refresh_schedule_classes_for_current_user_usecase.dart';
 import 'package:andespace/features/schedule/domain/usecases/save_manual_class_for_current_user_usecase.dart';
 import 'package:andespace/features/schedule/domain/usecases/start_google_calendar_connection_for_current_user_usecase.dart';
+import 'package:andespace/features/schedule/domain/usecases/sync_pending_schedule_mutations_for_current_user_usecase.dart';
 import 'package:andespace/features/schedule/domain/usecases/validate_schedule_class_requirements_usecase.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final scheduleRemoteDataSourceProvider =
-    Provider<ScheduleRemoteDataSource>((ref) {
+final scheduleRemoteDataSourceProvider = Provider<ScheduleRemoteDataSource>((
+  ref,
+) {
   final dio = ref.watch(dioProvider);
 
   return ScheduleRemoteDataSourceImpl(dio: dio);
 });
 
-final scheduleLocalDataSourceProvider = Provider<ScheduleLocalDataSource>((ref) {
+final scheduleLocalDataSourceProvider = Provider<ScheduleLocalDataSource>((
+  ref,
+) {
   final db = ref.watch(appDatabaseProvider);
 
   return ScheduleLocalDataSourceImpl(db: db);
@@ -46,11 +50,12 @@ final scheduleRepositoryProvider = Provider<ScheduleRepository>((ref) {
 
 final validateScheduleClassRequirementsProvider =
     Provider<ValidateScheduleClassRequirementsUseCase>((ref) {
-  return const ValidateScheduleClassRequirementsUseCase();
-});
+      return const ValidateScheduleClassRequirementsUseCase();
+    });
 
-final loadWeekForCurrentUserProvider =
-    Provider<LoadWeekForCurrentUserUseCase>((ref) {
+final loadWeekForCurrentUserProvider = Provider<LoadWeekForCurrentUserUseCase>((
+  ref,
+) {
   return LoadWeekForCurrentUserUseCase(
     repository: ref.watch(scheduleRepositoryProvider),
   );
@@ -58,90 +63,97 @@ final loadWeekForCurrentUserProvider =
 
 final importIcsForCurrentUserProvider =
     Provider<ImportIcsForCurrentUserUseCase>((ref) {
-  return ImportIcsForCurrentUserUseCase(
-    repository: ref.watch(scheduleRepositoryProvider),
-  );
-});
+      return ImportIcsForCurrentUserUseCase(
+        repository: ref.watch(scheduleRepositoryProvider),
+      );
+    });
 
 final startGoogleCalendarConnectionForCurrentUserProvider =
     Provider<StartGoogleCalendarConnectionForCurrentUserUseCase>((ref) {
-  return StartGoogleCalendarConnectionForCurrentUserUseCase(
-    repository: ref.watch(scheduleRepositoryProvider),
-  );
-});
+      return StartGoogleCalendarConnectionForCurrentUserUseCase(
+        repository: ref.watch(scheduleRepositoryProvider),
+      );
+    });
 
 final getGoogleCalendarsForCurrentUserProvider =
     Provider<GetGoogleCalendarsForCurrentUserUseCase>((ref) {
-  return GetGoogleCalendarsForCurrentUserUseCase(
-    repository: ref.watch(scheduleRepositoryProvider),
-  );
-});
+      return GetGoogleCalendarsForCurrentUserUseCase(
+        repository: ref.watch(scheduleRepositoryProvider),
+      );
+    });
 
 final importGoogleCalendarsForCurrentUserProvider =
     Provider<ImportGoogleCalendarsForCurrentUserUseCase>((ref) {
-  return ImportGoogleCalendarsForCurrentUserUseCase(
-    repository: ref.watch(scheduleRepositoryProvider),
-  );
-});
+      return ImportGoogleCalendarsForCurrentUserUseCase(
+        repository: ref.watch(scheduleRepositoryProvider),
+      );
+    });
 
 final getScheduleClassesForCurrentUserProvider =
     Provider<GetScheduleClassesForCurrentUserUseCase>((ref) {
-  return GetScheduleClassesForCurrentUserUseCase(
-    repository: ref.watch(scheduleRepositoryProvider),
-  );
-});
+      return GetScheduleClassesForCurrentUserUseCase(
+        repository: ref.watch(scheduleRepositoryProvider),
+      );
+    });
 
 final saveManualClassForCurrentUserProvider =
     Provider<SaveManualClassForCurrentUserUseCase>((ref) {
-  return SaveManualClassForCurrentUserUseCase(
-    repository: ref.watch(scheduleRepositoryProvider),
-    getScheduleClassesForCurrentUser: ref.watch(
-      getScheduleClassesForCurrentUserProvider,
-    ),
-    validateScheduleClassRequirements: ref.watch(
-      validateScheduleClassRequirementsProvider,
-    ),
-  );
-});
+      return SaveManualClassForCurrentUserUseCase(
+        repository: ref.watch(scheduleRepositoryProvider),
+        getScheduleClassesForCurrentUser: ref.watch(
+          getScheduleClassesForCurrentUserProvider,
+        ),
+        validateScheduleClassRequirements: ref.watch(
+          validateScheduleClassRequirementsProvider,
+        ),
+      );
+    });
 
 final deleteFullScheduleForCurrentUserProvider =
     Provider<DeleteFullScheduleForCurrentUserUseCase>((ref) {
-  return DeleteFullScheduleForCurrentUserUseCase(
-    repository: ref.watch(scheduleRepositoryProvider),
-  );
-});
+      return DeleteFullScheduleForCurrentUserUseCase(
+        repository: ref.watch(scheduleRepositoryProvider),
+      );
+    });
 
 final clearLocalScheduleForCurrentUserProvider =
     Provider<ClearLocalScheduleForCurrentUserUseCase>((ref) {
-  return ClearLocalScheduleForCurrentUserUseCase(
-    repository: ref.watch(scheduleRepositoryProvider),
-  );
-});
+      return ClearLocalScheduleForCurrentUserUseCase(
+        repository: ref.watch(scheduleRepositoryProvider),
+      );
+    });
 
 final deleteScheduleClassForCurrentUserProvider =
     Provider<DeleteScheduleClassForCurrentUserUseCase>((ref) {
-  return DeleteScheduleClassForCurrentUserUseCase(
-    repository: ref.watch(scheduleRepositoryProvider),
-  );
-});
+      return DeleteScheduleClassForCurrentUserUseCase(
+        repository: ref.watch(scheduleRepositoryProvider),
+      );
+    });
 
 final deleteScheduleOccurrenceForCurrentUserProvider =
     Provider<DeleteScheduleOccurrenceForCurrentUserUseCase>((ref) {
-  return DeleteScheduleOccurrenceForCurrentUserUseCase(
-    repository: ref.watch(scheduleRepositoryProvider),
-  );
-});
+      return DeleteScheduleOccurrenceForCurrentUserUseCase(
+        repository: ref.watch(scheduleRepositoryProvider),
+      );
+    });
 
 final getRecommendedRoomsForCurrentUserProvider =
     Provider<GetRecommendedRoomsForCurrentUserUseCase>((ref) {
-  return GetRecommendedRoomsForCurrentUserUseCase(
-    repository: ref.watch(scheduleRepositoryProvider),
-  );
-});
+      return GetRecommendedRoomsForCurrentUserUseCase(
+        repository: ref.watch(scheduleRepositoryProvider),
+      );
+    });
 
 final refreshScheduleClassesForCurrentUserProvider =
     Provider<RefreshScheduleClassesForCurrentUserUseCase>((ref) {
-  return RefreshScheduleClassesForCurrentUserUseCase(
-    repository: ref.watch(scheduleRepositoryProvider),
-  );
-});
+      return RefreshScheduleClassesForCurrentUserUseCase(
+        repository: ref.watch(scheduleRepositoryProvider),
+      );
+    });
+
+final syncPendingScheduleMutationsForCurrentUserProvider =
+    Provider<SyncPendingScheduleMutationsForCurrentUserUseCase>((ref) {
+      return SyncPendingScheduleMutationsForCurrentUserUseCase(
+        repository: ref.watch(scheduleRepositoryProvider),
+      );
+    });

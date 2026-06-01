@@ -37,10 +37,6 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
         ref.read(scheduleControllerProvider.notifier).loadWeek();
       });
     }
-
-    Future.microtask(() {
-      _syncIncognitoPrivacyIfNeeded(ref.read(authControllerProvider));
-    });
   }
 
   String _monthName(int month) {
@@ -174,26 +170,26 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
   }) async {
     final messenger = ScaffoldMessenger.of(context);
 
-    try {
-      await ref
-          .read(authControllerProvider.notifier)
-          .updateShareSchedule(!isPrivate);
-
-      if (!mounted || !showMessage) return;
-
+    if (showMessage) {
       messenger
         ..hideCurrentSnackBar()
         ..showSnackBar(
           SnackBar(
             content: Text(
               isPrivate
-                  ? 'Tu horario ahora es privado para tus amigos.'
-                  : 'Tu horario ahora es visible para tus amigos.',
+                  ? 'Your schedule is now private to your friends.'
+                  : 'Your schedule is now visible to your friends.',
             ),
             behavior: SnackBarBehavior.floating,
             duration: const Duration(milliseconds: 1400),
           ),
         );
+    }
+
+    try {
+      await ref
+          .read(authControllerProvider.notifier)
+          .updateShareSchedule(!isPrivate);
     } catch (_) {
       if (!mounted) return;
 
@@ -201,9 +197,11 @@ class _WeeklySchedulePageState extends ConsumerState<WeeklySchedulePage> {
         ..hideCurrentSnackBar()
         ..showSnackBar(
           const SnackBar(
-            content: Text('No se pudo actualizar la privacidad del horario.'),
+            content: Text(
+              'Could not update schedule privacy. Your previous setting was restored.',
+            ),
             behavior: SnackBarBehavior.floating,
-            duration: Duration(milliseconds: 1800),
+            duration: Duration(milliseconds: 2200),
           ),
         );
     }

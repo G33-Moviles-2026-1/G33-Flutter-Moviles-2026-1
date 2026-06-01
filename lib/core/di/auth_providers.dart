@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core_provider.dart';
 
+import '../../features/auth/data/cache/auth_session_memory_cache.dart';
 import '../../features/auth/data/remote/auth_api.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
 import '../../features/auth/domain/repositories/auth_repository.dart';
@@ -22,7 +23,12 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return AuthRepositoryImpl(
     api: ref.watch(authApiProvider),
     localDataSource: ref.watch(authLocalDataSourceProvider),
+    memoryCache: ref.watch(authSessionMemoryCacheProvider),
   );
+});
+
+final authSessionMemoryCacheProvider = Provider<AuthSessionMemoryCache>((ref) {
+  return AuthSessionMemoryCache();
 });
 
 final getCurrentUserUseCaseProvider = Provider<GetCurrentUserUseCase>((ref) {

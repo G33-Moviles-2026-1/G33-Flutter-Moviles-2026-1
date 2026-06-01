@@ -23,6 +23,8 @@ abstract class FriendshipsRepository {
 
   Future<UserStatus> getCachedMyStatus({UserStatus fallback});
 
+  Future<void> cacheMyStatus(UserStatus status);
+
   Future<void> updateMyStatus(UserStatus status);
 
   Future<void> syncPendingMutations();

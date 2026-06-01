@@ -47,6 +47,6 @@ class FriendshipsApi {
   }
 
   Future<void> updateMyStatus(String status) async {
-    await _dio.put('/me/status/', data: {'status': status});
+    await _dio.put('/me/status', data: {'status': status});
   }
 }

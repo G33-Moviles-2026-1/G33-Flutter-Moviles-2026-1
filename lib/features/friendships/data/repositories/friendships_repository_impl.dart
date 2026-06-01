@@ -11,10 +11,7 @@ import '../models/friends_response_dto.dart';
 import '../remote/friendships_api.dart';
 
 class FriendshipsRepositoryImpl implements FriendshipsRepository {
-  FriendshipsRepositoryImpl({
-    required this.api,
-    required this.localDataSource,
-  });
+  FriendshipsRepositoryImpl({required this.api, required this.localDataSource});
 
   final FriendshipsApi api;
   final FriendshipsLocalDataSource localDataSource;
@@ -34,7 +31,7 @@ class FriendshipsRepositoryImpl implements FriendshipsRepository {
 
     await localDataSource.replaceCleanFriends(response.items);
 
-    return getCachedFriends();
+    return response.items.map((dto) => dto.toDomain()).toList();
   }
 
   @override
@@ -83,6 +80,7 @@ class FriendshipsRepositoryImpl implements FriendshipsRepository {
       email: friend.email,
       username: friend.username,
       status: friend.status.backendKey,
+      shareSchedule: friend.shareSchedule,
     );
 
     await localDataSource.markPendingRemove(dto);
@@ -101,6 +99,11 @@ class FriendshipsRepositoryImpl implements FriendshipsRepository {
     UserStatus fallback = UserStatus.incognito,
   }) {
     return localDataSource.getMyStatus(fallback: fallback);
+  }
+
+  @override
+  Future<void> cacheMyStatus(UserStatus status) {
+    return localDataSource.markMyStatusClean(status);
   }
 
   @override

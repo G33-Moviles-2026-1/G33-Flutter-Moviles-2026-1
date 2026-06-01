@@ -33,22 +33,28 @@ class FriendsFreeSlotsNotifier
       selectedSlots: const {},
       clearErrorMessage: true,
       clearFindRoomsErrorMessage: true,
+      isOffline: false,
+      clearLastUpdated: true,
     );
 
     try {
-      final freeSlots = await _loadFreeSlots(
+      final result = await _loadFreeSlots(
         friends: arg,
         referenceDate: state.referenceDate,
       );
 
       state = state.copyWith(
         status: FriendsFreeSlotsStatus.success,
-        freeSlots: freeSlots,
+        freeSlots: result.freeSlots,
+        isOffline: result.isOffline,
+        lastUpdated: result.lastUpdated,
       );
     } catch (error) {
       state = state.copyWith(
         status: FriendsFreeSlotsStatus.error,
         clearFreeSlots: true,
+        isOffline: false,
+        clearLastUpdated: true,
         errorMessage: _mapFreeSlotsError(error),
       );
     }

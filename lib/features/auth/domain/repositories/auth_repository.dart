@@ -29,4 +29,6 @@ abstract class AuthRepository {
   Future<void> updateShareSchedule(bool shareSchedule);
 
   Future<void> updateUsername(String username);
+
+  Future<void> syncPendingProfileMutations();
 }

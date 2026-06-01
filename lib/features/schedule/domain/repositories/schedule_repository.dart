@@ -1,5 +1,6 @@
 import 'package:andespace/features/rooms/domain/entities/room_search.dart';
 
+import '../entities/cached_schedule_result.dart';
 import '../entities/free_rooms_for_day.dart';
 import '../entities/friends_free_slot.dart';
 import '../entities/google_calendar_auth_session.dart';
@@ -35,6 +36,16 @@ abstract class ScheduleRepository {
     required DateTime date,
   });
 
+  Future<FriendsFreeSlotsResult> getFriendsFreeSlotsWithCache({
+    required List<String> friendEmails,
+    required DateTime date,
+  });
+
+  Future<FriendWeeklyScheduleResult> getFriendWeeklySchedule({
+    required String friendEmail,
+    required DateTime date,
+  });
+
   Future<void> deleteFullSchedule();
 
   Future<void> clearLocalSchedule();
@@ -47,6 +58,8 @@ abstract class ScheduleRepository {
   });
 
   Future<void> refreshScheduleClassesFromRemote();
+
+  Future<void> syncPendingScheduleMutations();
 
   Future<void> deleteScheduleOccurrence({
     required String classId,

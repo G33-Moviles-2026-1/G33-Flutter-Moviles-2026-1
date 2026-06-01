@@ -12,6 +12,8 @@ class FriendsFreeSlotsState {
     this.errorMessage,
     this.findRoomsErrorMessage,
     this.isFindingRooms = false,
+    this.isOffline = false,
+    this.lastUpdated,
   });
 
   final DateTime referenceDate;
@@ -21,6 +23,8 @@ class FriendsFreeSlotsState {
   final String? errorMessage;
   final String? findRoomsErrorMessage;
   final bool isFindingRooms;
+  final bool isOffline;
+  final DateTime? lastUpdated;
 
   bool get isLoading => status == FriendsFreeSlotsStatus.loading;
   bool get hasError => status == FriendsFreeSlotsStatus.error;
@@ -49,6 +53,9 @@ class FriendsFreeSlotsState {
     String? findRoomsErrorMessage,
     bool clearFindRoomsErrorMessage = false,
     bool? isFindingRooms,
+    bool? isOffline,
+    DateTime? lastUpdated,
+    bool clearLastUpdated = false,
   }) {
     return FriendsFreeSlotsState(
       referenceDate: referenceDate ?? this.referenceDate,
@@ -62,6 +69,8 @@ class FriendsFreeSlotsState {
           ? null
           : (findRoomsErrorMessage ?? this.findRoomsErrorMessage),
       isFindingRooms: isFindingRooms ?? this.isFindingRooms,
+      isOffline: isOffline ?? this.isOffline,
+      lastUpdated: clearLastUpdated ? null : (lastUpdated ?? this.lastUpdated),
     );
   }
 }

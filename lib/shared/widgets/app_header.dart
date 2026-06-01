@@ -47,6 +47,8 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
       leading: Center(
         child: Badge(
           isLabelVisible: badgeCount > 0,
+          alignment: AlignmentDirectional.topEnd,
+          offset: const Offset(-8, 7),
           label: Text(badgeCount > 99 ? '99+' : '$badgeCount'),
           child: IconButton(
             tooltip: 'Notifications',
@@ -56,8 +58,10 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
               color: brand.headerForeground,
               size: 27,
             ),
-            onPressed: () =>
-                Navigator.pushReplacementNamed(context, AppRoutes.notifications),
+            onPressed: () => Navigator.pushReplacementNamed(
+              context,
+              AppRoutes.notifications,
+            ),
           ),
         ),
       ),

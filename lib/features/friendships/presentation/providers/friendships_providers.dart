@@ -9,7 +9,10 @@ import '../../data/repositories/friendships_repository_impl.dart';
 import '../../domain/entities/friend.dart';
 import '../../domain/repositories/friendships_repository.dart';
 import '../../domain/usecases/find_rooms_for_free_slots_usecase.dart';
+import '../../domain/usecases/load_friend_schedule_usecase.dart';
 import '../../domain/usecases/load_friends_free_slots_for_week_usecase.dart';
+import '../notifiers/friend_schedule_notifier.dart';
+import '../notifiers/friend_schedule_state.dart';
 import '../notifiers/friends_free_slots_notifier.dart';
 import '../notifiers/friends_free_slots_state.dart';
 import '../notifiers/friendships_notifier.dart';
@@ -46,6 +49,14 @@ final loadFriendsFreeSlotsForWeekUseCaseProvider =
       );
     });
 
+final loadFriendScheduleUseCaseProvider = Provider<LoadFriendScheduleUseCase>((
+  ref,
+) {
+  return LoadFriendScheduleUseCase(
+    scheduleRepository: ref.watch(scheduleRepositoryProvider),
+  );
+});
+
 final findRoomsForFreeSlotsUseCaseProvider =
     Provider<FindRoomsForFreeSlotsUseCase>((ref) {
       return FindRoomsForFreeSlotsUseCase(
@@ -56,4 +67,9 @@ final findRoomsForFreeSlotsUseCaseProvider =
 final friendsFreeSlotsControllerProvider = NotifierProvider.autoDispose
     .family<FriendsFreeSlotsNotifier, FriendsFreeSlotsState, List<Friend>>(
       FriendsFreeSlotsNotifier.new,
+    );
+
+final friendScheduleControllerProvider = NotifierProvider.autoDispose
+    .family<FriendScheduleNotifier, FriendScheduleState, Friend>(
+      FriendScheduleNotifier.new,
     );

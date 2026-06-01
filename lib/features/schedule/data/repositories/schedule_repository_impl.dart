@@ -1,10 +1,11 @@
 import 'package:andespace/core/connectivity/connectivity_queue_service.dart';
-import 'package:andespace/core/connectivity/pending_action.dart';
 import 'package:andespace/features/rooms/domain/entities/room_search.dart';
 import 'package:andespace/features/schedule/data/local/schedule_local_data_source.dart';
 import 'package:andespace/features/schedule/data/models/manual_class_dto.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
+import '../../domain/entities/cached_schedule_result.dart';
 import '../../domain/entities/free_rooms_for_day.dart';
 import '../../domain/entities/friends_free_slot.dart';
 import '../../domain/entities/google_calendar_auth_session.dart';
@@ -17,6 +18,7 @@ import '../mappers/free_rooms_mapper.dart';
 import '../mappers/manual_class_mapper.dart';
 import '../mappers/recommended_rooms_mapper.dart';
 import '../mappers/schedule_class_mapper.dart';
+import '../mappers/weekly_schedule_mapper.dart';
 import '../remote/schedule_remote_data_source.dart';
 
 class ScheduleRepositoryImpl implements ScheduleRepository {
@@ -33,6 +35,11 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   bool _isConnectivityError(Object e) {
     return e is DioException && e.response == null;
   }
+
+  static const _pendingUploadManualSchedule = 'upload_manual_schedule';
+  static const _pendingDeleteFullSchedule = 'delete_full_schedule';
+  static const _pendingDeleteScheduleClass = 'delete_schedule_class';
+  static const _pendingDeleteScheduleOccurrence = 'delete_schedule_occurrence';
 
   @override
   Future<void> uploadIcsSchedule({required String filePath}) async {
@@ -95,12 +102,9 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
       if (!_isConnectivityError(e)) rethrow;
 
       await localDataSource.saveManualClasses(classes: classes);
-
-      connectivityQueueService.enqueue(
-        _UploadManualSchedulePendingAction(
-          remoteDataSource: remoteDataSource,
-          classes: normalizedModels,
-        ),
+      await localDataSource.enqueuePendingScheduleMutation(
+        type: _pendingUploadManualSchedule,
+        payload: {'classes': normalizedModels.map((e) => e.toJson()).toList()},
       );
     }
   }
@@ -127,12 +131,97 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
     required List<String> friendEmails,
     required DateTime date,
   }) async {
-    final model = await remoteDataSource.getFriendsFreeSlots(
+    final result = await getFriendsFreeSlotsWithCache(
       friendEmails: friendEmails,
       date: date,
     );
 
-    return model.toEntity();
+    return result.freeSlots;
+  }
+
+  @override
+  Future<FriendsFreeSlotsResult> getFriendsFreeSlotsWithCache({
+    required List<String> friendEmails,
+    required DateTime date,
+  }) async {
+    try {
+      final model = await remoteDataSource.getFriendsFreeSlots(
+        friendEmails: friendEmails,
+        date: date,
+      );
+
+      final freeSlots = model.toEntity();
+
+      await localDataSource.cacheFriendsFreeSlots(
+        friendEmails: friendEmails,
+        date: date,
+        freeSlots: freeSlots,
+      );
+
+      return FriendsFreeSlotsResult(
+        freeSlots: freeSlots,
+        isOffline: false,
+        lastUpdated: DateTime.now(),
+      );
+    } catch (e) {
+      if (!_isConnectivityError(e)) rethrow;
+
+      final cached = await localDataSource.getCachedFriendsFreeSlots(
+        friendEmails: friendEmails,
+        date: date,
+      );
+      final freeSlots = cached.$1;
+
+      if (freeSlots == null) rethrow;
+
+      return FriendsFreeSlotsResult(
+        freeSlots: freeSlots,
+        isOffline: true,
+        lastUpdated: cached.$2,
+      );
+    }
+  }
+
+  @override
+  Future<FriendWeeklyScheduleResult> getFriendWeeklySchedule({
+    required String friendEmail,
+    required DateTime date,
+  }) async {
+    try {
+      final model = await remoteDataSource.getFriendWeeklySchedule(
+        friendEmail: friendEmail,
+        date: date,
+      );
+      final schedule = WeeklyScheduleMapper.toEntity(model);
+
+      await localDataSource.cacheFriendWeeklySchedule(
+        friendEmail: friendEmail,
+        date: date,
+        schedule: schedule,
+      );
+
+      return FriendWeeklyScheduleResult(
+        schedule: schedule,
+        isOffline: false,
+        lastUpdated: DateTime.now(),
+      );
+    } catch (e) {
+      if (!_isConnectivityError(e)) rethrow;
+
+      final cached = await localDataSource.getCachedFriendWeeklySchedule(
+        friendEmail: friendEmail,
+        date: date,
+      );
+      final schedule = cached.$1;
+
+      if (schedule == null) rethrow;
+
+      return FriendWeeklyScheduleResult(
+        schedule: schedule,
+        isOffline: true,
+        lastUpdated: cached.$2,
+      );
+    }
   }
 
   @override
@@ -143,16 +232,19 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
       await remoteDataSource.deleteFullSchedule();
     } catch (e) {
       if (!_isConnectivityError(e)) rethrow;
-
-      connectivityQueueService.enqueue(
-        _DeleteFullSchedulePendingAction(remoteDataSource: remoteDataSource),
+      await localDataSource.enqueuePendingScheduleMutation(
+        type: _pendingDeleteFullSchedule,
+        payload: const {},
       );
     }
   }
 
   @override
-  Future<void> clearLocalSchedule() {
-    return localDataSource.clearSchedule();
+  Future<void> clearLocalSchedule() async {
+    await Future.wait([
+      localDataSource.clearSchedule(),
+      localDataSource.clearPendingScheduleMutations(),
+    ]);
   }
 
   @override
@@ -163,12 +255,9 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
       await remoteDataSource.deleteScheduleClass(classId: classId);
     } catch (e) {
       if (!_isConnectivityError(e)) rethrow;
-
-      connectivityQueueService.enqueue(
-        _DeleteScheduleClassPendingAction(
-          remoteDataSource: remoteDataSource,
-          classId: classId,
-        ),
+      await localDataSource.enqueuePendingScheduleMutation(
+        type: _pendingDeleteScheduleClass,
+        payload: {'class_id': classId},
       );
     }
   }
@@ -187,13 +276,9 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
       );
     } catch (e) {
       if (!_isConnectivityError(e)) rethrow;
-
-      connectivityQueueService.enqueue(
-        _DeleteScheduleOccurrencePendingAction(
-          remoteDataSource: remoteDataSource,
-          classId: classId,
-          date: date,
-        ),
+      await localDataSource.enqueuePendingScheduleMutation(
+        type: _pendingDeleteScheduleOccurrence,
+        payload: {'class_id': classId, 'date': _dateOnlyIso(date)},
       );
     }
   }
@@ -215,12 +300,9 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
       await remoteDataSource.uploadManualSchedule(classes: normalizedModels);
     } catch (e) {
       if (!_isConnectivityError(e)) rethrow;
-
-      connectivityQueueService.enqueue(
-        _UploadManualSchedulePendingAction(
-          remoteDataSource: remoteDataSource,
-          classes: normalizedModels,
-        ),
+      await localDataSource.enqueuePendingScheduleMutation(
+        type: _pendingUploadManualSchedule,
+        payload: {'classes': normalizedModels.map((e) => e.toJson()).toList()},
       );
     }
   }
@@ -234,7 +316,7 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
 
       await localDataSource.cacheRecommendedRooms(date: date, raw: raw);
 
-      return (RecommendedRoomsMapper.fromRaw(raw), DateTime.now());
+      return (await compute(_mapRecommendedRoomsFromRaw, raw), DateTime.now());
     } catch (e) {
       if (!_isConnectivityError(e)) rethrow;
 
@@ -248,7 +330,7 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
         return (<RoomSearchItem>[], null);
       }
 
-      return (RecommendedRoomsMapper.fromRaw(raw), updatedAt);
+      return (await compute(_mapRecommendedRoomsFromRaw, raw), updatedAt);
     }
   }
 
@@ -259,6 +341,59 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
     await localDataSource.replaceClasses(
       classes: ScheduleClassMapper.toEntityList(remoteClasses),
     );
+  }
+
+  @override
+  Future<void> syncPendingScheduleMutations() async {
+    final pending = await localDataSource.getPendingScheduleMutations();
+    if (pending.isEmpty) return;
+
+    for (final mutation in pending) {
+      try {
+        await _executePendingScheduleMutation(mutation);
+        await localDataSource.removePendingScheduleMutation(mutation.id);
+      } catch (e) {
+        if (_isConnectivityError(e)) rethrow;
+        await localDataSource.removePendingScheduleMutation(mutation.id);
+        rethrow;
+      }
+    }
+
+    await refreshScheduleClassesFromRemote();
+  }
+
+  Future<void> _executePendingScheduleMutation(
+    PendingScheduleMutation mutation,
+  ) {
+    switch (mutation.type) {
+      case _pendingUploadManualSchedule:
+        final classes = _manualModelsFromPayload(mutation.payload['classes']);
+        return remoteDataSource.uploadManualSchedule(
+          classes: _normalizeManualModelsForBackend(classes),
+        );
+      case _pendingDeleteFullSchedule:
+        return remoteDataSource.deleteFullSchedule();
+      case _pendingDeleteScheduleClass:
+        final classId = mutation.payload['class_id']?.toString() ?? '';
+        if (classId.isEmpty || classId.startsWith('manual_')) {
+          return Future.value();
+        }
+        return remoteDataSource.deleteScheduleClass(classId: classId);
+      case _pendingDeleteScheduleOccurrence:
+        final classId = mutation.payload['class_id']?.toString() ?? '';
+        final date = DateTime.tryParse(
+          mutation.payload['date']?.toString() ?? '',
+        );
+        if (classId.isEmpty || classId.startsWith('manual_') || date == null) {
+          return Future.value();
+        }
+        return remoteDataSource.deleteScheduleOccurrence(
+          classId: classId,
+          date: date,
+        );
+      default:
+        return Future.value();
+    }
   }
 }
 
@@ -303,100 +438,33 @@ List<ManualClassModel> _normalizeManualModelsForBackend(
   }).toList();
 }
 
-class _UploadManualSchedulePendingAction implements PendingAction {
-  final ScheduleRemoteDataSource remoteDataSource;
-  final List<dynamic> classes;
+List<ManualClassModel> _manualModelsFromPayload(Object? raw) {
+  if (raw is! List) return const [];
 
-  const _UploadManualSchedulePendingAction({
-    required this.remoteDataSource,
-    required this.classes,
-  });
+  return raw.whereType<Map>().map((item) {
+    final map = Map<String, dynamic>.from(item);
 
-  @override
-  String get successMessage => 'Schedule synced correctly.';
-
-  @override
-  String get failureMessage => 'We could not sync the schedule.';
-
-  @override
-  Future<void> execute() {
-    return remoteDataSource.uploadManualSchedule(
-      classes: _normalizeManualModelsForBackend(
-        classes.cast<ManualClassModel>(),
-      ),
+    return ManualClassModel(
+      title: map['title']?.toString() ?? 'Class',
+      locationText: map['location_text']?.toString(),
+      roomId: map['room_id']?.toString(),
+      startDate: DateTime.parse(map['start_date'] as String),
+      endDate: DateTime.parse(map['end_date'] as String),
+      startTime: map['start_time']?.toString() ?? '',
+      endTime: map['end_time']?.toString() ?? '',
+      weekdays: (map['weekdays'] as List<dynamic>? ?? [])
+          .map((item) => item.toString())
+          .toList(),
     );
-  }
+  }).toList();
 }
 
-class _DeleteFullSchedulePendingAction implements PendingAction {
-  final ScheduleRemoteDataSource remoteDataSource;
-
-  const _DeleteFullSchedulePendingAction({required this.remoteDataSource});
-
-  @override
-  @override
-  String get successMessage => 'Schedule deleted correctly.';
-
-  @override
-  String get failureMessage => 'We could not sync the schedule deletion.';
-
-  @override
-  Future<void> execute() {
-    return remoteDataSource.deleteFullSchedule();
-  }
+String _dateOnlyIso(DateTime date) {
+  final month = date.month.toString().padLeft(2, '0');
+  final day = date.day.toString().padLeft(2, '0');
+  return '${date.year}-$month-$day';
 }
 
-class _DeleteScheduleClassPendingAction implements PendingAction {
-  final ScheduleRemoteDataSource remoteDataSource;
-  final String classId;
-
-  const _DeleteScheduleClassPendingAction({
-    required this.remoteDataSource,
-    required this.classId,
-  });
-
-  @override
-  String get successMessage => 'Schedule class synced correctly.';
-
-  @override
-  String get failureMessage => 'We could not sync the deleted class.';
-
-  @override
-  Future<void> execute() {
-    if (classId.startsWith('manual_')) {
-      return Future.value();
-    }
-
-    return remoteDataSource.deleteScheduleClass(classId: classId);
-  }
-}
-
-class _DeleteScheduleOccurrencePendingAction implements PendingAction {
-  final ScheduleRemoteDataSource remoteDataSource;
-  final String classId;
-  final DateTime date;
-
-  const _DeleteScheduleOccurrencePendingAction({
-    required this.remoteDataSource,
-    required this.classId,
-    required this.date,
-  });
-
-  @override
-  String get successMessage => 'Schedule occurrence synced correctly.';
-
-  @override
-  String get failureMessage => 'We could not sync the deleted occurrence.';
-
-  @override
-  Future<void> execute() {
-    if (classId.startsWith('manual_')) {
-      return Future.value();
-    }
-
-    return remoteDataSource.deleteScheduleOccurrence(
-      classId: classId,
-      date: date,
-    );
-  }
+List<RoomSearchItem> _mapRecommendedRoomsFromRaw(Map<String, dynamic> raw) {
+  return RecommendedRoomsMapper.fromRaw(raw);
 }

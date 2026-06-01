@@ -25,11 +25,25 @@ class FriendsPage extends ConsumerStatefulWidget {
 
 class _FriendsPageState extends ConsumerState<FriendsPage> {
   final Set<String> _selectedFriendEmails = {};
+  bool _isSelectingFriends = false;
 
-  bool get _isSelectionMode => _selectedFriendEmails.isNotEmpty;
+  bool get _isSelectionMode => _isSelectingFriends;
 
-  void _toggleFriendSelection(Friend friend) {
+  void _toggleFriendSelection(
+    Friend friend, {
+    bool enterSelectionMode = false,
+  }) {
+    if (!friend.shareSchedule) {
+      if (enterSelectionMode && !_isSelectingFriends) {
+        setState(() => _isSelectingFriends = true);
+      }
+      _showPrivateScheduleMessage(friend);
+      return;
+    }
+
     setState(() {
+      _isSelectingFriends = true;
+
       if (_selectedFriendEmails.contains(friend.email)) {
         _selectedFriendEmails.remove(friend.email);
       } else {
@@ -39,7 +53,10 @@ class _FriendsPageState extends ConsumerState<FriendsPage> {
   }
 
   void _clearSelection() {
-    setState(_selectedFriendEmails.clear);
+    setState(() {
+      _selectedFriendEmails.clear();
+      _isSelectingFriends = false;
+    });
   }
 
   List<Friend> _selectedFriends(List<Friend> friends) {
@@ -56,6 +73,18 @@ class _FriendsPageState extends ConsumerState<FriendsPage> {
         builder: (_) => FriendsFreeSlotsPage(friends: selectedFriends),
       ),
     );
+  }
+
+  void _showPrivateScheduleMessage(Friend friend) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text("${friend.username}'s schedule is private."),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(milliseconds: 1800),
+        ),
+      );
   }
 
   @override
@@ -190,7 +219,13 @@ class _FriendsPageState extends ConsumerState<FriendsPage> {
                       isPending: isPending,
                       isSelected: isSelected,
                       isSelectionMode: _isSelectionMode,
+                      hasPrivateSchedule: !friend.shareSchedule,
                       onTap: () {
+                        if (!friend.shareSchedule) {
+                          _showPrivateScheduleMessage(friend);
+                          return;
+                        }
+
                         if (_isSelectionMode) {
                           _toggleFriendSelection(friend);
                           return;
@@ -202,7 +237,10 @@ class _FriendsPageState extends ConsumerState<FriendsPage> {
                           ),
                         );
                       },
-                      onLongPress: () => _toggleFriendSelection(friend),
+                      onLongPress: () => _toggleFriendSelection(
+                        friend,
+                        enterSelectionMode: true,
+                      ),
                       onDelete: () =>
                           _confirmRemoveFriend(context, notifier, friend),
                     );
@@ -426,6 +464,7 @@ class _FriendCard extends StatelessWidget {
     required this.isPending,
     required this.isSelected,
     required this.isSelectionMode,
+    required this.hasPrivateSchedule,
     required this.onTap,
     required this.onLongPress,
     required this.onDelete,
@@ -435,6 +474,7 @@ class _FriendCard extends StatelessWidget {
   final bool isPending;
   final bool isSelected;
   final bool isSelectionMode;
+  final bool hasPrivateSchedule;
   final VoidCallback onTap;
   final VoidCallback onLongPress;
   final VoidCallback onDelete;
@@ -473,6 +513,39 @@ class _FriendCard extends StatelessWidget {
                     ),
                   ),
                 ),
+              if (isSelectionMode && hasPrivateSchedule)
+                Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: _privateScheduleOverlayColor(context),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              if (hasPrivateSchedule)
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  child: Padding(
+                    padding: const EdgeInsets.all(9),
+                    child: Tooltip(
+                      message: 'Private schedule',
+                      child: Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: _privateScheduleBadgeColor(context),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          Icons.visibility_off_outlined,
+                          size: 20,
+                          color: _privateScheduleIconColor(context),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               Positioned(
                 top: 0,
                 right: 0,
@@ -482,6 +555,8 @@ class _FriendCard extends StatelessWidget {
                         child: Icon(
                           isSelected
                               ? Icons.check_circle
+                              : hasPrivateSchedule
+                              ? Icons.block
                               : Icons.radio_button_unchecked,
                           size: 28,
                           color: isSelected
@@ -506,7 +581,7 @@ class _FriendCard extends StatelessWidget {
                           width: 42,
                           height: 42,
                         ),
-                        icon: const Icon(Icons.delete_outline, size: 31),
+                        icon: const Icon(Icons.close, size: 31),
                         color: _primaryIconColor(context),
                         onPressed: onDelete,
                       ),
@@ -762,6 +837,31 @@ Color _selectionColor(BuildContext context) {
   final isDark = theme.brightness == Brightness.dark;
 
   return isDark ? const Color(0xFFFFA500) : const Color(0xFF00A862);
+}
+
+Color _privateScheduleOverlayColor(BuildContext context) {
+  final theme = Theme.of(context);
+  final isDark = theme.brightness == Brightness.dark;
+
+  return isDark
+      ? Colors.black.withValues(alpha: 0.28)
+      : Colors.white.withValues(alpha: 0.54);
+}
+
+Color _privateScheduleBadgeColor(BuildContext context) {
+  final theme = Theme.of(context);
+  final isDark = theme.brightness == Brightness.dark;
+
+  return isDark
+      ? const Color(0xFFFFA500).withValues(alpha: 0.18)
+      : Colors.black.withValues(alpha: 0.08);
+}
+
+Color _privateScheduleIconColor(BuildContext context) {
+  final theme = Theme.of(context);
+  final isDark = theme.brightness == Brightness.dark;
+
+  return isDark ? const Color(0xFFFFA500) : Colors.black;
 }
 
 ButtonStyle _compactElevatedButtonStyle(
