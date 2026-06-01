@@ -1,3 +1,4 @@
+import 'package:andespace/core/cache/lru_cache.dart';
 import 'package:andespace/features/rooms/presentation/pages/room_detail_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -34,6 +35,9 @@ class _RecommendedRoomsPageState extends ConsumerState<RecommendedRoomsPage> {
   final Set<String> _selectedBuildings = {};
   final Set<int> _selectedFloors = {};
   final Set<String> _selectedUtilities = {};
+  final LruCache<String, List<RoomSearchItem>> _filteredItemsCache = LruCache(
+    24,
+  );
   String? _selectedTimeKey;
   bool _showFilters = false;
 
@@ -105,8 +109,11 @@ class _RecommendedRoomsPageState extends ConsumerState<RecommendedRoomsPage> {
 
   List<RoomSearchItem> get _filteredItems {
     final buildingQuery = _buildingSearchController.text.trim().toLowerCase();
+    final cacheKey = _filterCacheKey(buildingQuery);
+    final cached = _filteredItemsCache.get(cacheKey);
+    if (cached != null) return cached;
 
-    return widget.items.where((room) {
+    final filtered = widget.items.where((room) {
       final buildingMatches =
           _selectedBuildings.isEmpty ||
           _selectedBuildings.contains(room.buildingCode);
@@ -133,6 +140,24 @@ class _RecommendedRoomsPageState extends ConsumerState<RecommendedRoomsPage> {
 
       return true;
     }).toList();
+
+    _filteredItemsCache.put(cacheKey, filtered);
+    return filtered;
+  }
+
+  String _filterCacheKey(String buildingQuery) {
+    final buildings = _selectedBuildings.toList()..sort();
+    final floors = _selectedFloors.toList()..sort();
+    final utilities = _selectedUtilities.toList()..sort();
+
+    return [
+      buildingQuery,
+      buildings.join(','),
+      floors.join(','),
+      utilities.join(','),
+      _selectedTimeKey ?? '',
+      widget.items.length,
+    ].join('|');
   }
 
   bool _matchesBuildingQuery(RoomSearchItem room, String query) {
@@ -821,6 +846,12 @@ class _RecommendedRoomCard extends StatelessWidget {
                     _InfoChip(
                       label: distanceLabel,
                       icon: Icons.directions_walk_outlined,
+                    ),
+                  if (room.recommendationReason != null &&
+                      room.recommendationReason!.trim().isNotEmpty)
+                    _InfoChip(
+                      label: room.recommendationReason!.trim(),
+                      icon: Icons.auto_awesome_outlined,
                     ),
                 ],
               ),

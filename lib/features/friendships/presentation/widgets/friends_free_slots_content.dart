@@ -36,14 +36,66 @@ class FriendsFreeSlotsContent extends StatelessWidget {
       );
     }
 
-    return FriendsFreeSlotsGrid(
-      referenceDate: state.referenceDate,
-      freeSlots: freeSlots,
-      selectedSlotKeys: state.selectedSlotKeys,
-      isFindingRooms: state.isFindingRooms,
-      onSlotToggled: onSlotToggled,
-      onClearSelection: onClearSelection,
-      onFindRooms: onFindRooms,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (state.isOffline) ...[
+          _OfflineFreeSlotsBanner(lastUpdated: state.lastUpdated),
+          const SizedBox(height: 10),
+        ],
+        Expanded(
+          child: FriendsFreeSlotsGrid(
+            referenceDate: state.referenceDate,
+            freeSlots: freeSlots,
+            selectedSlotKeys: state.selectedSlotKeys,
+            isFindingRooms: state.isFindingRooms,
+            onSlotToggled: onSlotToggled,
+            onClearSelection: onClearSelection,
+            onFindRooms: onFindRooms,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _OfflineFreeSlotsBanner extends StatelessWidget {
+  const _OfflineFreeSlotsBanner({required this.lastUpdated});
+
+  final DateTime? lastUpdated;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final updatedLabel = lastUpdated == null
+        ? 'from local cache'
+        : 'cached ${_formatTimeAgo(lastUpdated!)}';
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.secondary.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: friendsFreeSlotsGridBorderColor(context)),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.wifi_off_rounded,
+            size: 18,
+            color: theme.colorScheme.secondary,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Showing free slots $updatedLabel. Availability may have changed.',
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -74,4 +126,13 @@ class FriendsFreeSlotsMessage extends StatelessWidget {
       ),
     );
   }
+}
+
+String _formatTimeAgo(DateTime time) {
+  final diff = DateTime.now().difference(time);
+
+  if (diff.inMinutes < 1) return 'just now';
+  if (diff.inMinutes < 60) return '${diff.inMinutes} min ago';
+  if (diff.inHours < 24) return '${diff.inHours} h ago';
+  return '${diff.inDays} days ago';
 }

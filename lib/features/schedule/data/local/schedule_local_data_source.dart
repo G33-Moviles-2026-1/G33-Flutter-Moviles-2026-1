@@ -7,6 +7,9 @@ import 'package:andespace/features/schedule/domain/entities/schedule_occurrence.
 import 'package:andespace/features/schedule/domain/entities/schedule_weekday.dart';
 import 'package:andespace/features/schedule/domain/entities/weekly_schedule.dart';
 import 'package:drift/drift.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../domain/entities/friends_free_slot.dart';
 
 abstract class ScheduleLocalDataSource {
   Future<void> replaceClasses({required List<ScheduleClass> classes});
@@ -37,6 +40,28 @@ abstract class ScheduleLocalDataSource {
   });
 
   Future<(Map<String, dynamic>?, DateTime?)> getCachedRecommendedRooms({
+    required DateTime date,
+  });
+
+  Future<void> cacheFriendWeeklySchedule({
+    required String friendEmail,
+    required DateTime date,
+    required WeeklySchedule schedule,
+  });
+
+  Future<(WeeklySchedule?, DateTime?)> getCachedFriendWeeklySchedule({
+    required String friendEmail,
+    required DateTime date,
+  });
+
+  Future<void> cacheFriendsFreeSlots({
+    required List<String> friendEmails,
+    required DateTime date,
+    required FriendsFreeSlots freeSlots,
+  });
+
+  Future<(FriendsFreeSlots?, DateTime?)> getCachedFriendsFreeSlots({
+    required List<String> friendEmails,
     required DateTime date,
   });
 }
@@ -495,4 +520,227 @@ class ScheduleLocalDataSourceImpl implements ScheduleLocalDataSource {
 
     return (decoded, cached.updatedAt);
   }
+
+  @override
+  Future<void> cacheFriendWeeklySchedule({
+    required String friendEmail,
+    required DateTime date,
+    required WeeklySchedule schedule,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final payload = {
+      'cached_at': DateTime.now().toIso8601String(),
+      'schedule': _weeklyScheduleToJson(schedule),
+    };
+
+    await prefs.setString(
+      _friendScheduleCacheKey(friendEmail: friendEmail, date: date),
+      jsonEncode(payload),
+    );
+  }
+
+  @override
+  Future<(WeeklySchedule?, DateTime?)> getCachedFriendWeeklySchedule({
+    required String friendEmail,
+    required DateTime date,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(
+      _friendScheduleCacheKey(friendEmail: friendEmail, date: date),
+    );
+    if (raw == null) return (null, null);
+
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map) return (null, null);
+
+      final payload = Map<String, dynamic>.from(decoded);
+      final schedulePayload = payload['schedule'];
+      if (schedulePayload is! Map) return (null, null);
+
+      return (
+        _weeklyScheduleFromJson(Map<String, dynamic>.from(schedulePayload)),
+        DateTime.tryParse(payload['cached_at']?.toString() ?? ''),
+      );
+    } catch (_) {
+      return (null, null);
+    }
+  }
+
+  @override
+  Future<void> cacheFriendsFreeSlots({
+    required List<String> friendEmails,
+    required DateTime date,
+    required FriendsFreeSlots freeSlots,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final payload = {
+      'cached_at': DateTime.now().toIso8601String(),
+      'free_slots': _friendsFreeSlotsToJson(freeSlots),
+    };
+
+    await prefs.setString(
+      _friendsFreeSlotsCacheKey(friendEmails: friendEmails, date: date),
+      jsonEncode(payload),
+    );
+  }
+
+  @override
+  Future<(FriendsFreeSlots?, DateTime?)> getCachedFriendsFreeSlots({
+    required List<String> friendEmails,
+    required DateTime date,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(
+      _friendsFreeSlotsCacheKey(friendEmails: friendEmails, date: date),
+    );
+    if (raw == null) return (null, null);
+
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map) return (null, null);
+
+      final payload = Map<String, dynamic>.from(decoded);
+      final freeSlotsPayload = payload['free_slots'];
+      if (freeSlotsPayload is! Map) return (null, null);
+
+      return (
+        _friendsFreeSlotsFromJson(Map<String, dynamic>.from(freeSlotsPayload)),
+        DateTime.tryParse(payload['cached_at']?.toString() ?? ''),
+      );
+    } catch (_) {
+      return (null, null);
+    }
+  }
+}
+
+String _friendScheduleCacheKey({
+  required String friendEmail,
+  required DateTime date,
+}) {
+  final weekStart = _topLevelStartOfWeek(date);
+  return [
+    'friend_schedule_v1',
+    friendEmail.trim().toLowerCase(),
+    _topLevelFormatDateKey(weekStart),
+  ].join('|');
+}
+
+String _friendsFreeSlotsCacheKey({
+  required List<String> friendEmails,
+  required DateTime date,
+}) {
+  final normalizedFriends =
+      friendEmails
+          .map((email) => email.trim().toLowerCase())
+          .where((email) => email.isNotEmpty)
+          .toList()
+        ..sort();
+
+  return [
+    'friends_free_slots_v1',
+    normalizedFriends.join(','),
+    _topLevelFormatDateKey(date),
+  ].join('|');
+}
+
+Map<String, dynamic> _weeklyScheduleToJson(WeeklySchedule schedule) {
+  return {
+    'week_start': _topLevelFormatDateKey(schedule.weekStart),
+    'week_end': _topLevelFormatDateKey(schedule.weekEnd),
+    'occurrences': schedule.occurrences.map((occurrence) {
+      return {
+        'class_id': occurrence.classId,
+        'title': occurrence.title,
+        'location_text': occurrence.locationText,
+        'room_id': occurrence.roomId,
+        'date': _topLevelFormatDateKey(occurrence.date),
+        'weekday': occurrence.weekday,
+        'start_time': occurrence.startTime,
+        'end_time': occurrence.endTime,
+      };
+    }).toList(),
+  };
+}
+
+WeeklySchedule _weeklyScheduleFromJson(Map<String, dynamic> json) {
+  final occurrences = (json['occurrences'] as List<dynamic>? ?? [])
+      .whereType<Map>()
+      .map((item) {
+        final map = Map<String, dynamic>.from(item);
+
+        return ScheduleOccurrence(
+          classId: map['class_id']?.toString() ?? '',
+          title: map['title']?.toString(),
+          locationText: map['location_text']?.toString(),
+          roomId: map['room_id']?.toString(),
+          date: DateTime.parse(map['date'] as String),
+          weekday: map['weekday']?.toString() ?? '',
+          startTime: map['start_time']?.toString() ?? '',
+          endTime: map['end_time']?.toString() ?? '',
+        );
+      })
+      .toList();
+
+  return WeeklySchedule(
+    weekStart: DateTime.parse(json['week_start'] as String),
+    weekEnd: DateTime.parse(json['week_end'] as String),
+    occurrences: occurrences,
+  );
+}
+
+Map<String, dynamic> _friendsFreeSlotsToJson(FriendsFreeSlots freeSlots) {
+  return {
+    'total_friends': freeSlots.totalFriends,
+    'slots': freeSlots.slots.map((slot) {
+      return {
+        'date': slot.date == null ? null : _topLevelFormatDateKey(slot.date!),
+        'weekday': slot.weekday,
+        'start_time': slot.startTime,
+        'end_time': slot.endTime,
+        'free_count': slot.freeCount,
+        'available_friends': slot.availableFriends,
+      };
+    }).toList(),
+  };
+}
+
+FriendsFreeSlots _friendsFreeSlotsFromJson(Map<String, dynamic> json) {
+  return FriendsFreeSlots(
+    totalFriends: (json['total_friends'] as num?)?.toInt() ?? 0,
+    slots: (json['slots'] as List<dynamic>? ?? [])
+        .whereType<Map>()
+        .map((item) {
+          final map = Map<String, dynamic>.from(item);
+          final rawDate = map['date']?.toString();
+
+          return FriendFreeSlot(
+            date: rawDate == null || rawDate.isEmpty
+                ? null
+                : DateTime.tryParse(rawDate),
+            weekday: map['weekday']?.toString(),
+            startTime: map['start_time']?.toString() ?? '',
+            endTime: map['end_time']?.toString() ?? '',
+            freeCount: (map['free_count'] as num?)?.toInt() ?? 0,
+            availableFriends: (map['available_friends'] as List<dynamic>? ?? [])
+                .map((item) => item.toString())
+                .where((item) => item.trim().isNotEmpty)
+                .toList(),
+          );
+        })
+        .where((slot) => slot.startTime.isNotEmpty && slot.endTime.isNotEmpty)
+        .toList(),
+  );
+}
+
+DateTime _topLevelStartOfWeek(DateTime date) {
+  final clean = DateTime(date.year, date.month, date.day);
+  return clean.subtract(Duration(days: clean.weekday - DateTime.monday));
+}
+
+String _topLevelFormatDateKey(DateTime date) {
+  final clean = DateTime(date.year, date.month, date.day);
+  final month = clean.month.toString().padLeft(2, '0');
+  final day = clean.day.toString().padLeft(2, '0');
+  return '${clean.year}-$month-$day';
 }

@@ -4,7 +4,9 @@ import 'package:andespace/features/rooms/domain/entities/room_search.dart';
 import 'package:andespace/features/schedule/data/local/schedule_local_data_source.dart';
 import 'package:andespace/features/schedule/data/models/manual_class_dto.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
+import '../../domain/entities/cached_schedule_result.dart';
 import '../../domain/entities/free_rooms_for_day.dart';
 import '../../domain/entities/friends_free_slot.dart';
 import '../../domain/entities/google_calendar_auth_session.dart';
@@ -17,6 +19,7 @@ import '../mappers/free_rooms_mapper.dart';
 import '../mappers/manual_class_mapper.dart';
 import '../mappers/recommended_rooms_mapper.dart';
 import '../mappers/schedule_class_mapper.dart';
+import '../mappers/weekly_schedule_mapper.dart';
 import '../remote/schedule_remote_data_source.dart';
 
 class ScheduleRepositoryImpl implements ScheduleRepository {
@@ -127,12 +130,97 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
     required List<String> friendEmails,
     required DateTime date,
   }) async {
-    final model = await remoteDataSource.getFriendsFreeSlots(
+    final result = await getFriendsFreeSlotsWithCache(
       friendEmails: friendEmails,
       date: date,
     );
 
-    return model.toEntity();
+    return result.freeSlots;
+  }
+
+  @override
+  Future<FriendsFreeSlotsResult> getFriendsFreeSlotsWithCache({
+    required List<String> friendEmails,
+    required DateTime date,
+  }) async {
+    try {
+      final model = await remoteDataSource.getFriendsFreeSlots(
+        friendEmails: friendEmails,
+        date: date,
+      );
+
+      final freeSlots = model.toEntity();
+
+      await localDataSource.cacheFriendsFreeSlots(
+        friendEmails: friendEmails,
+        date: date,
+        freeSlots: freeSlots,
+      );
+
+      return FriendsFreeSlotsResult(
+        freeSlots: freeSlots,
+        isOffline: false,
+        lastUpdated: DateTime.now(),
+      );
+    } catch (e) {
+      if (!_isConnectivityError(e)) rethrow;
+
+      final cached = await localDataSource.getCachedFriendsFreeSlots(
+        friendEmails: friendEmails,
+        date: date,
+      );
+      final freeSlots = cached.$1;
+
+      if (freeSlots == null) rethrow;
+
+      return FriendsFreeSlotsResult(
+        freeSlots: freeSlots,
+        isOffline: true,
+        lastUpdated: cached.$2,
+      );
+    }
+  }
+
+  @override
+  Future<FriendWeeklyScheduleResult> getFriendWeeklySchedule({
+    required String friendEmail,
+    required DateTime date,
+  }) async {
+    try {
+      final model = await remoteDataSource.getFriendWeeklySchedule(
+        friendEmail: friendEmail,
+        date: date,
+      );
+      final schedule = WeeklyScheduleMapper.toEntity(model);
+
+      await localDataSource.cacheFriendWeeklySchedule(
+        friendEmail: friendEmail,
+        date: date,
+        schedule: schedule,
+      );
+
+      return FriendWeeklyScheduleResult(
+        schedule: schedule,
+        isOffline: false,
+        lastUpdated: DateTime.now(),
+      );
+    } catch (e) {
+      if (!_isConnectivityError(e)) rethrow;
+
+      final cached = await localDataSource.getCachedFriendWeeklySchedule(
+        friendEmail: friendEmail,
+        date: date,
+      );
+      final schedule = cached.$1;
+
+      if (schedule == null) rethrow;
+
+      return FriendWeeklyScheduleResult(
+        schedule: schedule,
+        isOffline: true,
+        lastUpdated: cached.$2,
+      );
+    }
   }
 
   @override
@@ -234,7 +322,7 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
 
       await localDataSource.cacheRecommendedRooms(date: date, raw: raw);
 
-      return (RecommendedRoomsMapper.fromRaw(raw), DateTime.now());
+      return (await compute(_mapRecommendedRoomsFromRaw, raw), DateTime.now());
     } catch (e) {
       if (!_isConnectivityError(e)) rethrow;
 
@@ -248,7 +336,7 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
         return (<RoomSearchItem>[], null);
       }
 
-      return (RecommendedRoomsMapper.fromRaw(raw), updatedAt);
+      return (await compute(_mapRecommendedRoomsFromRaw, raw), updatedAt);
     }
   }
 
@@ -399,4 +487,8 @@ class _DeleteScheduleOccurrencePendingAction implements PendingAction {
       date: date,
     );
   }
+}
+
+List<RoomSearchItem> _mapRecommendedRoomsFromRaw(Map<String, dynamic> raw) {
+  return RecommendedRoomsMapper.fromRaw(raw);
 }

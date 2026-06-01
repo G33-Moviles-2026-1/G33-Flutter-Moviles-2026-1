@@ -85,6 +85,7 @@ class FindRoomsForFreeSlotsUseCase {
         utilities: room.utilities,
         distanceSeconds: room.distanceSeconds,
         matchingWindows: windows,
+        recommendationReason: room.recommendationReason,
       );
     }).toList()..sort((a, b) {
       final reliability = b.reliability.compareTo(a.reliability);

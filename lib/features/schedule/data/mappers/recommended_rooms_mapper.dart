@@ -21,19 +21,20 @@ class RecommendedRoomsMapper {
         final roomId = roomMap['room_id'] as String? ?? '';
         final buildingName = roomMap['building_name'] as String?;
         final capacity = roomMap['capacity'] as int? ?? 0;
-        final reliability =
-            (roomMap['reliability'] as num?)?.toDouble() ?? 0.0;
+        final reliability = (roomMap['reliability'] as num?)?.toDouble() ?? 0.0;
+        final recommendationReason =
+            roomMap['recommendation_reason'] as String?;
 
         final score = (roomMap['score'] as num?)?.toDouble();
-        final fromPreviousSeconds =
-            (roomMap['from_previous_seconds'] as num?)?.toDouble();
-        final toNextSeconds =
-            (roomMap['to_next_seconds'] as num?)?.toDouble();
+        final fromPreviousSeconds = (roomMap['from_previous_seconds'] as num?)
+            ?.toDouble();
+        final toNextSeconds = (roomMap['to_next_seconds'] as num?)?.toDouble();
 
         final roomParts = roomId.split(' ');
         final buildingCode = roomParts.isNotEmpty ? roomParts.first : '';
-        final roomNumber =
-            roomParts.length > 1 ? roomParts.sublist(1).join(' ') : '';
+        final roomNumber = roomParts.length > 1
+            ? roomParts.sublist(1).join(' ')
+            : '';
 
         items.add(
           RoomSearchItem(
@@ -51,12 +52,8 @@ class RecommendedRoomsMapper {
                 'next ${(toNextSeconds / 60).round()} min',
             ],
             distanceSeconds: toNextSeconds ?? fromPreviousSeconds,
-            matchingWindows: [
-              MatchingWindow(
-                start: slotStart,
-                end: slotEnd,
-              ),
-            ],
+            matchingWindows: [MatchingWindow(start: slotStart, end: slotEnd)],
+            recommendationReason: recommendationReason,
           ),
         );
       }

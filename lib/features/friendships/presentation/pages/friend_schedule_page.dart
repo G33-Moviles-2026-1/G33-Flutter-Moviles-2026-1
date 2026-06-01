@@ -1,165 +1,25 @@
 import 'package:andespace/core/navigation/app_routes.dart';
 import 'package:andespace/core/navigation/app_tab.dart';
 import 'package:andespace/features/friendships/domain/entities/friend.dart';
-import 'package:andespace/features/schedule/data/mappers/weekly_schedule_mapper.dart';
+import 'package:andespace/features/friendships/presentation/providers/friendships_providers.dart';
 import 'package:andespace/features/schedule/domain/entities/schedule_occurrence.dart';
 import 'package:andespace/features/schedule/domain/entities/weekly_schedule.dart';
-import 'package:andespace/features/schedule/presentation/providers/schedule_providers.dart';
 import 'package:andespace/features/schedule/presentation/widgets/day_column.dart';
 import 'package:andespace/shared/widgets/app_scaffold.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class FriendSchedulePage extends ConsumerStatefulWidget {
+class FriendSchedulePage extends ConsumerWidget {
   const FriendSchedulePage({super.key, required this.friend});
 
   final Friend friend;
 
   @override
-  ConsumerState<FriendSchedulePage> createState() => _FriendSchedulePageState();
-}
-
-class _FriendSchedulePageState extends ConsumerState<FriendSchedulePage> {
-  late DateTime _referenceDate;
-  WeeklySchedule? _schedule;
-  String? _errorMessage;
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    final now = DateTime.now();
-    _referenceDate = DateTime(now.year, now.month, now.day);
-    Future.microtask(_loadSchedule);
-  }
-
-  Future<void> _loadSchedule() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
-    try {
-      final remote = ref.read(scheduleRemoteDataSourceProvider);
-      final model = await remote.getFriendWeeklySchedule(
-        friendEmail: widget.friend.email,
-        date: _referenceDate,
-      );
-
-      if (!mounted) return;
-
-      setState(() {
-        _schedule = WeeklyScheduleMapper.toEntity(model);
-        _isLoading = false;
-      });
-    } catch (error) {
-      if (!mounted) return;
-
-      setState(() {
-        _schedule = null;
-        _isLoading = false;
-        _errorMessage = _mapScheduleError(error);
-      });
-    }
-  }
-
-  void _goToPreviousWeek() {
-    setState(() {
-      _referenceDate = _referenceDate.subtract(const Duration(days: 7));
-    });
-    _loadSchedule();
-  }
-
-  void _goToNextWeek() {
-    setState(() {
-      _referenceDate = _referenceDate.add(const Duration(days: 7));
-    });
-    _loadSchedule();
-  }
-
-  String _mapScheduleError(Object error) {
-    if (error is DioException) {
-      final statusCode = error.response?.statusCode;
-      final detail = _extractDetail(error.response?.data);
-
-      if (statusCode == 403) {
-        return '${widget.friend.username} does not share their schedule.';
-      }
-
-      if (statusCode == 404) {
-        return '${widget.friend.username} does not have a schedule yet.';
-      }
-
-      if (detail != null && detail.trim().isNotEmpty) {
-        return detail.trim();
-      }
-
-      if (error.response == null) {
-        return 'Could not load ${widget.friend.username}\'s schedule. Check your connection.';
-      }
-    }
-
-    return 'Could not load ${widget.friend.username}\'s schedule.';
-  }
-
-  String? _extractDetail(Object? data) {
-    if (data is Map) {
-      final detail = data['detail'];
-      if (detail != null) return detail.toString();
-    }
-    return null;
-  }
-
-  String _monthName(int month) {
-    const months = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
-    return months[month - 1];
-  }
-
-  String _formatWeekRange(DateTime start, DateTime end) {
-    return '${start.day} of ${_monthName(start.month)} - ${end.day} of ${_monthName(end.month)}';
-  }
-
-  List<_FriendScheduleDay> _buildWeekDays(WeeklySchedule schedule) {
-    final grouped = <DateTime, List<ScheduleOccurrence>>{};
-
-    for (final occurrence in schedule.occurrences) {
-      if (occurrence.date.weekday == DateTime.sunday) continue;
-
-      final key = DateTime(
-        occurrence.date.year,
-        occurrence.date.month,
-        occurrence.date.day,
-      );
-
-      grouped.putIfAbsent(key, () => <ScheduleOccurrence>[]).add(occurrence);
-    }
-
-    return List<_FriendScheduleDay>.generate(6, (index) {
-      final day = schedule.weekStart.add(Duration(days: index));
-      final key = DateTime(day.year, day.month, day.day);
-      final occurrences = grouped[key] ?? const <ScheduleOccurrence>[];
-
-      return _FriendScheduleDay(day: key, occurrences: occurrences);
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final schedule = _schedule;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final provider = friendScheduleControllerProvider(friend);
+    final state = ref.watch(provider);
+    final notifier = ref.read(provider.notifier);
+    final schedule = state.schedule;
 
     return AppScaffold(
       currentTab: AppTab.favorites,
@@ -178,7 +38,7 @@ class _FriendSchedulePageState extends ConsumerState<FriendSchedulePage> {
                 ),
                 Expanded(
                   child: Text(
-                    '${widget.friend.username}\'s schedule',
+                    '${friend.username}\'s schedule',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -192,9 +52,13 @@ class _FriendSchedulePageState extends ConsumerState<FriendSchedulePage> {
             if (schedule != null) ...[
               _FriendWeekHeader(
                 label: _formatWeekRange(schedule.weekStart, schedule.weekEnd),
-                onPreviousWeek: _goToPreviousWeek,
-                onNextWeek: _goToNextWeek,
+                onPreviousWeek: notifier.goToPreviousWeek,
+                onNextWeek: notifier.goToNextWeek,
               ),
+              if (state.isOffline) ...[
+                const SizedBox(height: 10),
+                _FriendScheduleOfflineBanner(lastUpdated: state.lastUpdated),
+              ],
               const SizedBox(height: 12),
             ],
             Expanded(
@@ -209,15 +73,15 @@ class _FriendSchedulePageState extends ConsumerState<FriendSchedulePage> {
                     ],
                   );
                 },
-                child: _isLoading
+                child: state.isLoading
                     ? const Center(child: CircularProgressIndicator())
-                    : _errorMessage != null
-                    ? _FriendScheduleMessage(message: _errorMessage!)
+                    : state.errorMessage != null
+                    ? _FriendScheduleMessage(message: state.errorMessage!)
                     : schedule == null
                     ? const SizedBox.shrink()
                     : _FriendWeeklyCalendar(
                         days: _buildWeekDays(schedule),
-                        selectedDate: _referenceDate,
+                        selectedDate: state.referenceDate,
                       ),
               ),
             ),
@@ -226,6 +90,52 @@ class _FriendSchedulePageState extends ConsumerState<FriendSchedulePage> {
       ),
     );
   }
+}
+
+String _monthName(int month) {
+  const months = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ];
+  return months[month - 1];
+}
+
+String _formatWeekRange(DateTime start, DateTime end) {
+  return '${start.day} of ${_monthName(start.month)} - ${end.day} of ${_monthName(end.month)}';
+}
+
+List<_FriendScheduleDay> _buildWeekDays(WeeklySchedule schedule) {
+  final grouped = <DateTime, List<ScheduleOccurrence>>{};
+
+  for (final occurrence in schedule.occurrences) {
+    if (occurrence.date.weekday == DateTime.sunday) continue;
+
+    final key = DateTime(
+      occurrence.date.year,
+      occurrence.date.month,
+      occurrence.date.day,
+    );
+
+    grouped.putIfAbsent(key, () => <ScheduleOccurrence>[]).add(occurrence);
+  }
+
+  return List<_FriendScheduleDay>.generate(6, (index) {
+    final day = schedule.weekStart.add(Duration(days: index));
+    final key = DateTime(day.year, day.month, day.day);
+    final occurrences = grouped[key] ?? const <ScheduleOccurrence>[];
+
+    return _FriendScheduleDay(day: key, occurrences: occurrences);
+  });
 }
 
 class _FriendWeeklyCalendar extends StatelessWidget {
@@ -336,9 +246,59 @@ class _FriendScheduleMessage extends StatelessWidget {
   }
 }
 
+class _FriendScheduleOfflineBanner extends StatelessWidget {
+  const _FriendScheduleOfflineBanner({required this.lastUpdated});
+
+  final DateTime? lastUpdated;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final updatedLabel = lastUpdated == null
+        ? 'from local cache'
+        : 'cached ${_formatTimeAgo(lastUpdated!)}';
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.secondary.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: theme.dividerColor.withValues(alpha: .18)),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.wifi_off_rounded,
+            size: 18,
+            color: theme.colorScheme.secondary,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Showing $updatedLabel. This friend schedule may have changed.',
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _FriendScheduleDay {
   const _FriendScheduleDay({required this.day, required this.occurrences});
 
   final DateTime day;
   final List<ScheduleOccurrence> occurrences;
+}
+
+String _formatTimeAgo(DateTime time) {
+  final diff = DateTime.now().difference(time);
+
+  if (diff.inMinutes < 1) return 'just now';
+  if (diff.inMinutes < 60) return '${diff.inMinutes} min ago';
+  if (diff.inHours < 24) return '${diff.inHours} h ago';
+  return '${diff.inDays} days ago';
 }
