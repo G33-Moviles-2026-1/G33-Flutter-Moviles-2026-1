@@ -6,6 +6,7 @@ class AuthState {
   final AuthUser? user;
   final String? error;
   final bool isSuccess;
+  final bool isUsingOfflineSession;
 
   const AuthState({
     this.isLoading = false,
@@ -13,6 +14,7 @@ class AuthState {
     this.user,
     this.error,
     this.isSuccess = false,
+    this.isUsingOfflineSession = false,
   });
 
   bool get hasActiveSession => isAuthenticated && user != null;
@@ -24,6 +26,7 @@ class AuthState {
     bool clearUser = false,
     String? error,
     bool? isSuccess,
+    bool? isUsingOfflineSession,
   }) {
     return AuthState(
       isLoading: isLoading ?? this.isLoading,
@@ -31,6 +34,8 @@ class AuthState {
       user: clearUser ? null : (user ?? this.user),
       error: error,
       isSuccess: isSuccess ?? this.isSuccess,
+      isUsingOfflineSession:
+          isUsingOfflineSession ?? this.isUsingOfflineSession,
     );
   }
 }

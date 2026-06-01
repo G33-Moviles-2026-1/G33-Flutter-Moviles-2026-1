@@ -39,7 +39,7 @@ class AuthNotifier extends Notifier<AuthState> {
         .read(connectivityRecoveryServiceProvider)
         .onRecovered
         .listen((_) {
-          _revalidateRemoteSession();
+          _syncPendingProfileMutationsAndRevalidate();
         });
 
     ref.onDispose(() {
@@ -58,6 +58,9 @@ class AuthNotifier extends Notifier<AuthState> {
     state = state.copyWith(isLoading: true, error: null, isSuccess: false);
 
     try {
+      final hasInternet = await ref
+          .read(connectivityStatusServiceProvider)
+          .hasInternetConnection();
       final user = await _getCurrentUserUseCase();
 
       state = AuthState(
@@ -65,6 +68,7 @@ class AuthNotifier extends Notifier<AuthState> {
         isAuthenticated: user != null,
         user: user,
         isSuccess: false,
+        isUsingOfflineSession: user != null && !hasInternet,
       );
     } catch (_) {
       state = const AuthState(isLoading: false, isAuthenticated: false);
@@ -90,6 +94,7 @@ class AuthNotifier extends Notifier<AuthState> {
         isAuthenticated: user != null,
         user: user,
         isSuccess: true,
+        isUsingOfflineSession: false,
       );
     } catch (error) {
       state = AuthState(
@@ -134,9 +139,10 @@ class AuthNotifier extends Notifier<AuthState> {
             isAuthenticated: user != null,
             user: updated ?? user,
             isSuccess: true,
+            isUsingOfflineSession: false,
           );
           return;
-        } catch (_) {        }
+        } catch (_) {}
       }
 
       state = AuthState(
@@ -144,6 +150,7 @@ class AuthNotifier extends Notifier<AuthState> {
         isAuthenticated: user != null,
         user: user,
         isSuccess: true,
+        isUsingOfflineSession: false,
       );
     } catch (error) {
       state = AuthState(
@@ -165,10 +172,12 @@ class AuthNotifier extends Notifier<AuthState> {
     try {
       await _logoutAndClearSessionDataUseCase();
 
-      await ref.read(scheduleControllerProvider.notifier).clearLocalSchedule();
-      await ref.read(appDatabaseProvider).clearFriendshipsLocalData();
-      await ref.read(notificationsLocalDataSourceProvider).clear();
-      await ref.read(pathLocalDataSourceProvider).clear();
+      await Future.wait([
+        ref.read(scheduleControllerProvider.notifier).clearLocalSchedule(),
+        ref.read(appDatabaseProvider).clearFriendshipsLocalData(),
+        ref.read(notificationsLocalDataSourceProvider).clear(),
+        ref.read(pathLocalDataSourceProvider).clear(),
+      ]);
 
       state = const AuthState(
         isLoading: false,
@@ -302,10 +311,25 @@ class AuthNotifier extends Notifier<AuthState> {
         return;
       }
 
-      state = state.copyWith(isAuthenticated: true, user: user, error: null);
+      state = state.copyWith(
+        isAuthenticated: true,
+        user: user,
+        error: null,
+        isUsingOfflineSession: false,
+      );
     } catch (_) {
-      // Keep the local-first session if the validation failed for a temporary reason.
+      state = state.copyWith(isUsingOfflineSession: state.user != null);
     }
+  }
+
+  Future<void> _syncPendingProfileMutationsAndRevalidate() async {
+    try {
+      await ref.read(authRepositoryProvider).syncPendingProfileMutations();
+    } catch (_) {
+      // Keep pending profile changes queued until the next recovery event.
+    }
+
+    await _revalidateRemoteSession();
   }
 }
 

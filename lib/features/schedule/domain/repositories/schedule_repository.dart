@@ -59,6 +59,8 @@ abstract class ScheduleRepository {
 
   Future<void> refreshScheduleClassesFromRemote();
 
+  Future<void> syncPendingScheduleMutations();
+
   Future<void> deleteScheduleOccurrence({
     required String classId,
     required DateTime date,

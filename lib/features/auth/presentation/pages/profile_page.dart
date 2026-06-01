@@ -58,7 +58,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       return;
     }
     if (username.length < 3) {
-      setState(() => _usernameError = 'Username must be at least 3 characters.');
+      setState(
+        () => _usernameError = 'Username must be at least 3 characters.',
+      );
       return;
     }
     if (!RegExp(r'^[a-zA-Z0-9._\-]+$').hasMatch(username)) {
@@ -157,7 +159,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final user = ref.watch(authControllerProvider).user;
+    final authState = ref.watch(authControllerProvider);
+    final user = authState.user;
     final currentStatus = user?.status ?? UserStatus.incognito;
 
     return AppScaffold(
@@ -187,6 +190,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                           status: currentStatus,
                           semester: user?.firstSemester,
                         ),
+                        if (authState.isUsingOfflineSession) ...[
+                          const SizedBox(height: 12),
+                          const _OfflineSessionBanner(),
+                        ],
                         const SizedBox(height: 18),
                         _ProfileSection(
                           icon: Icons.badge_outlined,
@@ -195,13 +202,13 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-          Text(
-            'Profile',
-            style: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 24),
+                              Text(
+                                'Profile',
+                                style: theme.textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              const SizedBox(height: 24),
 
                               TextFormField(
                                 controller: _usernameCtrl,
@@ -218,15 +225,16 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                                   labelText: 'Username',
                                   hintText: 'Username',
                                   errorText: _usernameError,
-                              
+
                                   floatingLabelStyle: theme.textTheme.bodySmall
                                       ?.copyWith(
-                                        color: theme.brightness == Brightness.light
+                                        color:
+                                            theme.brightness == Brightness.light
                                             ? theme.colorScheme.onSurface
                                             : theme.colorScheme.secondary,
                                         fontWeight: FontWeight.w700,
                                       ),
-                          
+
                                   prefixIcon: Icon(
                                     Icons.person_outline,
                                     color: theme.colorScheme.onSurface
@@ -413,7 +421,10 @@ class _ProfileHero extends StatelessWidget {
                   spacing: 8,
                   runSpacing: 8,
                   children: [
-                    _InfoPill(svgAsset: _statusSvg(status), label: status.label),
+                    _InfoPill(
+                      svgAsset: _statusSvg(status),
+                      label: status.label,
+                    ),
                     if (semester?.trim().isNotEmpty == true)
                       _InfoPill(
                         icon: Icons.school_outlined,
@@ -430,9 +441,45 @@ class _ProfileHero extends StatelessWidget {
   }
 }
 
+class _OfflineSessionBanner extends StatelessWidget {
+  const _OfflineSessionBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.secondary.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.18)),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.wifi_off_rounded,
+            size: 18,
+            color: theme.colorScheme.secondary,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Showing your cached profile. Changes will sync when the connection returns.',
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _InfoPill extends StatelessWidget {
   const _InfoPill({this.icon, this.svgAsset, required this.label})
-      : assert(icon != null || svgAsset != null);
+    : assert(icon != null || svgAsset != null);
 
   final IconData? icon;
   final String? svgAsset;
@@ -449,7 +496,9 @@ class _InfoPill extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.colorScheme.surface.withValues(alpha: 0.92),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: theme.colorScheme.onSurface.withValues(alpha: 0.20)),
+        border: Border.all(
+          color: theme.colorScheme.onSurface.withValues(alpha: 0.20),
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -528,7 +577,10 @@ class _ProfileSection extends StatelessWidget {
                           svgAsset!,
                           width: 22,
                           height: 22,
-                          colorFilter: ColorFilter.mode(iconColor, BlendMode.srcIn),
+                          colorFilter: ColorFilter.mode(
+                            iconColor,
+                            BlendMode.srcIn,
+                          ),
                         )
                       : Icon(icon, color: iconColor),
                 ),

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:andespace/core/di/auth_providers.dart';
 import 'package:andespace/core/di/core_provider.dart';
 import 'package:andespace/features/rooms/domain/entities/room_search.dart';
@@ -15,8 +17,25 @@ import '../providers/schedule_providers.dart';
 import 'schedule_state.dart';
 
 class ScheduleNotifier extends Notifier<ScheduleState> {
+  StreamSubscription<void>? _connectivitySubscription;
+  bool _connectivityListenerStarted = false;
+
   @override
   ScheduleState build() {
+    if (!_connectivityListenerStarted) {
+      _connectivityListenerStarted = true;
+      _connectivitySubscription = ref
+          .read(connectivityRecoveryServiceProvider)
+          .onRecovered
+          .listen((_) {
+            _syncPendingMutationsAfterRecovery();
+          });
+
+      ref.onDispose(() {
+        _connectivitySubscription?.cancel();
+      });
+    }
+
     return ScheduleState.initial();
   }
 
@@ -292,6 +311,11 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
     try {
       if (refreshFromRemote) {
         try {
+          final syncPending = ref.read(
+            syncPendingScheduleMutationsForCurrentUserProvider,
+          );
+          await syncPending();
+
           final refreshRemote = ref.read(
             refreshScheduleClassesForCurrentUserProvider,
           );
@@ -595,6 +619,18 @@ class ScheduleNotifier extends Notifier<ScheduleState> {
     state = state.copyWith(hasInternetConnection: hasConnection);
 
     return hasConnection;
+  }
+
+  Future<void> _syncPendingMutationsAfterRecovery() async {
+    try {
+      final syncPending = ref.read(
+        syncPendingScheduleMutationsForCurrentUserProvider,
+      );
+      await syncPending();
+      await loadWeek(refreshFromRemote: true);
+    } catch (_) {
+      // Pending schedule changes stay persisted and will retry later.
+    }
   }
 
   Future<String> _scheduleChangeSuccessMessage() async {

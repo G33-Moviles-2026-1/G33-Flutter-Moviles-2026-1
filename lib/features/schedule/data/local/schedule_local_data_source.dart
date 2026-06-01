@@ -11,6 +11,38 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../domain/entities/friends_free_slot.dart';
 
+class PendingScheduleMutation {
+  const PendingScheduleMutation({
+    required this.id,
+    required this.type,
+    required this.payload,
+    required this.createdAt,
+  });
+
+  final String id;
+  final String type;
+  final Map<String, dynamic> payload;
+  final DateTime createdAt;
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'type': type,
+    'payload': payload,
+    'created_at': createdAt.toIso8601String(),
+  };
+
+  factory PendingScheduleMutation.fromJson(Map<String, dynamic> json) {
+    return PendingScheduleMutation(
+      id: json['id']?.toString() ?? '',
+      type: json['type']?.toString() ?? '',
+      payload: Map<String, dynamic>.from(json['payload'] as Map? ?? {}),
+      createdAt:
+          DateTime.tryParse(json['created_at']?.toString() ?? '') ??
+          DateTime.now(),
+    );
+  }
+}
+
 abstract class ScheduleLocalDataSource {
   Future<void> replaceClasses({required List<ScheduleClass> classes});
 
@@ -64,9 +96,22 @@ abstract class ScheduleLocalDataSource {
     required List<String> friendEmails,
     required DateTime date,
   });
+
+  Future<void> enqueuePendingScheduleMutation({
+    required String type,
+    required Map<String, dynamic> payload,
+  });
+
+  Future<List<PendingScheduleMutation>> getPendingScheduleMutations();
+
+  Future<void> removePendingScheduleMutation(String id);
+
+  Future<void> clearPendingScheduleMutations();
 }
 
 class ScheduleLocalDataSourceImpl implements ScheduleLocalDataSource {
+  static const _pendingScheduleMutationsKey = 'schedule_pending_mutations_v1';
+
   final AppDatabase db;
 
   const ScheduleLocalDataSourceImpl({required this.db});
@@ -182,6 +227,74 @@ class ScheduleLocalDataSourceImpl implements ScheduleLocalDataSource {
   @override
   Future<void> clearSchedule() {
     return db.clearSchedule();
+  }
+
+  @override
+  Future<void> enqueuePendingScheduleMutation({
+    required String type,
+    required Map<String, dynamic> payload,
+  }) async {
+    final pending = await getPendingScheduleMutations();
+    final next = [
+      ...pending,
+      PendingScheduleMutation(
+        id: '${DateTime.now().microsecondsSinceEpoch}_$type',
+        type: type,
+        payload: payload,
+        createdAt: DateTime.now(),
+      ),
+    ];
+
+    await _savePendingScheduleMutations(next);
+  }
+
+  @override
+  Future<List<PendingScheduleMutation>> getPendingScheduleMutations() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_pendingScheduleMutationsKey);
+    if (raw == null || raw.trim().isEmpty) return const [];
+
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! List) return const [];
+
+      return decoded
+          .whereType<Map>()
+          .map((item) {
+            return PendingScheduleMutation.fromJson(
+              Map<String, dynamic>.from(item),
+            );
+          })
+          .where((item) => item.id.isNotEmpty && item.type.isNotEmpty)
+          .toList()
+        ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  @override
+  Future<void> removePendingScheduleMutation(String id) async {
+    final pending = await getPendingScheduleMutations();
+    await _savePendingScheduleMutations(
+      pending.where((item) => item.id != id).toList(),
+    );
+  }
+
+  @override
+  Future<void> clearPendingScheduleMutations() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_pendingScheduleMutationsKey);
+  }
+
+  Future<void> _savePendingScheduleMutations(
+    List<PendingScheduleMutation> mutations,
+  ) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      _pendingScheduleMutationsKey,
+      jsonEncode(mutations.map((item) => item.toJson()).toList()),
+    );
   }
 
   @override
